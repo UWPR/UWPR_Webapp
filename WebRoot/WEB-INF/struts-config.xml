@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN"
+          "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+
+
+
+<!--
+
+     This is a blank Struts configuration file with an example
+
+     welcome action/page and other commented sample elements.
+
+
+
+     Tiles and the Struts Validator are configured using the factory defaults
+
+     and are ready-to-use.
+
+
+
+     NOTE: If you have a generator tool to create the corresponding Java classes
+
+     for you, you could include the details in the "form-bean" declarations.
+
+     Otherwise, you would only define the "form-bean" element itself, with the
+
+     corresponding "name" and "type" attributes, as shown here.
+
+-->
+
+
+
+
+
+<struts-config>
+
+
+
+<!-- ==================================== Data Source Configuration -->
+
+<!--
+
+ <data-sources>
+
+   <data-source>
+
+     <set-property
+
+        property="autoCommit"
+
+        value="false"/>
+
+     <set-property
+
+        property="description"
+
+        value="Example Data Source Configuration"/>
+
+     <set-property
+
+        property="driverClass"
+
+        value="org.postgresql.Driver"/>
+
+     <set-property
+
+        property="maxCount"
+
+        value="4"/>
+
+     <set-property
+
+        property="minCount"
+
+        value="2"/>
+
+     <set-property
+
+        property="password"
+
+        value="mypassword"/>
+
+     <set-property
+
+        property="url"
+
+        value="jdbc:postgresql://localhost/mydatabase"/>
+
+     <set-property
+
+        property="user"
+
+        value="myusername"/>
+
+   </data-source>
+
+ </data-sources>
+
+-->
+
+
+
+<!-- ======================================== Form Bean Definitions -->
+
+    <form-beans>
+	<form-bean name="loginForm" type="org.yeastrc.www.login.LoginForm"/>
+	<form-bean name="registerForm" type="org.yeastrc.register.RegisterForm"/>
+	<form-bean name="addLabDirectorForm" type="org.yeastrc.www.project.AddLabDirectorForm"/>
+	<form-bean name="forgotPasswordForm" type="org.yeastrc.www.login.ForgotPasswordForm"/>
+	<form-bean name="editCollaborationForm" type="org.yeastrc.www.project.EditCollaborationForm"/>
+	<form-bean name="editBilledProjectForm" type="org.yeastrc.www.project.EditBilledProjectForm"/>
+	<form-bean name="editCollaborationReviewForm" type="org.yeastrc.www.project.EditCollaborationReviewForm"/>
+	<form-bean name="editCollaborationStatusForm" type="org.yeastrc.www.project.EditCollaborationStatusForm"/>
+	<form-bean name="editInformationForm" type="org.yeastrc.www.account.EditInformationForm"/>
+	<form-bean name="editUsernameForm" type="org.yeastrc.www.account.EditUsernameForm"/>
+	<form-bean name="editPasswordForm" type="org.yeastrc.www.account.EditPasswordForm"/>
+	<form-bean name="editResearcherForm" type="org.yeastrc.www.project.EditResearcherForm"/>
+	<form-bean name="manageGroupMembersForm" type="org.yeastrc.www.admin.ManageGroupMembersForm"/>
+	<form-bean name="searchProjectsForm" type="org.yeastrc.www.project.SearchProjectsForm"/>
+	<form-bean name="addExternalDataLinkForm" type="org.uwpr.www.data.DataURIForm"/>
+	<form-bean name="updateExternalDataLinkForm" type="org.uwpr.www.data.UpdateDataURIForm" />
+    <form-bean name="instrumentUsageForm" type="org.uwpr.www.instrumentlog.InstrumentUsageForm" />
+    <form-bean name="dateRangeForm" type="org.uwpr.www.instrumentlog.DateRangeForm"></form-bean>
+    <form-bean name="instrumentSelectorForm" type="org.uwpr.www.instrumentlog.InstrumentSelectorForm"></form-bean>
+    <form-bean name="rejectionCauseForm" type="org.yeastrc.www.project.ProjectRejectionCauseForm"></form-bean>
+    <form-bean name="timeBlockForm" type="org.uwpr.www.costcenter.TimeBlockForm" />
+    <form-bean name="instrumentRateForm" type="org.uwpr.www.costcenter.InstrumentRateForm" />
+    <form-bean name="paymentMethodForm" type="org.yeastrc.www.project.payment.PaymentMethodForm" />
+    <form-bean name="exportBillingInformationForm" type="org.uwpr.www.costcenter.ExportBillingInformationForm" />
+    <form-bean name="editInstrumentTimeForm" type="org.uwpr.www.scheduler.EditProjectInstrumentTimeForm" />
+    <form-bean name="editBlockPaymentForm" type="org.uwpr.www.scheduler.EditBlockPaymentMethodForm" />
+	<form-bean name="uploadFileForm" type="org.yeastrc.www.files.UploadFileForm"></form-bean>
+	<form-bean name="viewInstrumentRatesForm" type="org.uwpr.www.costcenter.ViewInstrumentRatesForm"></form-bean>
+    <form-bean name="viewScheduledTimeDetailsForm" type="org.uwpr.www.scheduler.ViewTimeScheduledForProjectForm"></form-bean>
+    </form-beans>
+
+
+
+
+
+<!-- ================================= Global Exception Definitions -->
+
+
+
+    <global-exceptions>
+
+        <!-- sample exception handler
+
+        <exception
+
+            key="expired.password"
+
+            type="app.ExpiredPasswordException"
+
+            path="/changePassword.jsp"/>
+
+        end sample -->
+
+    </global-exceptions>
+
+
+
+
+
+<!-- =================================== Global Forward Definitions -->
+
+    <global-forwards>
+
+	<forward name="authenticate" path="/pages/login/login.jsp" />
+	<forward name="errors" path="/pages/errors/showErrors.jsp" />
+	<forward name="directAccessError" path="/pages/errors/directAccessError.jsp" />
+	<forward name="viewProject" path="/viewProject.do" />
+	<forward name="editProject" path="/editProject.do" />
+	<forward name="editCollaborationStatus" path="/editCollaborationStatus.do" />
+	<forward name="editCollaborationReview" path="/editCollaborationReview.do" />
+	<forward name="editInformation" path="/editInformation.do" />
+	<forward name="newResearcher" path="/newResearcher.do" />
+	<forward name="addLabDirector" path="/addLabDirector.do"/>
+	<forward name="newCollaboration" path="/newCollaboration.do" />
+	<forward name="extendCollaboration" path="/extendCollaboration.do" />
+	<forward name="newBilledProject" path="/newBilledProject.do" />
+	<forward name="viewRegister" path="/viewRegister.do" />
+	<forward name="manageGroups" path="/manageGroups.do" />
+	<forward name="manageGroupMembers" path="/manageGroupMembers.do" />
+	<forward name="adminHome" path="/pages/admin/search/searchProjects.jsp"/>
+	<forward name="projectSearchForm" path="/pages/admin/search/searchProjects.jsp"/>
+	<forward name="standardHome" path="/viewFrontPage.do"/>
+	<forward name="adminSearch" path="/pages/admin/search/searchProjects.jsp"/>
+	<forward name="viewResearcher" path="/viewResearcher.do" />
+	<forward name="projectUsageList" path="/viewProjectUsage.do" />
+	<forward name="viewPaymentMethod" path="/viewPaymentMethod.do" />
+	<forward name="viewScheduler" path="/viewScheduler.do" />
+	<forward name="editInstrumentRateForm" path="/editInstrumentRateForm.do" />
+	<forward name="viewInstrumentRates" path="/viewInstrumentRates.do" />
+	<forward name="viewCurrentInstrumentRates" path="/viewCurrentInstrumentRates.do" />
+	<forward name="editPaymentMethod" path="/editPaymentMethod.do" />
+	<forward name="costCenterHome" path="/costCenterHome.do" />
+	<forward name="viewScheduledTimeDetails" path="/viewScheduledTimeDetails.do"/>
+	<forward name="viewAllInstrumentCalendar" path="/viewAllInstrumentCalendar.do"/>
+	<forward name="viewEditInstrumentTimeForm" path="/viewEditInstrumentTimeForm.do"/>
+    <forward name="viewEditBlockPaymentForm" path="/viewEditBlockPaymentForm.do"/>
+
+    </global-forwards>
+
+
+
+
+
+<!-- =================================== Action Mapping Definitions -->
+
+    <action-mappings>
+
+	<action
+	  path="/viewFrontPage"
+	  type="org.yeastrc.www.project.FrontPageAction">
+	  <forward name="Success" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+
+	<!-- MAP AN ACTION TO THE REGISTRATION PROCESS -->
+	<action
+	  path="/register"
+	  input="/pages/register/register.jsp"
+	  name="registerForm"
+	  scope="request"
+	  type="org.yeastrc.register.RegisterAction"
+	  validate="true">
+	  <forward name="Success" path="/pages/internal/front.jsp" redirect="true"/>
+	  <forward name="Failure" path="/pages/register/register.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	 path="/viewRegister"
+	 type="org.yeastrc.register.ViewRegisterAction">
+	 <forward name="Done" path="/pages/register/register.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/login"
+	  input="/pages/login/login.jsp"
+	  name="loginForm"
+	  scope="request"
+	  type="org.yeastrc.www.login.LoginAction"
+	  validate="true">
+	  <forward name="Success" path="/pages/internal/front.jsp" redirect="true"/>
+	  <forward name="Failure" path="/pages/login/login_retry.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/logout"
+	  type="org.yeastrc.www.login.LogoutAction">
+	  <forward name="Done" path="/pages/login/login.jsp" redirect="true"/>
+	</action>
+
+	<action
+	  path="/sendPassword"
+	  input="/pages/login/forgotPassword.jsp"
+	  name="forgotPasswordForm"
+	  scope="request"
+	  type="org.yeastrc.www.login.ForgotPasswordAction"
+	  validate="true">
+	  <forward name="Success" path="/pages/login/passwordSent.jsp" redirect="true"/>
+	  <forward name="Failure" path="/pages/login/forgotPassword.jsp" redirect="false"/>
+	</action>
+
+	
+	<!-- ============================================================================================ -->
+	<!-- ACCOUNT INFORMATION -->
+	<action
+	  path="/editInformation"
+	  type="org.yeastrc.www.account.EditInformationAction">
+	  <forward name="Success" path="/pages/internal/account/editInformation.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<!-- Edit username -->
+	<action
+	  path="/editUsername"
+	  type="org.yeastrc.www.account.EditUsernameAction">
+	  <forward name="Success" path="/pages/internal/account/editUsername.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<!-- Edit password -->
+	<action
+	  path="/editPassword"
+	  type="org.yeastrc.www.account.EditPasswordAction">
+	  <forward name="Success" path="/pages/internal/account/editPassword.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+
+	<action
+	  path="/saveInformation"
+	  input="/pages/internal/account/editInformation.jsp"
+	  name="editInformationForm"
+	  scope="request"
+	  type="org.yeastrc.www.account.SaveInformationAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/account/editInformation.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/internal/account/editInformation.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/saveUsername"
+	  input="/pages/internal/account/editUsername.jsp"
+	  name="editUsernameForm"
+	  scope="request"
+	  type="org.yeastrc.www.account.SaveUsernameAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/account/editUsername.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/internal/account/editUsername.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/savePassword"
+	  input="/pages/internal/account/editPassword.jsp"
+	  name="editPasswordForm"
+	  scope="request"
+	  type="org.yeastrc.www.account.SavePasswordAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/account/editPassword.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/internal/account/editPassword.jsp" redirect="false"/>
+	</action>
+	
+	<!-- ============================================================================================ -->
+	<!-- RESEARCHER -->
+	<action
+	  path="/newResearcher"
+	  type="org.yeastrc.www.project.NewResearcherAction">
+	  <forward name="Success" path="/pages/internal/project/newResearcher.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/saveResearcher"
+	  input="/pages/internal/project/newResearcher.jsp"
+	  name="editResearcherForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveResearcherAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/newResearcher.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/internal/project/newResearcher.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/viewResearcher"
+	  type="org.yeastrc.www.project.ViewResearcher">
+	  <forward name="Success" path="/pages/internal/project/viewResearcher.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<!-- ============================================================================================ -->
+	<!-- ================= GROUPS                                        ============================ -->
+	<action
+	  path="/manageGroups"
+	  type="org.yeastrc.www.admin.ManageGroupsAction">
+	  <forward name="Success" path="/pages/admin/manageGroups.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/manageGroupMembers"
+	  type="org.yeastrc.www.admin.ManageGroupMembersAction"
+	  name="manageGroupMembersForm"
+	  scope="request"
+	  input="/pages/admin/manageGroupMembers.jsp"
+	  validate="true">
+	  <forward name="Success" path="/pages/admin/manageGroupMembers.jsp" redirect="false"/>
+	  <forward name="Failure" path="/manageGroups.do" redirect="false"/>
+	</action>
+	
+	<!-- ============================================================================================ -->
+	<!-- LAB DIRECTOR  -->
+	<!-- ============================================================================================ -->
+	<action
+	 path="/addLabDirector"
+	 type="org.yeastrc.www.project.AddLabDirectorAction">
+	 <forward name="Success" path="/pages/internal/project/addLabDirector.jsp" redirect="false"/>
+	 <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveLabDirector"
+	  input="/pages/internal/project/addLabDirector.jsp"
+	  name="addLabDirectorForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveLabDirectorAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/addLabDirector.jsp"  redirect="false"/>
+	  <forward name="Success" path="/pages/internal/project/labDirectorAdded.jsp"  redirect="false"/>
+	</action>
+	
+	<!-- ============================================================================================ -->
+	<!-- ================= PROJECTS                                      ============================ -->
+	<action
+	  path="/editProject"
+	  type="org.yeastrc.www.project.EditProjectAction">
+	  <forward name="Collaboration" path="/pages/internal/project/editCollaboration.jsp" redirect="false"/>
+	  <forward name="BilledProject" path="/pages/internal/project/editBilledProject.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/deleteProject"
+	  type="org.yeastrc.www.project.DeleteProjectAction">
+	  <forward name="Success" path="/pages/internal/project/projectDeleted.jsp" redirect="true"/>
+	</action>
+	
+	<action
+	  path="/viewProject"
+	  type="org.yeastrc.www.project.ViewProjectAction">
+	  <forward name="Collaboration" path="/pages/internal/project/viewCollaboration.jsp" redirect="false"/>
+	  <forward name="BilledProject" path="/pages/internal/project/viewBilledProject.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveExternalDataLink"
+	  input="/viewProject.do"
+	  name="addExternalDataLinkForm"
+	  scope="request"
+	  type="org.uwpr.www.data.SaveDataURIAction"
+	  validate="false">
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	  <forward name="Failure" path="/viewProject.do" redirect="false"/>
+	</action>
+
+	<action 
+ 		path="/updateExternalDataLink" 
+ 		input="/viewProject.do"
+ 		name="updateExternalDataLinkForm"
+ 		scope="request"
+ 		validate="false"
+ 		type="org.uwpr.www.data.UpdateDataURIAction">
+      	<forward name="Failure" path="/viewProject.do" />
+      	<forward name="Success" path="/viewProject.do" redirect="true" />
+    </action>
+    
+	<action
+	  path="/deleteExternalDataLink"
+	  type="org.uwpr.www.data.DeleteDataURIAction">
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	  <forward name="Failure" path="/viewProject.do" redirect="false"/>
+	</action>
+
+	<action
+	  path="/refreshDirectories"
+	  type="org.uwpr.www.util.RefreshAllHTAccessFilesAction">
+	</action>
+
+	<!-- ============================================================================================ -->
+	<!-- ================= SEARCH PROJECTS                               ============================ -->
+	<action
+	  path="/searchProjects"
+	  input="/pages/admin/search/searchProjects.jsp"
+	  name="searchProjectsForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SearchProjectsAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/admin/search/searchProjects.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/admin/search/searchProjectsResults.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/sortProjectSearch"
+	  type="org.yeastrc.www.project.SortProjectSearchAction">
+	  <forward name="Failure" path="/pages/admin/search/searchProjects.jsp" redirect="false"/>
+	  <forward name="Success" path="/pages/admin/search/searchProjectsResults.jsp" redirect="false"/>
+	</action>
+	
+	<!-- ============================================================================================ -->
+	<!-- ================= COLLABORATION (free projects) RELATED ACTIONS ============================ -->
+	<action
+	  path="/saveCollaboration"
+	  input="/pages/internal/project/editCollaboration.jsp"
+	  name="editCollaborationForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveCollaborationAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/editCollaboration.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/newCollaboration"
+	  type="org.yeastrc.www.project.NewCollaborationAction">
+	  <forward name="BlockCollaboration" path="/pages/internal/project/overdueCollaborations.jsp" redirect="false" />
+	  <forward name="Success" path="/pages/internal/project/newCollaboration.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/extendCollaboration"
+	  type="org.yeastrc.www.project.ExtendCollaborationAction">
+	  <forward name="BlockCollaboration" path="/pages/internal/project/overdueCollaborations.jsp" redirect="false" />
+	  <forward name="Success" path="/pages/internal/project/extendCollaboration.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveCollaborationExtension"
+	  input="/pages/internal/project/extendCollaboration.jsp"
+	  name="editCollaborationForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveCollaborationExtensionAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/extendCollaboration.jsp" redirect="false"/>
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	</action>
+	
+	<action
+	  path="/saveNewCollaboration"
+	  input="/pages/internal/project/newCollaboration.jsp"
+	  name="editCollaborationForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveNewCollaborationAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/newCollaboration.jsp" redirect="false"/>
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	</action>
+	
+	<!-- ============================================================================================ -->
+	<!-- COLLABORATION REVIEW  -->
+	<action
+	  path="/editCollaborationReview"
+	  type="org.yeastrc.www.project.EditCollaborationReviewAction">
+	  <forward name="Success" path="/pages/internal/project/editCollaborationReview.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveCollaborationReview"
+	  type="org.yeastrc.www.project.SaveCollaborationReviewAction"
+	  input="/pages/internal/project/editCollaborationReview.jsp"
+	  name="editCollaborationReviewForm"
+	  scope="request"
+	  validate="true">
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	  <forward name="Failure" path="/pages/internal/project/editCollaborationReview.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/editCollaborationStatus"
+	  type="org.yeastrc.www.project.EditCollaborationStatusAction">
+	  <forward name="Success" path="/pages/internal/project/editCollaborationStatus.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveCollaborationStatus"
+	  type="org.yeastrc.www.project.SaveCollaborationStatusAction"
+	  input="/pages/internal/project/editCollaborationStatus.jsp"
+	  name="editCollaborationStatusForm"
+	  scope="request"
+	  validate="true">
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	  <forward name="Failure" path="/pages/internal/project/editCollaborationStatus.jsp" redirect="false"/>
+	</action>
+	<!-- ============================================================================================ -->
+	
+	
+	<!-- ================================================================================== -->
+	<!-- Collaboration rejection reasons -->
+	<!-- ================================================================================== -->
+	<action
+      path="/addRejectionCause"
+      type="org.yeastrc.www.project.AddProjectRejectionCauseAction"
+      input="/pages/internal/project/addRejectionReason.jsp"
+      name="rejectionCauseForm"
+      scope="request"
+      validate="true">
+      <forward name="Success" path="/pages/internal/project/rejectionReasonAdded.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/project/addRejectionReason.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/newRejectionCause"
+      type="org.yeastrc.www.project.NewProjectRejectionCauseAction">
+      <forward name="Success" path="/pages/internal/project/addRejectionReason.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="true"/>
+    </action>
+    
+	<!-- ================================================================================== -->
+	
+	
+	<!-- ================================================================================== -->
+	<!-- Billed projects -->
+	<!-- ================================================================================== -->
+	<action
+	  path="/newBilledProject"
+	  type="org.yeastrc.www.project.NewBilledProjectAction"
+	  >
+	  <forward name="Success" path="/pages/internal/project/newBilledProject.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveNewBilledProject"
+	  input="/pages/internal/project/newBilledProject.jsp"
+	  type="org.yeastrc.www.project.SaveNewBilledProjectAction"
+	  name="editBilledProjectForm"
+      scope="request"
+	  validate="true">
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/saveBilledProject"
+	  input="/pages/internal/project/editBilledProject.jsp"
+	  name="editBilledProjectForm"
+	  scope="request"
+	  type="org.yeastrc.www.project.SaveBilledProjectAction"
+	  validate="true">
+	  <forward name="Failure" path="/pages/internal/project/editBilledProject.jsp" redirect="false"/>
+	  <forward name="Success" path="/viewProject.do" redirect="true"/>
+	</action>
+	
+	<action
+	  path="/extendAsBilledProject"
+	  type="org.yeastrc.www.project.ExtendAsBilledProjectAction"
+	  name="editBilledProjectForm"
+	  validate="false">
+	  <forward name="Success" path="/pages/internal/project/newBilledProject.jsp" redirect="false"/>
+	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<action
+		path="/toggleBilledProjectStatus"
+		type="org.yeastrc.www.project.ToggleBilledProjectStatus"
+	>
+		<forward name="Success" path="/viewProject.do" redirect="true"/>
+	  	<forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+	
+	<!-- ================================================================================== -->
+	<!-- Actions related to creating and editing payment methods -->
+	<!-- ================================================================================== -->
+	<action
+      path="/newPaymentMethod"
+      type="org.yeastrc.www.project.payment.NewPaymentMethodAction"
+      name="paymentMethodForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/internal/project/payment/newPaymentMethod.jsp" redirect="false" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/saveNewPaymentMethod"
+      type="org.yeastrc.www.project.payment.SaveNewPaymentMethodAction"
+      name="paymentMethodForm"
+      input="/pages/internal/project/payment/newPaymentMethod.jsp"
+      validate="true"
+      >
+      <forward name="Success" path="/viewProject.do" redirect="true" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/viewPaymentMethod"
+      type="org.yeastrc.www.project.payment.ViewPaymentMethodAction"
+      >
+      <forward name="Success" path="/pages/internal/project/payment/viewPaymentMethod.jsp" redirect="false" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/editPaymentMethod"
+      type="org.yeastrc.www.project.payment.EditPaymentMethodAction"
+      name="paymentMethodForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/internal/project/payment/editPaymentMethod.jsp" redirect="false" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/savePaymentMethod"
+      type="org.yeastrc.www.project.payment.SavePaymentMethodAction"
+      name="paymentMethodForm"
+      input="/pages/internal/project/payment/editPaymentMethod.jsp"
+      validate="true"
+      >
+      <forward name="Success" path="/pages/internal/project/payment/viewPaymentMethod.jsp" redirect="true" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/deletePaymentMethod"
+      type="org.yeastrc.www.project.payment.DeletePaymentMethodAction"
+      >
+      <forward name="Success" path="/viewProject.do" redirect="true" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+	
+	
+	<!-- ================================================================================== -->
+	<!-- Actions related to viewing scheduler and requesting / editing / deleting instrument time -->
+	<!-- ================================================================================== -->
+	<action
+		path="/viewAllInstrumentCalendar"
+		type="org.uwpr.www.scheduler.ViewAllInstrumentsCalendarAction"
+		>
+		<forward name="Success" path="/pages/internal/scheduler/viewAllInstrumentSchedule.jsp" redirect="false" />
+		<forward name="Failure" path="/pages/internal/scheduler/viewAllInstrumentSchedule.jsp" redirect="false" />
+		<forward name="Popup" path="/pages/internal/scheduler/viewAllInstrumentSchedulePopup.jsp" redirect="false" />
+	</action>
+	
+	<action
+      path="/viewScheduler"
+      type="org.uwpr.www.scheduler.ViewSchedulerAction"
+      >
+      <forward name="BilledProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForBilledProject.jsp" redirect="false" />
+      <forward name="SubsidizedProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForSubsidizedProject.jsp" redirect="false" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+	<action
+      path="/requestInstrumentTimeAjax"
+      type="org.uwpr.www.scheduler.RequestProjectInstrumentTimeAjaxAction"
+      >
+    </action>
+    
+    <action
+      path="/deleteInstrumentTimeAjax"
+      type="org.uwpr.www.scheduler.DeleteProjectInstrumentTimeAjaxAction"
+      >
+    </action>
+    
+    <action
+      path="/deleteInstrumentTime"
+      type="org.uwpr.www.scheduler.DeleteProjectInstrumentTimeAction"
+      >
+      <forward name="Success" path="/viewScheduledTimeDetails.do" redirect="true" />
+      <forward name="Failure" path="/viewScheduledTimeDetails.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/viewEditInstrumentTimeForm"
+      type="org.uwpr.www.scheduler.EditProjectInstrumentTimeFormAction"
+      >
+      <forward name="Success" path="/pages/internal/scheduler/editProjectInstrumentTimeForm.jsp" redirect="false" />
+    </action>
+    
+    <action
+      path="/editInstrumentTime"
+      type="org.uwpr.www.scheduler.EditProjectInstrumentTimeAction"
+      input="/pages/internal/scheduler/editProjectInstrumentTimeForm.jsp"
+      name="editInstrumentTimeForm"
+      validate="true"
+      >
+    </action>
+
+    <action
+      path="/viewEditBlockPaymentForm"
+      type="org.uwpr.www.scheduler.EditBlockPaymentMethodFormAction"
+      name="editBlockPaymentForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/internal/scheduler/editBlockPaymentMethodForm.jsp" redirect="false" />
+    </action>
+
+    <action
+      path="/editBlockPaymentMethod"
+      type="org.uwpr.www.scheduler.EditBlockPaymentMethodAction"
+      input="/pages/internal/scheduler/editBlockPaymentMethodForm.jsp"
+      name="editBlockPaymentForm"
+      validate="true"
+      >
+    </action>
+    
+    <action
+      path="/viewScheduledTimeDetails"
+      type="org.uwpr.www.scheduler.ViewTimeScheduledForProject"
+      input="/pages/internal/scheduler/viewTimeScheduledForProject.jsp"
+      name="viewScheduledTimeDetailsForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForProject.jsp" redirect="false" />
+      <forward name="Failure" path="/viewProject.do" redirect="false"/>
+    </action>
+    
+	<!-- ================================================================================== -->
+	<!-- Actions related to setting up time blocks, rates etc. for the cost center -->
+	<!-- ================================================================================== -->
+	<action
+      path="/costCenterHome"
+      type="org.uwpr.www.costcenter.ViewCostCenterHomeAction"
+      name="exportBillingInformationForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/costCenterHome.jsp" redirect="false" />
+    </action>
+    
+	<action
+      path="/viewTimeBlocks"
+      type="org.uwpr.www.costcenter.ViewTimeBlocksAction"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/viewTimeBlocks.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/viewTimeBlockForm"
+      type="org.uwpr.www.costcenter.ViewTimeBlockFormAction"
+      name="timeBlockForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/timeBlockForm.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/addTimeBlock"
+      type="org.uwpr.www.costcenter.SaveNewTimeBlockAction"
+      input="/pages/admin/costcenter/timeBlockForm.jsp"
+      name="timeBlockForm"
+      validate="true"
+      >
+      <forward name="Success" path="/viewTimeBlocks.do" redirect="true" />
+      <forward name="Failure" path="/pages/admin/costcenter/timeBlockForm.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/deleteTimeBlock"
+      type="org.uwpr.www.costcenter.DeleteTimeBlockAction"
+      >
+      <forward name="Success" path="/viewTimeBlocks.do" redirect="true" />
+      <forward name="Failure" path="/viewTimeBlocks.do" redirect="false" />
+    </action>
+    
+    
+    <action
+      path="/viewInstrumentRates"
+      type="org.uwpr.www.costcenter.ViewInstrumentRatesAction"
+      input="/pages/admin/costcenter/viewInstrumentRates.jsp"
+      name="viewInstrumentRatesForm"
+      validate="true"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/viewInstrumentRates.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/viewCurrentInstrumentRates"
+      type="org.uwpr.www.costcenter.ViewCurrentInstrumentRatesAction"
+      >
+      <forward name="Success" path="/pages/internal/viewCurrentInstrumentRates.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/viewInstrumentRateForm"
+      type="org.uwpr.www.costcenter.ViewInstrumentRateFormAction"
+      name="instrumentRateForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/instrumentRateForm.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/addInstrumentRate"
+      type="org.uwpr.www.costcenter.SaveNewInstrumentRateAction"
+      input="/pages/admin/costcenter/instrumentRateForm.jsp"
+      name="instrumentRateForm"
+      validate="true"
+      >
+      <forward name="Success" path="/viewInstrumentRates.do" redirect="true" />
+      <forward name="Failure" path="/pages/admin/costcenter/instrumentRateForm.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/editInstrumentRateForm"
+      type="org.uwpr.www.costcenter.EditInstrumentRateAction"
+      name="instrumentRateForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/editInstrumentRate.jsp" redirect="false" />
+      <forward name="Failure" path="/viewInstrumentRates.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/saveInstrumentRate"
+      type="org.uwpr.www.costcenter.SaveInstrumentRateAction"
+      input="/pages/admin/costcenter/editInstrumentRate.jsp"
+      name="instrumentRateForm"
+      validate="true"
+      >
+      <forward name="Success" path="/viewInstrumentRates.do" redirect="true" />
+      <forward name="Failure" path="/pages/admin/costcenter/editInstrumentRate.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/changeInstrumentRateForm"
+      type="org.uwpr.www.costcenter.ChangeInstrumentRateFormAction"
+      name="instrumentRateForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/changeInstrumentRate.jsp" redirect="false" />
+      <forward name="Failure" path="/viewInstrumentRates.do" redirect="false"/>
+    </action>
+    
+    <action
+      path="/saveChangeInstrumentRate"
+      type="org.uwpr.www.costcenter.SaveChangeInstrumentRateAction"
+      input="/pages/admin/costcenter/changeInstrumentRate.jsp"
+      name="instrumentRateForm"
+      validate="true"
+      >
+      <forward name="Success" path="/viewInstrumentRates.do" redirect="true" />
+      <forward name="Failure" path="/pages/admin/costcenter/changeInstrumentRate.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/deleteInstrumentRate"
+      type="org.uwpr.www.costcenter.DeleteInstrumentRateAction"
+      >
+      <forward name="Success" path="/viewInstrumentRates.do" redirect="true" />
+      <forward name="Failure" path="/viewInstrumentRates.do" redirect="false" />
+    </action>
+	
+	<!-- ================================================================================== -->
+	<!-- Actions related to exporting billing information -->
+	<!-- ================================================================================== -->
+	<action
+      path="/exportBillingInformation"
+      type="org.uwpr.www.costcenter.ExportBillingInformationAction"
+      input="/pages/admin/costcenter/costCenterHome.jsp"
+      name="exportBillingInformationForm"
+      validate="true"
+      >
+      <forward name="Success" path="/pages/admin/costcenter/costCenterHome.jsp" redirect="false"/>
+      <forward name="Failure" path="/pages/admin/costcenter/costCenterHome.jsp" redirect="false"/>
+    </action>
+	
+	<!-- ================================================================================== -->
+	<!-- MS instrument usage summary actions -->
+	<!-- ================================================================================== -->
+	<action
+      path="/allInstrumentUsageSummary"
+      type="org.uwpr.www.instrumentlog.AllInstrumentUsageSummaryAction"
+      name="dateRangeForm"
+      scope="session"
+      input="/pages/admin/instrumentlog/allInstrumentUsageSummary.jsp"
+      validate="true">
+      <forward name="Success" path="/pages/admin/instrumentlog/allInstrumentUsageSummary.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+    </action>
+    
+    <action
+      path="/instrumentUsageSummary"
+      type="org.uwpr.www.instrumentlog.InstrumentUsageSummaryAction"
+      name="dateRangeForm"
+      scope="session"
+      input="/pages/admin/instrumentlog/instrumentUsageSummary.jsp"
+      validate="true">
+      <forward name="Success" path="/pages/admin/instrumentlog/instrumentUsageSummary.jsp" redirect="false" />
+      <forward name="Failure" path="/allInstrumentUsageSummary.do" redirect="false" />
+    </action>
+    
+    <action
+	  path="/sortInstrumentUsage"
+	  type="org.uwpr.www.instrumentlog.SortInstrumentUsageAction">
+	  <forward name="Success" path="/pages/admin/instrumentlog/instrumentUsageSummary.jsp" redirect="false"/>
+	  <forward name="Failure" path="/allInstrumentUsageSummary.do" redirect="false"  />
+	</action>
+    
+    <action
+      path="/deleteInstrumentUsage"
+      type="org.uwpr.www.instrumentlog.DeleteInstrumentUsageAction"
+      >
+      <forward name="Success" path="/instrumentUsageSummary.do" redirect="true"/>
+      <forward name="Failure" path="/instrumentUsageSummary.do" redirect="false"/>
+    </action>
+	
+	<action
+		path="/viewProjectUsage"
+		type="org.uwpr.www.instrumentlog.ProjectUsageSummaryAction"
+		>
+		<forward name="Success" path="/pages/admin/instrumentlog/projectUsage.jsp" redirect="false" />
+		<forward name="Failure" path="/allInstrumentUsageSummary.do" redirect="true"/>
+	</action>
+	
+	<action
+      path="/instrumentUsageBlocks"
+      type="org.uwpr.www.instrumentlog.InstrumentUsageJSONAction"
+      >
+    </action>
+    
+    <action
+      path="/allInstrumentUsageBlocks"
+      type="org.uwpr.www.instrumentlog.AllInstrumentUsageJSONAction"
+      >
+    </action>
+    
+	<!-- ================================================================================== -->
+	<!-- Files-related actions -->
+	<!-- Michael Riffle, December 2011 -->
+	<!-- ================================================================================== -->
+	
+    <action
+	  path="/service/filesSearch"
+	  type="org.yeastrc.www.files.GetFileListServiceAction">
+		<forward name="Success" path="/pages/utils/showJSON.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/service/deleteFile"
+	  type="org.yeastrc.www.files.DeleteFileServiceAction">
+		<forward name="Success" path="/pages/utils/showJSON.jsp" redirect="false"/>
+	</action>
+	
+	<action
+	  path="/uploadFile"
+	  input="/pages/files/uploadFile.jsp"
+	  name="uploadFileForm"
+	  scope="request"
+	  type="org.yeastrc.www.files.AddFileAction"
+	  validate="true">
+	  <forward name="Success" path="/pages/files/uploadFileSuccess.jsp" redirect="true"/>
+	</action>
+
+	<action
+	  path="/uploadFileForm"
+	  type="org.yeastrc.www.files.UploadFileFormAction">
+		<forward name="Success" path="/pages/files/uploadFile.jsp" redirect="false"/>
+	</action>
+
+	<action
+	  path="/downloadFile"
+	  type="org.yeastrc.www.files.DownloadFileAction">
+	</action>
+    
+	<!-- ================================================================================== -->
+	<!-- ================================================================================== -->
+	
+    </action-mappings>
+
+
+
+<!-- ===================================== Controller Configuration -->
+
+
+
+    <controller
+
+       processorClass="org.apache.struts.tiles.TilesRequestProcessor"/>
+
+
+
+
+
+<!-- ================================ Message Resources Definitions -->
+
+
+
+    <message-resources
+    	parameter="PRMessageResources" null="false"/>
+
+
+
+
+
+<!-- ======================================= Plug Ins Configuration -->
+
+
+  <!-- ========== Tiles plugin ===================  -->
+  <!--												-->
+  <!--
+     This plugin initialize Tiles definition factory. This later can takes some
+	 parameters explained here after. The plugin first read parameters from web.xml, then
+	 overload them with parameters defined here. All parameters are optional.
+	 The plugin should be declared in each struts-config file.
+       - definitions-config: (optional) 
+            Specify configuration file names. There can be several comma 
+		    separated file names (default: ?? )
+       - moduleAware: (optional - struts1.1) 
+            Specify if the Tiles definition factory is module aware. If true (default), 
+			there will be one factory for each Struts module. 
+			If false, there will be one common factory for all module. In this later case, 
+			it is still needed to declare one plugin per module. The factory will be 
+			initialized with parameters found in the first initialized plugin (generally the
+			one associated with the default module).
+			  true : One factory per module. (default)
+			  false : one single shared factory for all modules
+	   - definitions-parser-validate: (optional)
+	        Specify if xml parser should validate the Tiles configuration file.
+			  true : validate. DTD should be specified in file header. (default)
+			  false : no validation
+			  
+	  Paths found in Tiles definitions are relative to the main context.
+  -->
+  <!-- comment following if struts1.0.x -->
+  <plug-in className="org.apache.struts.tiles.TilesPlugin" >
+    <set-property property="definitions-config" 
+	                 value="/WEB-INF/tiles-defs.xml" />
+    <set-property property="moduleAware" value="true" />
+    <set-property property="definitions-parser-validate" value="true" />
+  </plug-in>
+
+  <!-- end comment if struts1.0.x -->
+
+  <plug-in className="org.apache.struts.validator.ValidatorPlugIn">
+    <set-property
+        property="pathnames"
+        value="/WEB-INF/validator-rules.xml,/WEB-INF/validation.xml"/>
+  </plug-in>
+
+</struts-config>
+
