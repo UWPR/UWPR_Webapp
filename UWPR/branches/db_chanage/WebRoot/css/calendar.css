@@ -1,0 +1,228 @@
+/*margin and padding on body element
+  can introduce errors in determining
+  element position and are not recommended;
+  we turn them off as a foundation for YUI
+  CSS treatments. */
+body {
+	margin:0;
+	padding:0;
+}
+
+.yui-button{
+	display:-moz-inline-box;
+	display:inline-block;
+	vertical-align:text-bottom;
+}
+
+.yui-button button {
+	display:block;
+	*display:inline-block;
+	border:none;
+	margin:0;
+	background-color:transparent;
+	*overflow:visible;
+	cursor:pointer
+}
+
+.yui-button .first-child{
+	display:block;
+	*display:inline-block;
+}
+
+.yui-skin-sam .yui-button{
+	border-width:1px 0;
+	border-style:solid;
+	border-color:#808080;
+	background:url(/pr/yui/build/assets/skins/sam/sprite.png) repeat-x 0 0;
+	margin:auto .25em;
+}
+
+.yui-skin-sam .yui-button button {
+	padding:0 10px;
+	padding-right:20px;
+	font-size:93%;
+	line-height:2;
+	*line-height:1.7;
+	min-height:2em;
+	*min-height:auto;
+	color:#000;
+	background: url(/pr/yui/build/button/assets/calendar_icon.gif) no-repeat scroll center;
+    background-repeat:no-repeat;
+        text-align: left;
+        text-indent: -10em;
+        overflow: hidden;
+        *margin-left: 10em; /* For IE */
+        *padding: 0 3em;    /* For IE */
+        white-space: nowrap;
+}
+
+.yui-skin-sam .yui-button .first-child{
+	border-width:0 1px;
+	border-style:solid;
+	border-color:#808080;
+	margin:0 -1px;
+	*position:relative;
+	*left:-1px;
+}
+
+.yui-skin-sam .yui-button-hover{border-color:#7D98B8;background-position:0 -1300px;}
+
+.yui-skin-sam .yui-menu-button button {
+		
+        
+    }
+    
+
+    /*
+        Set the "zoom" property to "normal" since it is set to "1" by the 
+        ".example-container .bd" rule in yui.css and this causes a Menu
+        instance's width to expand to 100% of the browser viewport.
+    */
+    
+    div.yuimenu .bd {
+        zoom: normal;
+    }
+
+	.day, .month {
+        width: 2em;
+    }
+    
+    .year {
+        width: 3em;
+    }
+    
+     .day, .month {
+        width: 2em;
+    }
+    
+    .year {
+        width: 3em;
+    }
+
+	.datefields {
+		border: solid 1px #666;
+		padding: .5em;
+	}
+	
+    /*
+        Restore default padding of 10px for the calendar containtainer 
+        that is overridden by the ".example-container .bd .bd" rule 
+        in yui.css.
+    */
+
+    #calendarcontainer1, #calendarcontainer2 {
+        padding:10px;
+    }
+    
+    #calendarmenu1, #calendarmenu2 {
+        position: absolute;
+    }
+	#calendarpicker1, #calendarpicker2 {
+		vertical-align: baseline;
+	}
+
+.instrumentCalendar {
+	border: solid 1px #6495ED;	
+	margin-top: 0px;
+	padding:5px;
+	background-color:#EEEEEE;
+	width: 840px;
+	height: 100%;
+}
+
+.instrumentCalendar table{
+	border-color: #AAAAAA;
+    border-width: 0 0 1px 1px;
+    border-style: solid;
+    margin: 0;
+    padding: 0px;
+    width: 100%;
+    height: 100%;
+}
+.instrumentCalendar .header{
+	background-color: #4169E1;
+}
+.instrumentCalendar .header TD{
+	color: #000000;
+	font-weight: bold;
+	font-size: 14px;
+	height:10px;
+	vertical-align: middle;
+	text-align: center;
+}
+.instrumentCalendar .daysHeader{
+	background-color: #FFFFFF;
+}
+
+.instrumentCalendar .daysHeader TD{
+	color: #606060;
+	background-color: #C3D9FF;
+	font-weight: bold;
+	font-size: 12px;
+	height: 10px;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.instrumentCalendar TD {
+	border-color: #AAAAAA;
+	color: #4169E1;
+	font-weight: bold;
+	font-size: 12px;
+    border-width: 1px 1px 0 0;
+    border-style: solid;
+    width: 120px;
+    height: 120px;
+    padding: 0 0 5px 0;
+    vertical-align: top;
+}
+
+.instrumentCalendar .busyData {
+	color: #ff0000;
+	font-weight: normal;
+	font-size: 12px;
+    vertical-align: middle;
+    text-align: center;
+    margin-top:15px;
+}
+
+
+A.cal_project_link, A:visited.cal_project_link, A:active.cal_project_link{
+	color: #FFFFFF;
+}
+
+.instrumentCalendar TD .dayHeader {
+	background-color: #E8EEF7;
+	color: #555555;
+}
+
+.instrumentCalendar .empty {
+	background-color: #EEEEEE;
+	color: #E5E5E5;
+}
+.instrumentCalendar .free {
+	background-color: #FFFFFF;
+}
+/*
+background-color: #b0c4de;
+*/
+.instrumentCalendar .busy {
+	background-color: #FFFFFF;
+}
+
+/****************************************************************************************************/*
+/* FOR TOOLTIPS
+/****************************************************************************************************/*
+p.tooltip {
+	clear:both;
+	margin:0;
+	padding:.5em 0;
+}
+#tooltip{
+	position:absolute;
+	border:1px solid #333;
+	background:#f7f5d1;
+	padding:2px 5px;
+	color:#333;
+	display:none;
+}

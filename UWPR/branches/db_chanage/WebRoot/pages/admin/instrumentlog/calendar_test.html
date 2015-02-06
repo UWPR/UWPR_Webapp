@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='../../../css/fullcalendar.css' />
+<link rel='stylesheet' type='text/css' href='../../../css/jquery_ui/ui-lightness/jquery-ui-1.8.12.custom.css' />
+<script type='text/javascript' src='../../../js/jquery-1.5.min.js'></script>
+<script type='text/javascript' src='../../../js/jquery-ui-1.8.12.custom.min.js'></script>
+<script type='text/javascript' src='../../../js/fullcalendar.js'></script>
+<script type='text/javascript' src='../../../js/fullcalendar.js'></script>
+<script type='text/javascript' src='../../../js/jquery.qtip-1.0.min.js'></script>
+<script type='text/javascript'>
+
+var rate_9_1 = 10.0;
+var rate_1_5 = 10.0;
+var rate_9_5 = 10.0;
+var rate_1_9 = 7.0;
+var rate_9_9 = 5.0;
+
+var time_slots = {
+	"slot_9_1": {"start": 9, "end": 13, dayplus:0},
+	"slot_1_5": {"start": 13, "end": 17, dayplus:0},
+	"slot_9_5": {"start": 9, "end": 17, dayplus:0},
+	"slot_1_9": {"start": 13, "end": 9, dayplus:1},
+	"slot_9_9": {"start": 9, "end": 9, dayplus:1}
+};
+
+$(document).ready(function() {
+
+	var date = new Date();
+	var d = date.getDate();
+	var m = date.getMonth();
+	var y = date.getFullYear();
+	
+	$('#calendar').fullCalendar({
+		header: {
+			left: 'prev,next today',
+			center: 'title',
+			right: 'month,agendaWeek,agendaDay'
+		},
+		editable: true,
+		slotMinutes: 60,
+		allDaySlot: false,
+		selectable: true,
+		eventRender: function(event, element) {},
+   		
+   		dayClick: function (date, allDay, jsEvent, view) {
+   		
+   			//alert("day clicked "+$('#eventBubble').length);
+   			
+   			// add the div only if it does not already exist
+   			// hack to avoid the 'dayClick' function being called twice
+   			if($('#eventBubble').length > 0) {
+   				$('#eventBubble').remove();
+   			}
+   			
+   			var div = '<div id="eventBubble" title="Add Event"';
+   			div += ' style="padding:10px; font-size:10px; ">';
+   			div += '<div style="text-align:left">';
+   			//div += '<tr><td colspan="2">';
+   			div += '<input type="radio" name="group" value="slot_9_1" checked="checked">9:00 am to 1:00 pm<br>';
+   			div += '<input type="radio" name="group" value="slot_1_5">1:00 pm to 5:00 pm<br>';
+   			div += '<input type="radio" name="group" value="slot_9_5">9:00 am to 5:00 pm<br>';
+   			div += '<input type="radio" name="group" value="slot_1_9">1:00 pm to 9:00 am (next day)<br>';
+   			div += '<input type="radio" name="group" value="slot_9_9">9:00 am to 9:00 am (next day)<br>';
+   			div += '</div>';
+   			
+   			div += '<div style="text-align: center; font-size:12px; margin-top:7px;">';
+   			//div += '</td></tr>';
+   			//div += '<tr><td>';
+   			div += '<span style="font-weight:bold; text-decoration: underline; cursor: pointer" id="addEvent">Add</span>&nbsp;&nbsp;';
+   			div += '</td><td>';
+   			div += '<span style="font-weight:bold; text-decoration: underline; cursor: pointer" id="cancel">Cancel</span>';
+   			//div += '</td></tr>';
+   			//div += '</table>';
+   			div += '</div>';
+   			div += '</div>';
+   			$(this).append(div);
+   			
+   			$('#eventBubble').dialog({position:[jsEvent.pageX, jsEvent.pageY]});
+   			
+       		//$('#eventBubble').css({ left: jsEvent.pageX, top: jsEvent.pageY }).show().fadeIn();
+       		$('#addEvent').click(function() {
+       			//alert("link clicked");
+       			var slot = $("input[@name='group']:checked").val();
+       			
+       			var sdate = new Date(date.getTime());
+       			sdate.setHours(time_slots[slot].start);
+       			
+       			if(time_slots[slot].dayplus == 0) {
+       			
+       				var edate = new Date(date.getTime());
+       				edate.setHours(time_slots[slot].end);
+       				var id = (sdate.getMonth()+1)+"_"+sdate.getDate()+"_"+sdate.getFullYear()+"_"+sdate.getHours()+"_"+edate.getHours();
+       				alert(id);
+       				var event = [{id: id, title: 'New Event', start: sdate, end: edate, allDay:false }];
+					$('#calendar').fullCalendar('addEventSource', event);
+					
+					//alert("adding: \n"+sdate+"\n"+edate);
+       			}
+       			else {
+       			
+       				// add two events
+       				var edate1 = new Date(date.getTime());
+       				edate1.setHours(24);
+       				edate1.setMinutes(00);
+       				edate1.setSeconds(00);
+       				
+       				var id = (sdate.getMonth()+1)+"_"+sdate.getDate()+"_"+sdate.getHours()+"_"+edate1.getHours();
+       				alert(id);
+       				var event1 = [{id:id, title: 'New Event', start: sdate, end: edate1, allDay:false }];
+					$('#calendar').fullCalendar('addEventSource', event1);
+					//alert("adding: \n"+sdate+"\n"+edate1);
+					
+					var sdate2 = new Date(date.getTime());
+					sdate2.setDate(date.getDate()+1);
+					sdate2.setHours(0);
+					sdate2.setMinutes(0);
+					sdate2.setSeconds(0);
+					var edate2 = new Date(sdate2.getTime());
+					edate2.setHours(time_slots[slot].end);
+					id = (sdate2.getMonth()+1)+"_"+sdate2.getDate()+"_"+sdate2.getHours()+"_"+edate2.getHours();
+       				alert(id);
+					var event2 = [{id:id, title: 'New Event', start: sdate2, end: edate2, allDay:false }];
+					$('#calendar').fullCalendar('addEventSource', event2);
+					//alert("adding: \n"+sdate2+"\n"+edate2);
+       			}
+       			
+				
+				$('#eventBubble').remove();
+			});
+			
+			$('#cancel').click(function() {
+				$('#eventBubble').remove();
+			});
+			
+   		},
+		
+		
+    	eventClick: function(calEvent, jsEvent, view) {
+
+			if(!calEvent.editable && calEvent.editable != undefined)
+				return;
+			
+			//if (!calEvent.editable)
+			//	return;
+        	//alert('Event: ' + calEvent.title);
+        	//alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
+        	//alert('View: ' + view.name);
+
+        	// change the border color just for fun
+        	//$(this).css('border-color', 'red');
+        	alert(calEvent.id);
+        	$('#calendar').fullCalendar('removeEvents',calEvent.id);
+        	
+        	$(this).qtip({    
+           		content: {    
+               		title: { text: "New Event" },
+               		text: '<span class="title">Start: </span> Hello World<br><span class="title">Description: </span>'      
+           		},
+           		show: { solo: true, when: 'click' },
+           		hide: { when: { event: 'unfocus' }, delay: 0 }, 
+            	style: { 
+                	width: 200,
+                	padding: 5,
+                	color: 'black',
+                	textAlign: 'left',
+                	border: {
+                		width: 1,
+                		radius: 3
+             		},
+               	 	tip: 'topLeft',
+
+                	classes: { 
+                    	tooltip: 'ui-widget', 
+                    	tip: 'ui-widget', 
+                    	title: 'ui-widget-header', 
+	                    content: 'ui-widget-content' 
+                	} 
+            		} 
+       			});
+
+    	},
+		
+		events: 'http://localhost:8080/pr/instrumentUsageBlocks.do?instrumentID=4&projectID=164',
+
+		timeFormat: 'h()t{ - h()t}' // uppercase H for 24-hour clock
+		
+		
+	});
+	
+});
+
+function updateCost(addThis) {
+	
+	var currentCost = $("#cost").text();
+	alert(currentCost);
+	var newCost = parseInt(currentCost) + addThis;
+	$("#cost").text(newCost);
+	
+}
+
+</script>
+<style type='text/css'>
+
+	body {
+		margin-top: 40px;
+		text-align: center;
+		font-size: 14px;
+		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+		}
+
+	#calendar {
+		width: 900px;
+		margin: 0 auto;
+		}
+		
+	.busy, .busy a
+	{
+   		background-color: gray; /* background color */
+   		border-color: gray;     /* border color */
+   		color: white;           /* text color */
+   		cursor: default;
+	}
+
+</style>
+</head>
+<body>
+
+<div id="totalCost">
+Total Cost: &nbsp;<span id="cost">0</span>
+</div>
+<div id='calendar'></div>
+
+</body>
+</html>

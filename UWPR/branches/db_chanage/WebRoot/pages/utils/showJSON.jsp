@@ -1,0 +1,1 @@
+<%@ page contentType="text/javascript; charset=UTF-8" pageEncoding="ISO-8859-1" %><%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %><bean:write name="textToPrint" scope="request" filter="false" />
