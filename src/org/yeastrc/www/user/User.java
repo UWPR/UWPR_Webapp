@@ -111,7 +111,7 @@ public class User implements IData {
 	public void save() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -204,8 +204,13 @@ public class User implements IData {
 		}
 	}
 
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
 
-	/**
+
+    /**
 	 * Use this method to populate this object with data from the datbase.
 	 * @param id The experiment ID to load.
 	 * <P>This WILL load the underlying researcher object as well, or croak
@@ -220,7 +225,7 @@ public class User implements IData {
 		this.researcher.load(id);
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -296,7 +301,7 @@ public class User implements IData {
 	public void delete() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 

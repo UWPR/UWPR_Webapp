@@ -3,12 +3,12 @@
  */
 package org.uwpr.data;
 
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
-import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.yeastrc.db.DBConnectionManager;
+import java.sql.Statement;
 
 /**
  * @author Mike
@@ -42,7 +42,7 @@ public class DataURISaver {
 			
 			String sql = "SELECT * FROM externalDataLocations WHERE id = " + dataURI.getId();
 			
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getPrConnection();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			rs = stmt.executeQuery( sql );
 			

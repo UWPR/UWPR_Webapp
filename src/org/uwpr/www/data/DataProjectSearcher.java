@@ -5,16 +5,16 @@
  */
 package org.uwpr.www.data;
 
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.Project;
+import org.yeastrc.project.ProjectFactory;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.Project;
-import org.yeastrc.project.ProjectFactory;
 
 /**
  * @author Michael Riffle <mriffle@u.washington.edu>
@@ -46,7 +46,7 @@ public class DataProjectSearcher {
 		try {
 
 			String sql = "SELECT DISTINCT projectID FROM externalDataLocations";
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 			stmt = conn.prepareStatement( sql );
 			rs = stmt.executeQuery();
 			

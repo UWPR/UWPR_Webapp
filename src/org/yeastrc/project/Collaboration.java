@@ -9,18 +9,14 @@
 
 package org.yeastrc.project;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -58,7 +54,7 @@ public class Collaboration extends Project implements ComparableCollaboration {
 		super.save();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 		
@@ -138,8 +134,13 @@ public class Collaboration extends Project implements ComparableCollaboration {
 		}
 	}
 
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
 
-	/**
+
+    /**
 	 * Use this method to populate this object with data from the datbase.
 	 * @param id The experiment ID to load.
 	 * @throws InvalidIDException If this ID is not valid (or not found)
@@ -151,7 +152,7 @@ public class Collaboration extends Project implements ComparableCollaboration {
 		super.load(id);
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -241,7 +242,7 @@ public class Collaboration extends Project implements ComparableCollaboration {
 		super.delete();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 

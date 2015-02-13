@@ -30,41 +30,51 @@ public class RateTypeDAO {
 	
 	public RateType getRateType (int rateTypeId) throws SQLException {
 		
-		String sql = "SELECT * FROM rateType WHERE id="+rateTypeId;
 		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
+
 		try {
-			conn = DBConnectionManager.getConnection("pr");
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(sql);
-			
-			if(rs.next()) {
-				RateType rateType = new RateType();
-				rateType.setId(rateTypeId);
-				rateType.setName(rs.getString("name"));
-				rateType.setDescription(rs.getString("description"));
-				return rateType;
-			}
-			else {
-				log.error("No entry found in table rateType for id: "+rateTypeId);
-				return null;
-			}
+			conn = DBConnectionManager.getMainDbConnection();
+            return getRateType(rateTypeId, conn);
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
-			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
+
+    public RateType getRateType (int rateTypeId, Connection conn) throws SQLException {
+
+        String sql = "SELECT * FROM rateType WHERE id="+rateTypeId;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            if(rs.next()) {
+                RateType rateType = new RateType();
+                rateType.setId(rateTypeId);
+                rateType.setName(rs.getString("name"));
+                rateType.setDescription(rs.getString("description"));
+                return rateType;
+            }
+            else {
+                log.error("No entry found in table rateType for id: "+rateTypeId);
+                return null;
+            }
+        }
+        finally {
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(rs != null) try {rs.close();} catch(SQLException e){}
+        }
+    }
 	
 	public List<RateType> getAllRateTypes() throws SQLException {
 		
 		Connection conn = null;
 
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
             return getAllRateTypes(conn);
 		}
 		finally {

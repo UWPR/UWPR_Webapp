@@ -217,7 +217,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	public void save() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;	
 
@@ -347,7 +347,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 				java.util.Date uDate = new java.util.Date();
 				this.lastChange = new java.sql.Date(uDate.getTime());
 				rs.updateDate("lastChange", this.lastChange);
-				
+
+                // affiliation
+                if (this.affiliation == null) {rs.updateNull("affiliation");}
+                else rs.updateString("affiliation", this.affiliation.name());
+
 				// Update the row
 				rs.updateRow();
 
@@ -472,7 +476,12 @@ public abstract class Project implements Comparable, IData, ComparableProject {
                 if (this.extensionReasons == null) { rs.updateNull("extensionReasons"); }
                 else { rs.updateString("extensionReasons", this.extensionReasons); }
                 
-                
+
+                // affiliation
+                if (this.affiliation == null) {rs.updateNull("affiliation");}
+                else rs.updateString("affiliation", this.affiliation.name());
+
+
 				rs.insertRow();
 
 				// Get the ID generated for this item from the database, and set expID
@@ -526,7 +535,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	public void load(int id) throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;	
 
@@ -663,7 +672,9 @@ public abstract class Project implements Comparable, IData, ComparableProject {
             else
                 this.massSpecExpertiseRequested = false;
 			
-			
+			// affiliation
+            this.affiliation = Affiliation.forName(rs.getString("affiliation"));
+
 			rs.close();
 			rs = null;
 			
@@ -708,7 +719,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 
             String sql = "SELECT * FROM projectResearcher WHERE projectID = "+projectId;
 
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
 
@@ -749,7 +760,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
         Statement stmt = null;
 
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
 
 
@@ -785,7 +796,12 @@ public abstract class Project implements Comparable, IData, ComparableProject {
         }
     }
 
-	/**
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    /**
 	 * Use this method to delete the data underlying this object from the database.
 	 * Doing so will delete the row from the table corresponding to this object, and
 	 * will remove the ID value from the object (since it represents the primary key)
@@ -803,7 +819,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	public void delete() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -1447,6 +1463,16 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	private boolean databaseSearchRequested;
 	private boolean massSpecExpertiseRequested;
 	private String scientificQuestion;
+
+    private Affiliation affiliation;
+
+    public Affiliation getAffiliation() {
+    		return affiliation;
+    	}
+
+    public void setAffiliation(Affiliation affiliation) {
+    		this.affiliation = affiliation;
+    	}
 
 	/**
 	 * @return the scientificQuestion

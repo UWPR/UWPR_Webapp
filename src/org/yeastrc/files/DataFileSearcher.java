@@ -1,12 +1,13 @@
 package org.yeastrc.files;
 
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.Project;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.*;
-
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -61,7 +62,7 @@ public class DataFileSearcher {
 			sql += DataFileDataUtils.getTypeLocationMap().get( type ) + " WHERE ";
 			sql += DataFileDataUtils.getTypeColumnMap().get( type ) + " = ? ORDER BY file_id";
 			
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 			
 			stmt = conn.prepareStatement( sql );
 			stmt.setInt( 1, typeID );

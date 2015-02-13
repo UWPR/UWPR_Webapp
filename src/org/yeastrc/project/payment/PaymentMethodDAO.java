@@ -5,20 +5,15 @@
  */
 package org.yeastrc.project.payment;
 
+import org.apache.log4j.Logger;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * 
@@ -43,7 +38,7 @@ public class PaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -100,7 +95,7 @@ public class PaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -131,7 +126,7 @@ public class PaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(1, paymentMethod.getUwbudgetNumber());
@@ -207,7 +202,7 @@ public class PaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			
 			stmt.setString(1, paymentMethod.getUwbudgetNumber());
@@ -250,15 +245,20 @@ public class PaymentMethodDAO {
 			if(rs != null) try {rs.close();} catch(SQLException ignored){}
 		}
 	}
-	
-	public void deletePaymentMethod(int paymentMethodId) throws SQLException {
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    public void deletePaymentMethod(int paymentMethodId) throws SQLException {
 	
 		String sql = "DELETE FROM paymentMethod WHERE id="+paymentMethodId;
 		Connection conn = null;
 		Statement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
 			int numRowsDeleted = stmt.executeUpdate(sql);
 			
@@ -288,7 +288,7 @@ public class PaymentMethodDAO {
         ResultSet rs = null;
 
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql.toString());
 
@@ -323,7 +323,7 @@ public class PaymentMethodDAO {
         ResultSet rs = null;
 
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql.toString());
 

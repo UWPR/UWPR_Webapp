@@ -1,10 +1,10 @@
 package org.yeastrc.files;
 
+import org.yeastrc.db.DBConnectionManager;
+
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-
-import org.yeastrc.db.DBConnectionManager;
-import java.io.*;
 
 public class DataFileDataSaver {
 
@@ -25,7 +25,7 @@ public class DataFileDataSaver {
 		
 		try {
 			
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 
 			String sql = "UPDATE files SET data = ? WHERE id = ?";
 			
@@ -64,7 +64,7 @@ public class DataFileDataSaver {
 		
 		try {
 			
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 
 			String sql = "UPDATE files SET data = ? WHERE id = ?";
 			

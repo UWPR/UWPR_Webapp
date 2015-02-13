@@ -1,12 +1,8 @@
 package org.yeastrc.files;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.*;
 
 public class DataFileSaver {
 
@@ -25,7 +21,7 @@ public class DataFileSaver {
 	public void saveDataFile( DataFile datafile, String type, int tid ) throws Exception {
 		
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection( "pr" );
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;

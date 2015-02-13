@@ -5,15 +5,10 @@
  */
 package org.uwpr.instrumentlog;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-
 import org.apache.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.*;
 
 /**
  * 
@@ -48,7 +43,7 @@ public class InstrumentUsageDAO {
 
 			String sql = "SELECT * FROM instrumentUsage WHERE id = " + block.getID();
 
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			rs = stmt.executeQuery( sql );
 
@@ -97,8 +92,12 @@ public class InstrumentUsageDAO {
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
-	
-	public boolean hasInstrumentUsageForInstrumentRate(int instrumentRateId) throws SQLException {
+
+    private Connection getConnection() throws SQLException {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    public boolean hasInstrumentUsageForInstrumentRate(int instrumentRateId) throws SQLException {
 		
 		String sql = "SELECT count(*) FROM instrumentUsage WHERE instrumentRateID = "+instrumentRateId;
 		Connection conn = null;
@@ -106,7 +105,7 @@ public class InstrumentUsageDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -142,7 +141,7 @@ public class InstrumentUsageDAO {
 			
 			String sql = "DELETE FROM instrumentUsage WHERE id="+usageId;
 			// System.out.println(sql);
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement( sql );
 			stmt.executeUpdate();
 			

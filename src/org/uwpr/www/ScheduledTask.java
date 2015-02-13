@@ -1,23 +1,5 @@
 package org.uwpr.www;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
 import org.apache.log4j.Logger;
 import org.uwpr.instrumentlog.DateUtils;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
@@ -26,16 +8,20 @@ import org.uwpr.instrumentlog.rawfile.ProjectUsageUpdateErrorEmailer;
 import org.uwpr.instrumentlog.rawfile.RawFileUsageParser;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.Collaboration;
-import org.yeastrc.project.CollaborationStatus;
-import org.yeastrc.project.ExemptResearchers;
-import org.yeastrc.project.Project;
-import org.yeastrc.project.ProjectReviewer;
-import org.yeastrc.project.ProjectReviewerDAO;
-import org.yeastrc.project.ProjectsSearcher;
-import org.yeastrc.project.Researcher;
+import org.yeastrc.project.*;
 import org.yeastrc.www.project.CollaborationStatusChangeEmailer;
 import org.yeastrc.www.project.ReviewerEmailUtils;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 public class ScheduledTask implements ServletContextListener {
 
@@ -247,7 +233,7 @@ public class ScheduledTask implements ServletContextListener {
         
         private void setReminderSent(Collaboration c) throws SQLException {
          // Get our connection to the database.
-            Connection conn = DBConnectionManager.getConnection("pr");
+            Connection conn = DBConnectionManager.getPrConnection();
             Statement stmt = null;
             
             try {
@@ -278,7 +264,7 @@ public class ScheduledTask implements ServletContextListener {
         private boolean reminderSent(Collaboration c) throws SQLException {
             
             // Get our connection to the database.
-            Connection conn = DBConnectionManager.getConnection("pr");
+            Connection conn = DBConnectionManager.getPrConnection();
             Statement stmt = null;
             ResultSet rs = null;
             

@@ -5,14 +5,10 @@
  */
 package org.uwpr.costcenter;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import org.apache.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.*;
 
 /**
  * 
@@ -34,7 +30,7 @@ public class InvoiceInstrumentUsageDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, invoiceBlock.getInvoiceId());
 			stmt.setInt(2, invoiceBlock.getInstrumentUsageId());
@@ -55,7 +51,7 @@ public class InvoiceInstrumentUsageDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			

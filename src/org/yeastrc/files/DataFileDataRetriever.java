@@ -1,10 +1,10 @@
 package org.yeastrc.files;
 
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import org.yeastrc.db.DBConnectionManager;
 
 public class DataFileDataRetriever {
 
@@ -20,7 +20,7 @@ public class DataFileDataRetriever {
 		
 		try {
 			
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 
 			String sql = "SELECT data FROM files WHERE id = ?";
 			stmt = conn.prepareStatement( sql );

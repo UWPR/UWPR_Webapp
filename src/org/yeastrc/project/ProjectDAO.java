@@ -6,15 +6,15 @@
  */
 package org.yeastrc.project;
 
+import org.apache.log4j.Logger;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * 
@@ -49,7 +49,7 @@ public class ProjectDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
 
             // Our SQL statement
@@ -82,7 +82,12 @@ public class ProjectDAO {
         }
         return 0;
     }
-    
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
     /**
      * If the project represented by the projectId is an extension project
      * get a list of all of its parent projects.
@@ -97,7 +102,7 @@ public class ProjectDAO {
 
         List<Integer> ancestors = new ArrayList<Integer>();
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             
             int maxAncestors = 5;
             int i = 0;

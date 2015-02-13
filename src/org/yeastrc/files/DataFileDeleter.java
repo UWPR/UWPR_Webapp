@@ -1,9 +1,9 @@
 package org.yeastrc.files;
 
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-
-import org.yeastrc.db.DBConnectionManager;
 
 public class DataFileDeleter {
 
@@ -32,7 +32,7 @@ public class DataFileDeleter {
 		try {
 			
 			String sql = "DELETE FROM files WHERE id = ?";
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 			stmt = conn.prepareStatement( sql );
 			stmt.setInt( 1, datafile.getId() );
 			stmt.executeUpdate();

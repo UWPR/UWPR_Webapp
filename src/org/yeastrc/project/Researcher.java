@@ -96,7 +96,7 @@ public class Researcher implements Comparable, IData {
 	public void save() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -229,8 +229,13 @@ public class Researcher implements Comparable, IData {
 		}
 	}
 
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
 
-	/**
+
+    /**
 	 * Use this method to populate this object with data from the datbase.
 	 * @param id The experiment ID to load.
 	 * @throws InvalidIDException If this ID is not valid (or not found)
@@ -239,7 +244,7 @@ public class Researcher implements Comparable, IData {
 	public void load(int id) throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -321,7 +326,7 @@ public class Researcher implements Comparable, IData {
 	public void delete() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 

@@ -37,7 +37,7 @@ public class ProjectPaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -75,7 +75,7 @@ public class ProjectPaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
@@ -117,7 +117,7 @@ public class ProjectPaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, projectId);
@@ -169,7 +169,7 @@ public class ProjectPaymentMethodDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
             stmt.executeUpdate(sql);
 		}
@@ -179,4 +179,9 @@ public class ProjectPaymentMethodDAO {
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
 }

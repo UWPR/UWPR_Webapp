@@ -9,13 +9,17 @@
 
 package org.yeastrc.project;
 
-import java.util.*;
-import java.sql.*;
-
-import org.yeastrc.data.*;
-import org.yeastrc.db.*;
-
 import org.apache.commons.lang.StringUtils;
+import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -53,7 +57,7 @@ public class Technology extends Project {
 		super.save();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -134,7 +138,7 @@ public class Technology extends Project {
 		super.load(id);
 		
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -218,7 +222,7 @@ public class Technology extends Project {
 		super.delete();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
