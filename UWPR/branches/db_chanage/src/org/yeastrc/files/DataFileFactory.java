@@ -1,11 +1,11 @@
 package org.yeastrc.files;
 
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.Researcher;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.Researcher;
 
 /**
  * Get DataFiles!
@@ -33,7 +33,7 @@ public class DataFileFactory {
 		
 		try {
 			
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 
 			String sql = "SELECT id, filename, description, filesize, mimetype, uploadDate, uploadedBy FROM files WHERE id = ?";
 			stmt = conn.prepareStatement( sql );

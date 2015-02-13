@@ -36,7 +36,7 @@ public class ProjectsSearcher {
 		ArrayList<Project> retList = new ArrayList<Project>();
 		
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getMainDbConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		

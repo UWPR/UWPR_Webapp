@@ -3,11 +3,11 @@
  */
 package org.yeastrc.www.user;
 
-import java.util.*;
-import java.sql.*;
-
+import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Researcher;
-import org.yeastrc.db.*;
+
+import java.sql.*;
+import java.util.*;
 
 /**
  * Singleton class providing access and methods for YRC group information.
@@ -36,7 +36,7 @@ public class Groups {
 	private void loadGroups() throws SQLException {
 		
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = getConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 		
@@ -107,7 +107,7 @@ public class Groups {
 		try {
 			String sqlStr = "SELECT groupID FROM tblYRCGroups WHERE groupName = ?";
 			
-			conn = DBConnectionManager.getConnection("pr");	
+			conn = getConnection();
 			stmt = conn.prepareStatement(sqlStr);
 			stmt.setString(1, groupName);
 			
@@ -222,7 +222,7 @@ public class Groups {
             
             String sqlStr = buf.toString();
             
-            conn = DBConnectionManager.getConnection("pr"); 
+            conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sqlStr);
             
@@ -336,7 +336,7 @@ public class Groups {
 		try {
 			String sqlStr = "INSERT INTO tblYRCGroupMembers (groupID, researcherID) VALUES (?, ?)";
 			
-			conn = DBConnectionManager.getConnection("pr");	
+			conn = getConnection();
 			stmt = conn.prepareStatement(sqlStr);
 			stmt.setInt(1, groupID);
 			stmt.setInt(2, researcherID);
@@ -367,7 +367,12 @@ public class Groups {
 		this.reloadGroups();
 	}
 
-	/**
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    /**
 	 * Remove the given researcherID from the given group name
 	 * @param groupName
 	 * @param researcherID
@@ -398,7 +403,7 @@ public class Groups {
 		try {
 			String sqlStr = "DELETE FROM tblYRCGroupMembers WHERE groupID = ? AND researcherID = ?";
 			
-			conn = DBConnectionManager.getConnection("pr");	
+			conn = getConnection();
 			stmt = conn.prepareStatement(sqlStr);
 			stmt.setInt(1, groupID);
 			stmt.setInt(2, researcherID);

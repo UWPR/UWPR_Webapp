@@ -29,45 +29,55 @@ public class TimeBlockDAO {
 	
 	public TimeBlock getTimeBlock (int timeBlockId) throws SQLException {
 		
-		String sql = "SELECT * FROM timeBlock WHERE id="+timeBlockId;
 		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
+
 		try {
-			conn = DBConnectionManager.getConnection("pr");
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(sql);
-			
-			if(rs.next()) {
-				TimeBlock timeBlock = new TimeBlock();
-				timeBlock.setId(timeBlockId);
-				timeBlock.setNumHours(rs.getInt("numHours"));
-				timeBlock.setName(rs.getString("name"));
-				timeBlock.setStartTime(rs.getTime("startTime"));
-				timeBlock.setCreateDate(rs.getDate("createDate"));
-				
-				return timeBlock;
-			}
-			else {
-				log.error("No entry found in table timeBlock for id: "+timeBlockId);
-			}
+			conn = getConnection();
+			return getTimeBlock(timeBlockId, conn);
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
-			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
-		
-		return null;
 	}
+
+    public TimeBlock getTimeBlock (int timeBlockId, Connection conn) throws SQLException {
+
+        String sql = "SELECT * FROM timeBlock WHERE id="+timeBlockId;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            if(rs.next()) {
+                TimeBlock timeBlock = new TimeBlock();
+                timeBlock.setId(timeBlockId);
+                timeBlock.setNumHours(rs.getInt("numHours"));
+                timeBlock.setName(rs.getString("name"));
+                timeBlock.setStartTime(rs.getTime("startTime"));
+                timeBlock.setCreateDate(rs.getDate("createDate"));
+
+                return timeBlock;
+            }
+            else {
+                log.error("No entry found in table timeBlock for id: "+timeBlockId);
+            }
+        }
+        finally {
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(rs != null) try {rs.close();} catch(SQLException e){}
+        }
+
+        return null;
+    }
 	
 	public List<TimeBlock> getAllTimeBlocks() throws SQLException {
 
 		Connection conn = null;
 
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			return getAllTimeBlocks(conn);
 		}
 		finally {
@@ -114,7 +124,7 @@ public class TimeBlockDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, block.getNumHours());
 			if(block.getStartTime() != null)
@@ -147,7 +157,7 @@ public class TimeBlockDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.executeUpdate();
 		}
@@ -156,4 +166,9 @@ public class TimeBlockDAO {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
 	}
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
 }

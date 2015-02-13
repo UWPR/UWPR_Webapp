@@ -9,13 +9,13 @@
 
 package org.yeastrc.project;
 
+import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.yeastrc.data.InvalidIDException;
-import org.yeastrc.db.DBConnectionManager;
 
 
 
@@ -36,7 +36,7 @@ public class ProjectFactory {
 	public static Project getProject(int projectID) throws SQLException, InvalidProjectTypeException, InvalidIDException {
 		
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getMainDbConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 

@@ -35,7 +35,7 @@ public class InstrumentRateDAO {
 		return getRates(0, 0, 0, /*current rates*/ 1);
 	}
 
-	public List<InstrumentRate> getRates(int instrumentId, int rateTypeId, int timeBlockId, int current) throws SQLException {
+	public List<InstrumentRate> getRates(Connection conn, int instrumentId, int rateTypeId, int timeBlockId, int current) throws SQLException {
 		
 		StringBuilder sql = new StringBuilder("SELECT * FROM instrumentRate ");
 		if(instrumentId != 0 || rateTypeId != 0 || timeBlockId != 0 || current != -1) {
@@ -70,47 +70,59 @@ public class InstrumentRateDAO {
 		}
 		sql.append(" ORDER BY instrumentID, blockID, rateTypeID, id");
 		
-		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		
 		List<InstrumentRate> rates = new ArrayList<InstrumentRate>();
 		try {
-			conn = DBConnectionManager.getConnection("pr");
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql.toString());
 			
 			while(rs.next()) {
 				
-				InstrumentRate rate = makeInstrumentRate(rs);
+				InstrumentRate rate = makeInstrumentRate(conn, rs);
 				rates.add(rate);
 			}
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 		
 		return rates;
 	}
-	
 
-	private InstrumentRate makeInstrumentRate(ResultSet rs) throws SQLException {
+    public List<InstrumentRate> getRates(int instrumentId, int rateTypeId, int timeBlockId, int current) throws SQLException {
+
+        Connection conn = null;
+
+        try
+        {
+            conn = DBConnectionManager.getMainDbConnection();
+            return getRates(conn, instrumentId, rateTypeId, timeBlockId, current);
+        }
+        finally
+        {
+            if(conn != null) try {conn.close();} catch(SQLException e){}
+        }
+    }
+
+
+	private InstrumentRate makeInstrumentRate(Connection conn, ResultSet rs) throws SQLException {
 		InstrumentRate rate = new InstrumentRate();
 		rate.setCreateDate(rs.getTimestamp("createDate"));
 		rate.setId(rs.getInt("id"));
 		rate.setRate(rs.getBigDecimal("fee"));
 		rate.setCurrent(rs.getBoolean("isCurrent"));
-		
+
 		int instrumentId = rs.getInt("instrumentID");
-		rate.setInstrument(MsInstrumentUtils.instance().getMsInstrument(instrumentId));
+		rate.setInstrument(MsInstrumentUtils.instance().getMsInstrument(instrumentId, conn));
 		
 		int timeBlockId = rs.getInt("blockID");
-		rate.setTimeBlock(TimeBlockDAO.getInstance().getTimeBlock(timeBlockId));
+		rate.setTimeBlock(TimeBlockDAO.getInstance().getTimeBlock(timeBlockId, conn));
 		
 		int rateTypeId = rs.getInt("rateTypeID");
-		rate.setRateType(RateTypeDAO.getInstance().getRateType(rateTypeId));
+		rate.setRateType(RateTypeDAO.getInstance().getRateType(rateTypeId, conn));
 		return rate;
 	}
 	
@@ -123,13 +135,13 @@ public class InstrumentRateDAO {
 		
 		List<InstrumentRate> rates = new ArrayList<InstrumentRate>();
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
 			while(rs.next()) {
 				
-				InstrumentRate rate = makeInstrumentRate(rs);
+				InstrumentRate rate = makeInstrumentRate(conn, rs);
 				rates.add(rate);
 			}
 		}
@@ -151,7 +163,7 @@ public class InstrumentRateDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -180,7 +192,7 @@ public class InstrumentRateDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.prepareStatement(saveInstrumentRateSql);
 			saveInstrumentRate(rate, stmt);
 		}
@@ -210,7 +222,7 @@ public class InstrumentRateDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			
 			String sql = "SELECT * FROM instrumentRate WHERE id="+rate.getId();
@@ -253,7 +265,7 @@ public class InstrumentRateDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.executeUpdate();
 		}
@@ -274,13 +286,13 @@ public class InstrumentRateDAO {
 		
 		InstrumentRate rate = null;
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
 			if(rs.next()) {
 				
-				rate = makeInstrumentRate(rs);
+				rate = makeInstrumentRate(conn, rs);
 			}
 		}
 		finally {
@@ -301,12 +313,12 @@ public class InstrumentRateDAO {
 		
 		List<InstrumentRate> rates = new ArrayList<InstrumentRate>();
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
 			while(rs.next()) {
-				InstrumentRate rate = makeInstrumentRate(rs);
+				InstrumentRate rate = makeInstrumentRate(conn, rs);
 				rates.add(rate);
 			}
 		}
@@ -327,13 +339,13 @@ public class InstrumentRateDAO {
 		
 		InstrumentRate rate = null;
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
 			if(rs.next()) {
 				
-				rate = makeInstrumentRate(rs);
+				rate = makeInstrumentRate(conn, rs);
 			}
 		}
 		finally {

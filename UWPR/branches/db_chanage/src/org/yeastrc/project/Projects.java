@@ -96,7 +96,7 @@ public class Projects {
 		ArrayList retList = new ArrayList();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getMainDbConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
@@ -179,7 +179,7 @@ public class Projects {
         List<Collaboration> retList = new ArrayList<Collaboration>();
 
         // Get our connection to the database.
-        Connection conn = DBConnectionManager.getConnection("pr");
+        Connection conn = DBConnectionManager.getPrConnection();
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
@@ -282,7 +282,7 @@ public class Projects {
 		ArrayList retList = new ArrayList();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getMainDbConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -346,7 +346,7 @@ public class Projects {
 		List<Researcher> retList = new ArrayList<Researcher>();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getMainDbConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 

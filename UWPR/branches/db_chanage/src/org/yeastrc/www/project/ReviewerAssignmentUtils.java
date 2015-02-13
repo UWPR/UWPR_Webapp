@@ -368,7 +368,7 @@ public class ReviewerAssignmentUtils {
 
     private static List<Integer> getReviewerIds() throws SQLException {
         // Get our connection to the database.
-        Connection conn = DBConnectionManager.getConnection("pr");  
+        Connection conn = DBConnectionManager.getMainDbConnection();
         Statement stmt = null;
         ResultSet rs = null;
 

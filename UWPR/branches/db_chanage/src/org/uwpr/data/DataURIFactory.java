@@ -3,13 +3,13 @@
  */
 package org.uwpr.data;
 
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.ProjectFactory;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.ProjectFactory;
 
 /**
  * @author Mike
@@ -48,7 +48,7 @@ public class DataURIFactory {
 		try {
 			
 			// get our connection
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = getConnection();
 			
 			String sql = "SELECT id FROM externalDataLocations WHERE uri = ?";
 			stmt = conn.prepareStatement( sql );
@@ -117,7 +117,7 @@ public class DataURIFactory {
 		try {
 		
 			String sql = "SELECT * FROM externalDataLocations WHERE id = ?";
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = getConnection();
 			stmt = conn.prepareStatement( sql );
 			stmt.setInt( 1, id );
 			rs = stmt.executeQuery();
@@ -154,6 +154,11 @@ public class DataURIFactory {
 		
 		return dataURI;
 	}
-	
-	
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getPrConnection();
+    }
+
+
 }

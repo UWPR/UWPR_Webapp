@@ -1,21 +1,14 @@
 package org.uwpr.instrumentlog;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.costcenter.InstrumentRateDAO;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.InvalidProjectTypeException;
+
+import java.sql.*;
+import java.util.*;
+import java.util.Date;
 
 public class MsInstrumentUtils {
 
@@ -44,7 +37,7 @@ public class MsInstrumentUtils {
 		Connection conn = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			return getMsInstruments(conn, activeOnly);
 			
 		} catch (SQLException e) {
@@ -69,7 +62,7 @@ public class MsInstrumentUtils {
 		ResultSet rs = null;
 		
 		try {
-			String sql = "select * from instruments";
+			String sql = "select * from " + getInstrumentsTableSQL();
 			if(activeOnly) {
 				sql += " WHERE active=1";
 			}
@@ -110,7 +103,7 @@ public class MsInstrumentUtils {
 		Connection conn = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			return getMsInstrument(instrumentID, conn);
 			
 		} catch (SQLException e) {
@@ -127,7 +120,7 @@ public class MsInstrumentUtils {
 		return null;
 	}
 	
-	MsInstrument getMsInstrument(int instrumentID, Connection conn) {
+	public MsInstrument getMsInstrument(int instrumentID, Connection conn) {
 		
 		if (conn == null)
 			return null;
@@ -136,7 +129,7 @@ public class MsInstrumentUtils {
 		ResultSet rs = null;
 		
 		try {
-			String sql = "select * from instruments where id="+instrumentID;
+			String sql = "select * from " + getInstrumentsTableSQL() + " where id="+instrumentID;
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -174,7 +167,7 @@ public class MsInstrumentUtils {
         // Get our connection to the database.
         Connection conn = null;
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = DBConnectionManager.getConnection(DBConnectionManager.PR);
             return getUsageBlockBase(usageID, conn);
             
         } catch (SQLException e) {
@@ -266,7 +259,7 @@ public class MsInstrumentUtils {
 		// Get our connection to the database.
 		Connection conn = null;
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getConnection(DBConnectionManager.PR);
 			return getUsageBlock(usageID, conn);
 			
 		} catch (SQLException e) {
@@ -344,7 +337,7 @@ public class MsInstrumentUtils {
 	    // Get our connection to the database.
         Connection conn = null;
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             return getUsageBlocksForInstrument(instrumentID, startDate, endDate, truncate, sortBy, conn);
             
         } 
@@ -512,7 +505,7 @@ public class MsInstrumentUtils {
 		// Get our connection to the database.
 		Connection conn = null;
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			return getInsrumentUsage(instrumentID, startDate, endDate, conn);
 			
 		} 
@@ -577,7 +570,7 @@ public class MsInstrumentUtils {
 		// Get our connection to the database.
 		Connection conn = null;
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			return getInstrumentCalendar(month, year, instrumentID, conn);
 			
 		} catch (SQLException e) {
@@ -587,13 +580,17 @@ public class MsInstrumentUtils {
 			// Make sure the connection is returned to the pool
 			if (conn != null) {
 				try { conn.close(); } catch (SQLException e) { ; }
-				conn = null;
 			}
 		}
 		return null;
 	}
-	
-	public InstrumentCalendar getInstrumentCalendar(int month, int year, int instrumentID, Connection conn) 
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    public InstrumentCalendar getInstrumentCalendar(int month, int year, int instrumentID, Connection conn)
 	        throws InvalidProjectTypeException, InvalidIDException {
 		
 		if (conn == null)
@@ -699,7 +696,7 @@ public class MsInstrumentUtils {
                 +"proj.projectTitle, proj.projectPI, "+
                 "r.researcherLastName "
                  );
-        buf.append("FROM instruments AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
+        buf.append("FROM " + getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
         buf.append("WHERE proj.projectID=insUsg.projectID ");
         buf.append("AND r.researcherID=proj.projectPI ");
         buf.append("AND ins.id=insUsg.instrumentID ");
@@ -715,5 +712,10 @@ public class MsInstrumentUtils {
 		
 		return buf.toString();
 	}
+
+    private static String getInstrumentsTableSQL()
+    {
+        return DBConnectionManager.MSDATA + ".msInstrument";
+    }
 }
 

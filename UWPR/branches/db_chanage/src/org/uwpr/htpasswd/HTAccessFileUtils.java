@@ -3,17 +3,18 @@
  */
 package org.uwpr.htpasswd;
 
+import org.apache.commons.lang.StringUtils;
+import org.uwpr.data.DataURI;
+import org.uwpr.data.DataURISearcher;
+import org.yeastrc.project.Project;
+import org.yeastrc.project.Researcher;
+import org.yeastrc.www.user.User;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
-
-import org.apache.commons.lang.StringUtils;
-import org.uwpr.data.DataURI;
-import org.uwpr.data.DataURISearcher;
-import org.yeastrc.project.Project;
-import org.yeastrc.www.user.User;
 /**
  * @author Mike
  *
@@ -148,32 +149,21 @@ public class HTAccessFileUtils {
 			usernames.add( user.getUsername() );
 			user = null;
 		} catch (Exception e ) { ; }
-		
-		try {
-			User user = new User();
-			user.load( project.getResearcherB().getID() );
-			usernames.add( user.getUsername() );
-			user = null;
-		} catch (Exception e ) { ; }
 
-		try {
-			User user = new User();
-			user.load( project.getResearcherC().getID() );
-			usernames.add( user.getUsername() );
-			user = null;
-		} catch (Exception e ) { ; }
-		
-		try {
-			User user = new User();
-			user.load( project.getResearcherD().getID() );
-			usernames.add( user.getUsername() );
-			user = null;
-		} catch (Exception e ) { ; }
-		
+        for(Researcher researcher: project.getResearchers())
+        {
+            try
+            {
+                User user = new User();
+                user.load( researcher.getID() );
+                usernames.add( user.getUsername() );
+            } catch (Exception ignored ) { ; }
+        }
+
 		usernames.add( "engj" );
 		usernames.add( "priska");
 		usernames.add( "mriffle" );
-		
+
 		if ( usernames.size() > 0 )
 			fw.write( "require user " + StringUtils.join( usernames.iterator(), " " ) + "\n" );
 		else

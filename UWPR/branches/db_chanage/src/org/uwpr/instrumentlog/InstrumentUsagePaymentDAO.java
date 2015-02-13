@@ -50,7 +50,7 @@ public class InstrumentUsagePaymentDAO {
             List <InstrumentUsagePayment> payments = new ArrayList<InstrumentUsagePayment>();
 
             try {
-            	conn = DBConnectionManager.getConnection("pr");
+            	conn = getConnection();
                 stmt = conn.createStatement();
                 rs = stmt.executeQuery(sql);
                 while (rs.next()) {
@@ -90,7 +90,7 @@ public class InstrumentUsagePaymentDAO {
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, payment.getInstrumentUsageId());
 			stmt.setInt(2, payment.getPaymentMethod().getId());
@@ -103,8 +103,12 @@ public class InstrumentUsagePaymentDAO {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
 	}
-	
-	public boolean hasInstrumentUsageForPayment(int paymentMethodId) throws SQLException {
+
+    private Connection getConnection() throws SQLException {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    public boolean hasInstrumentUsageForPayment(int paymentMethodId) throws SQLException {
 		
 		String sql = "SELECT count(*) FROM instrumentUsagePayment WHERE paymentMethodID = "+paymentMethodId;
 		Connection conn = null;
@@ -112,7 +116,7 @@ public class InstrumentUsagePaymentDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -137,7 +141,7 @@ public class InstrumentUsagePaymentDAO {
 		PreparedStatement stmt = null;
 
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.executeUpdate();
 		}

@@ -6,15 +6,15 @@
  */
 package org.yeastrc.project;
 
+import org.apache.log4j.Logger;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * 
@@ -44,7 +44,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
 
             // Our SQL statement
@@ -93,7 +93,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
 
             // Our SQL statement
@@ -145,7 +145,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             // Our SQL statement
             String sqlStr = "SELECT DISTINCT(rc.causeID) FROM collaborationRejected AS rc, collaborationRejectionCause AS crc "+
             "WHERE rc.projectID = "+projectId+" AND rc.causeID = crc.id";
@@ -190,7 +190,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             // Our SQL statement
             String sqlStr = "SELECT * FROM collaborationRejected AS rc, collaborationRejectionCause AS crc "+
             "WHERE rc.projectID = "+projectId+" AND rc.causeID = crc.id GROUP BY rc.causeID";
@@ -240,7 +240,7 @@ public class RejectionCauseDAO {
 
         List<Integer> list = new ArrayList<Integer>();
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = DBConnectionManager.getMainDbConnection();
             // Our SQL statement
             String sqlStr = "SELECT causeID FROM collaborationRejected AS rc "+
             "WHERE projectID = "+projectId+" AND researcherID = "+reviewerId;
@@ -284,7 +284,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;
 
         try{
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             // Our SQL statement
             String sqlStr = "SELECT * FROM collaborationRejected AS rc, collaborationRejectionCause AS crc "+
             "WHERE rc.projectID = "+projectId+" AND rc.researcherID = "+reviewerId+" AND rc.causeID = crc.id";
@@ -336,7 +336,7 @@ public class RejectionCauseDAO {
         Statement stmt = null;
         
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             
             // FIRST delete any existing rejection causes
             deleteReviewerProjectRejectionCauses(projectId, researcherId, conn);
@@ -369,7 +369,12 @@ public class RejectionCauseDAO {
             }
         }
     }
-    
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getPrConnection();
+    }
+
     public void deleteProjectRejectionCauses(int projectId) throws SQLException {
         
         // Get our connection to the database.
@@ -377,7 +382,7 @@ public class RejectionCauseDAO {
         Statement stmt = null;
         
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement();
             String sqlStr = "DELETE FROM collaborationRejected WHERE projectID = "+projectId;
             stmt.executeUpdate(sqlStr);
@@ -423,7 +428,7 @@ public class RejectionCauseDAO {
         ResultSet rs = null;    
         
         try {
-            conn = DBConnectionManager.getConnection("pr");
+            conn = getConnection();
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             String sqlStr = "SELECT * FROM collaborationRejectionCause WHERE cause=\""+cause.getCause()+"\" AND description=\""+cause.getDescription()+"\"";
             rs = stmt.executeQuery(sqlStr);

@@ -3,11 +3,11 @@
  */
 package org.uwpr.data;
 
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * @author Mike
@@ -37,7 +37,7 @@ public class DataURIDeleter {
 			
 			String sql = "DELETE FROM externalDataLocations WHERE id = ?";
 			
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getPrConnection();
 			stmt = conn.prepareStatement( sql );
 			stmt.setInt( 1, dataURI.getId() );
 			stmt.executeUpdate();
@@ -62,5 +62,5 @@ public class DataURIDeleter {
 				}
 		}
 	}
-	
+
 }

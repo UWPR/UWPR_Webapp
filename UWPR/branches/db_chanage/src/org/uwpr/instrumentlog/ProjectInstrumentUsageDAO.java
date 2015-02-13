@@ -3,18 +3,18 @@
  */
 package org.uwpr.instrumentlog;
 
+import org.uwpr.costcenter.InstrumentRate;
+import org.uwpr.costcenter.InstrumentRateDAO;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
-import java.util.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import org.uwpr.costcenter.InstrumentRate;
-import org.uwpr.costcenter.InstrumentRateDAO;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * ProjectInstrumentUsageDAO.java
@@ -45,7 +45,7 @@ public class ProjectInstrumentUsageDAO {
         //System.out.println(sql);
         
         try {
-        	conn = DBConnectionManager.getConnection("pr");
+        	conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             if(rs.next())
@@ -103,7 +103,7 @@ public class ProjectInstrumentUsageDAO {
 
         InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
         try {
-        	conn = DBConnectionManager.getConnection("pr");
+        	conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -166,7 +166,7 @@ public class ProjectInstrumentUsageDAO {
         List <UsageBlockBase> usageBlks = new ArrayList<UsageBlockBase>();
         
         try {
-        	conn = DBConnectionManager.getConnection("pr");
+        	conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -220,7 +220,7 @@ public class ProjectInstrumentUsageDAO {
         List <UsageBlockBase> usageBlks = new ArrayList<UsageBlockBase>();
         
         try {
-        	conn = DBConnectionManager.getConnection("pr");
+        	conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -240,8 +240,13 @@ public class ProjectInstrumentUsageDAO {
 			if(rs != null) try {rs.close();} catch(SQLException e){}
         }
 	}
-	
-	private UsageBlockBase makeUsageBlockBase(ResultSet rs) throws SQLException {
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    private UsageBlockBase makeUsageBlockBase(ResultSet rs) throws SQLException {
         UsageBlockBase blk = new UsageBlockBase();
         blk.setID(rs.getInt("id"));
         blk.setResearcherID(rs.getInt("enteredBy"));

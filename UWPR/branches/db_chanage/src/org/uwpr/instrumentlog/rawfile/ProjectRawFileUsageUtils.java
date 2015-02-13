@@ -6,15 +6,15 @@
  */
 package org.uwpr.instrumentlog.rawfile;
 
+import org.apache.log4j.Logger;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * 
@@ -48,7 +48,7 @@ public class ProjectRawFileUsageUtils {
     public void saveUsage(ProjectRawFileUsage usage) throws Exception {
 
         // Get our connection to the database.
-        Connection conn = DBConnectionManager.getConnection("pr");
+        Connection conn = getConnection();
         Statement stmt = null;
         ResultSet rs = null;
 
@@ -95,11 +95,16 @@ public class ProjectRawFileUsageUtils {
             }
         }
     }
-    
+
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getPrConnection();
+    }
+
     public ProjectRawFileUsage loadUsage(int projectId) throws SQLException {
         
         // Get our connection to the database.
-        Connection conn = DBConnectionManager.getConnection("pr");
+        Connection conn = getConnection();
         Statement stmt = null;
         ResultSet rs = null;
 

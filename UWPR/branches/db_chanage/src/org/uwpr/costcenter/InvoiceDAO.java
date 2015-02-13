@@ -5,17 +5,12 @@
  */
 package org.uwpr.costcenter;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.apache.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
+
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 
@@ -40,7 +35,7 @@ public class InvoiceDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setTimestamp(1, new Timestamp(invoice.getBillStartDate().getTime()));
 			stmt.setTimestamp(2, new Timestamp(invoice.getBillEndDate().getTime()));
@@ -70,7 +65,7 @@ public class InvoiceDAO {
 		ResultSet rs = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -103,7 +98,7 @@ public class InvoiceDAO {
 		Statement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getConnection("pr");
+			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			stmt.execute(sql);
 		}

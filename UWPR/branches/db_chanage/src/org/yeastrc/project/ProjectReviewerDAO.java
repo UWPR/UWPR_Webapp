@@ -6,15 +6,15 @@
  */
 package org.yeastrc.project;
 
+import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.db.DBConnectionManager;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.yeastrc.data.InvalidIDException;
-import org.yeastrc.db.DBConnectionManager;
 
 /**
  * 
@@ -31,7 +31,7 @@ public class ProjectReviewerDAO {
    
    public void saveProjectReviewer(ProjectReviewer reviewer) throws SQLException {
        // Get our connection to the database.
-       Connection conn = DBConnectionManager.getConnection("pr");
+       Connection conn = getConnection();
        Statement stmt = null;
        ResultSet rs = null;
        try {
@@ -90,7 +90,7 @@ public class ProjectReviewerDAO {
    public List<Integer> getProjectReviewerIds(int projectId) throws SQLException {
        
        // Get our connection to the database.
-       Connection conn = DBConnectionManager.getConnection("pr");
+       Connection conn = getConnection();
        Statement stmt = null;
        ResultSet rs = null;
        
@@ -127,7 +127,7 @@ public class ProjectReviewerDAO {
    public List<ProjectReviewer> getProjectReviewers(int projectId) throws SQLException {
        
        // Get our connection to the database.
-       Connection conn = DBConnectionManager.getConnection("pr");
+       Connection conn = getConnection();
        Statement stmt = null;
        ResultSet rs = null;
        
@@ -185,7 +185,7 @@ public class ProjectReviewerDAO {
    public int getLastProjectReviewedBy(int researcherId) throws SQLException{
        
        // Get our connection to the database.
-       Connection conn = DBConnectionManager.getConnection("pr");
+       Connection conn = getConnection();
        Statement stmt = null;
        ResultSet rs = null;
        
@@ -222,10 +222,15 @@ public class ProjectReviewerDAO {
        }
    }
 
-   public int getLastProjectReviewedBy(int researcherId1, int researcherId2) throws SQLException{
+    private Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getPrConnection();
+    }
+
+    public int getLastProjectReviewedBy(int researcherId1, int researcherId2) throws SQLException{
        
        // Get our connection to the database.
-       Connection conn = DBConnectionManager.getConnection("pr");
+       Connection conn = getConnection();
        Statement stmt = null;
        ResultSet rs = null;
        
@@ -270,7 +275,7 @@ public class ProjectReviewerDAO {
        Statement stmt = null;
        
        try {
-           conn = DBConnectionManager.getConnection("pr");
+           conn = getConnection();
            stmt = conn.createStatement();
            String sqlStr = "DELETE FROM projectReviewer WHERE projectID = "+projectId;
            stmt.executeUpdate(sqlStr);

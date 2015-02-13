@@ -37,7 +37,7 @@ public class UserUtils {
 		if (username == null) { throw new NoSuchUserException("got null for username in UserUtils.getUser"); }
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
@@ -115,7 +115,7 @@ public class UserUtils {
 		if (username == null || username.equals("") ) { return false; }
 	   
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
@@ -165,7 +165,7 @@ public class UserUtils {
 
 	/**
 	 * Determine whether or a not a User with the supplied researcherID exists
-	 * @param username The researcherID to test
+	 * @param researcherID The researcherID to test
 	 * @return true if the user exists, false if not
 	 * @throws SQLException if a database error was encountered
 	 */
@@ -173,7 +173,7 @@ public class UserUtils {
 		boolean returnVal = false;
 	   
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
@@ -233,7 +233,7 @@ public class UserUtils {
 		if (email == null || email.equals("") ) { return -1; }
 	   
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = getConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
@@ -281,7 +281,12 @@ public class UserUtils {
 	
 	}
 
-	/**
+    private static Connection getConnection() throws SQLException
+    {
+        return DBConnectionManager.getMainDbConnection();
+    }
+
+    /**
 	 * Generate and return a random password.
 	 * @return A randomly generated password.
 	 */

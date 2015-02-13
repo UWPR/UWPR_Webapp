@@ -27,19 +27,10 @@ public class BilledProject extends Project {
 
 	// The set of groups to which this project belongs
 	private Set<String> groups;
-	private Affiliation affiliation;
 	private List<PaymentMethod> paymentMethods;
 	private boolean isBlocked = false;
 	
 	
-	public Affiliation getAffiliation() {
-		return affiliation;
-	}
-
-	public void setAffiliation(Affiliation affiliation) {
-		this.affiliation = affiliation;
-	}
-
 	public List<PaymentMethod> getPaymentMethods() {
 		return paymentMethods;
 	}
@@ -60,7 +51,7 @@ public class BilledProject extends Project {
 		super.load(id);
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");	
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 
@@ -92,7 +83,7 @@ public class BilledProject extends Project {
 				}
 			}
 			// affiliation
-			this.affiliation = Affiliation.forName(rs.getString("affiliation"));
+//			this.affiliation = Affiliation.forName(rs.getString("affiliation"));
 			
 			this.paymentMethods = ProjectPaymentMethodDAO.getInstance().getPaymentMethods(this.id);
 			
@@ -129,7 +120,7 @@ public class BilledProject extends Project {
 		super.save();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 		
@@ -152,8 +143,8 @@ public class BilledProject extends Project {
 				if (this.groups == null) { rs.updateNull("collGroups"); }
 				else { rs.updateString("collGroups", StringUtils.join(this.groups.toArray(), ",")); }
 				
-				if (this.affiliation == null) {rs.updateNull("affiliation");}
-				else rs.updateString("affiliation", this.affiliation.name());
+//				if (this.affiliation == null) {rs.updateNull("affiliation");}
+//				else rs.updateString("affiliation", this.affiliation.name());
 				
 				rs.updateBoolean("blocked", this.isBlocked);
 
@@ -170,8 +161,8 @@ public class BilledProject extends Project {
 				if (this.groups == null) { rs.updateNull("collGroups"); }
 				else { rs.updateString("collGroups", StringUtils.join(this.groups.toArray(), ",")); }
 				
-				if (this.affiliation == null) {rs.updateNull("affiliation");}
-				else rs.updateString("affiliation", this.affiliation.name());
+//				if (this.affiliation == null) {rs.updateNull("affiliation");}
+//				else rs.updateString("affiliation", this.affiliation.name());
 				
 				rs.updateBoolean("blocked", this.isBlocked);
 			
@@ -195,7 +186,7 @@ public class BilledProject extends Project {
 		super.delete();
 
 		// Get our connection to the database.
-		Connection conn = DBConnectionManager.getConnection("pr");
+		Connection conn = DBConnectionManager.getPrConnection();
 		Statement stmt = null;
 		ResultSet rs = null;
 

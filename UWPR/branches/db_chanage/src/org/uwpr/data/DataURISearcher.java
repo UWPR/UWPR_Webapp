@@ -3,15 +3,15 @@
  */
 package org.uwpr.data;
 
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.Project;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.Project;
 /**
  * @author Mike
  *
@@ -55,7 +55,7 @@ public class DataURISearcher {
 		try {
 
 			String sql = "SELECT id FROM externalDataLocations WHERE projectID = ? ORDER BY lastChange";
-			conn = DBConnectionManager.getConnection( "pr" );
+			conn = DBConnectionManager.getPrConnection();
 			stmt = conn.prepareStatement( sql );
 			stmt.setInt( 1, id );
 			rs = stmt.executeQuery();
