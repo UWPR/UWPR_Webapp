@@ -63,7 +63,7 @@ public class DataURISearcher {
 			while (rs.next()) {
 				try {
 					dataList.add( DataURIFactory.getInstance().getDataURI( rs.getInt( 1 ) ) ); 
-				} catch (Exception e) { ; }
+				} catch (Exception ignored) {}
 			}
 
 			rs.close(); rs = null;
@@ -75,16 +75,13 @@ public class DataURISearcher {
 			// Always make sure result sets and statements are closed,
 			// and the connection is returned to the pool
 			if (rs != null) {
-				try { rs.close(); } catch (SQLException e) { ; }
-				rs = null;
+				try { rs.close(); } catch (SQLException ignored) {}
 			}
 			if (stmt != null) {
-				try { stmt.close(); } catch (SQLException e) { ; }
-				stmt = null;
+				try { stmt.close(); } catch (SQLException ignored) {}
 			}
 			if (conn != null) {
-				try { conn.close(); } catch (SQLException e) { ; }
-				conn = null;
+				try { conn.close(); } catch (SQLException ignored) {}
 			}
 		}
 		

@@ -1,49 +1,21 @@
 package org.yeastrc.db;
 
-import org.apache.log4j.Logger;
+import org.uwpr.AppProperties;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Properties;
 
 public class DBConnectionManager {
 
-    public static String MSDATA;
-    public static String PR;
-    public static String MAINDB;
+    public static String MSDATA = AppProperties.getDbMsData();
+    public static String PR = AppProperties.getDbPr();
+    public static String MAINDB = AppProperties.getDbMainDb();
 
-    private static final Logger log = Logger.getLogger(DBConnectionManager.class.getName());
-
-    static
-    {
-        Properties props = new Properties();
-        InputStream inputStr = null;
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            inputStr = classLoader.getResourceAsStream("db.properties");
-            props.load(inputStr);
-
-            MSDATA = props.getProperty("db.msData", "msData");
-            PR = props.getProperty("db.pr", "pr");
-            MAINDB = props.getProperty("db.mainDb", "mainDb");
-        }
-        catch (IOException e)
-        {
-            log.error("Error reading properties file db.properties", e);
-        }
-        finally {
-            if(inputStr != null) try {inputStr.close();} catch(IOException ignored){}
-        }
-
-    }
-
-	public static Connection getConnection(String db) throws SQLException {
+    public static Connection getConnection(String db) throws SQLException {
 		try {
 			Context ctx = new InitialContext();	
 			DataSource ds;
@@ -84,5 +56,10 @@ public class DBConnectionManager {
     public static Connection getMainDbConnection() throws SQLException
     {
         return getConnection(MAINDB);
+    }
+
+    public static String getInstrumentsTableSQL()
+    {
+        return DBConnectionManager.MSDATA + ".msInstrument";
     }
 }

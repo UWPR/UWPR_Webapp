@@ -75,7 +75,7 @@ public class ProjectInstrumentUsageDAO {
                 ", r.researcherLastName"+
                 ", invoice.createDate AS invoiceDate"
                  );
-        buf.append(" FROM ( instruments AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r )");
+        buf.append(" FROM ( " + DBConnectionManager.getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r )");
         buf.append(" LEFT JOIN ( invoice, invoiceInstrumentUsage as invBlk )");
         buf.append(" ON ( invBlk.instrumentUsageID = insUsg.id AND invoice.id=invBlk.invoiceID )");
         buf.append(" WHERE proj.projectID=insUsg.projectID ");

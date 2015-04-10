@@ -9,7 +9,9 @@
 package org.yeastrc.www.project;
 
 import org.apache.struts.action.*;
+import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
+import org.uwpr.data.MSDaPlExperimentSearcher;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsageUtils;
 import org.yeastrc.project.*;
@@ -110,13 +112,21 @@ public class ViewProjectAction extends Action {
 		
 		
 		// add links to external data to the request
-		try {
-			request.setAttribute( "externalLinkData", DataURISearcher.getInstance().searchByProject( project ) );
-		} catch (Exception e) { ; }
+		try
+        {
+            List<DataURI> externalLinkData = DataURISearcher.getInstance().searchByProject(project);
+
+            // Add any experiments uploaded to the MSDaPl database for this project
+            List<DataURI> msdaplExperiments = MSDaPlExperimentSearcher.searchByProject(project);
+            externalLinkData.addAll(msdaplExperiments);
+
+            request.setAttribute( "externalLinkData", externalLinkData);
+		}
+        catch (Exception ignored) {}
 		
 		
 		
-		// CAN THIS PROEJCT BE EXTENDED
+		// CAN THIS PROJECT BE EXTENDED
 		if(project.getShortType().equals(Projects.COLLABORATION)) { // should always be true for the UWPR
 		    Collaboration collab = (Collaboration) project;
 		    // Project should be either complete or expired AND have a valid progress report 
