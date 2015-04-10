@@ -9,7 +9,7 @@ function showFiles(t, i, sid) {
 	if (typeof(i) != "undefined") { id = i; }
 	if (typeof(sid) != "undefined") { sessionId = sid; }
 
-	var service_url = "http://proteomicsresource.washington.edu/pr/service/filesSearch.do;jsessionid=" + sessionId + "?";
+	var service_url = "/pr/service/filesSearch.do;jsessionid=" + sessionId + "?";
 	//var service_url = "http://localhost:8080/pr/service/filesSearch.do?";
 	
 	service_url += "type=" + type;
@@ -77,7 +77,7 @@ function deleteFile( fid ) {
 	if (typeof(fid) == "undefined") { return; }
 
 	if( confirm( "Are you sure you want to delete this file?" ) ) {
-		var service_url = "http://proteomicsresource.washington.edu/pr/service/deleteFile.do;jsessionid=" + sessionId + "?";
+		var service_url = "/pr/service/deleteFile.do;jsessionid=" + sessionId + "?";
 		//var service_url = "http://localhost:8080/pr/service/deleteFile.do?";
 		
 		service_url += "id=" + fid;

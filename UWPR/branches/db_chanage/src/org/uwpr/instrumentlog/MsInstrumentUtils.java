@@ -62,7 +62,7 @@ public class MsInstrumentUtils {
 		ResultSet rs = null;
 		
 		try {
-			String sql = "select * from " + getInstrumentsTableSQL();
+			String sql = "select * from " + DBConnectionManager.getInstrumentsTableSQL();
 			if(activeOnly) {
 				sql += " WHERE active=1";
 			}
@@ -129,7 +129,7 @@ public class MsInstrumentUtils {
 		ResultSet rs = null;
 		
 		try {
-			String sql = "select * from " + getInstrumentsTableSQL() + " where id="+instrumentID;
+			String sql = "select * from " + DBConnectionManager.getInstrumentsTableSQL() + " where id="+instrumentID;
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -167,7 +167,7 @@ public class MsInstrumentUtils {
         // Get our connection to the database.
         Connection conn = null;
         try {
-            conn = DBConnectionManager.getConnection(DBConnectionManager.PR);
+            conn = getConnection();
             return getUsageBlockBase(usageID, conn);
             
         } catch (SQLException e) {
@@ -259,7 +259,7 @@ public class MsInstrumentUtils {
 		// Get our connection to the database.
 		Connection conn = null;
 		try {
-			conn = DBConnectionManager.getConnection(DBConnectionManager.PR);
+			conn = getConnection();
 			return getUsageBlock(usageID, conn);
 			
 		} catch (SQLException e) {
@@ -696,7 +696,7 @@ public class MsInstrumentUtils {
                 +"proj.projectTitle, proj.projectPI, "+
                 "r.researcherLastName "
                  );
-        buf.append("FROM " + getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
+        buf.append("FROM " + DBConnectionManager.getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
         buf.append("WHERE proj.projectID=insUsg.projectID ");
         buf.append("AND r.researcherID=proj.projectPI ");
         buf.append("AND ins.id=insUsg.instrumentID ");
@@ -712,10 +712,5 @@ public class MsInstrumentUtils {
 		
 		return buf.toString();
 	}
-
-    private static String getInstrumentsTableSQL()
-    {
-        return DBConnectionManager.MSDATA + ".msInstrument";
-    }
 }
 
