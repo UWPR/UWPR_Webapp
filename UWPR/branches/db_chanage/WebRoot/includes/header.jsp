@@ -117,7 +117,9 @@ response.addHeader("Cache-control", "max-age=0"); // stale right away
 		    <html:link href="/pr/editUsername.do">Username</html:link>
 	   </logic:equal>
 	   <logic:equal name="dir" scope="request" value="internal">
-			<html:link href="/pr/newResearcher.do">Add Researcher</html:link>
+		    <html:link href="/pr/newResearcher.do">Add Researcher</html:link>
+            &nbsp;&nbsp;.&nbsp;&nbsp;
+            <html:link href="/pr/viewAllInstrumentCalendar.do">Instrument Calendar</html:link>
 	   </logic:equal>
 	   <logic:equal name="dir" scope="request" value="project">
 	        <html:link href="/pr/newResearcher.do">Add Researcher</html:link>

@@ -6,32 +6,21 @@
  */
 package org.uwpr.www.scheduler;
 
+import org.apache.struts.action.*;
+import org.uwpr.instrumentlog.InstrumentColors;
+import org.uwpr.instrumentlog.MsInstrument;
+import org.uwpr.instrumentlog.MsInstrumentUtils;
+import org.yeastrc.project.*;
+import org.yeastrc.www.user.Groups;
+import org.yeastrc.www.user.User;
+import org.yeastrc.www.user.UserUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
-import org.uwpr.instrumentlog.InstrumentColors;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.yeastrc.project.BilledProject;
-import org.yeastrc.project.Collaboration;
-import org.yeastrc.project.CollaborationStatus;
-import org.yeastrc.project.Project;
-import org.yeastrc.project.ProjectPIComparator;
-import org.yeastrc.project.ProjectsSearcher;
-import org.yeastrc.www.user.Groups;
-import org.yeastrc.www.user.User;
-import org.yeastrc.www.user.UserUtils;
 
 /**
  * 
@@ -80,27 +69,36 @@ public class ViewAllInstrumentsCalendarAction extends Action {
         }
         request.setAttribute("instruments", instrumentNameColors);
         
-        // If the user making the request is an admin put a list of projects 
-        // to be displayed in a drop down list
         Groups groupMan = Groups.getInstance();
-        if (groupMan.isMember(user.getResearcher().getID(), "administrators")) {
-        	
-        	ProjectsSearcher projSearcher = new ProjectsSearcher();
-        	projSearcher.addType(new BilledProject().getShortType()); // billed projects
-        	List <Project> billedProjects = projSearcher.search();
 
-        	projSearcher = new ProjectsSearcher();
-        	projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
-        	projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
-        	List<Project> subsidizedProjects = projSearcher.search();
-
-        	List<Project> projects = new ArrayList<Project>();
-        	projects.addAll(billedProjects);
-        	projects.addAll(subsidizedProjects);
-
-        	Collections.sort(projects, new ProjectPIComparator());
-        	request.setAttribute("projects", projects);
+        // Put a list of projects to be displayed in a drop down list
+        ProjectsSearcher projSearcher = new ProjectsSearcher();
+        projSearcher.addType(new BilledProject().getShortType()); // billed projects
+        if(!groupMan.isMember(user.getResearcher().getID(), "administrators"))
+        {
+            // If the user is not an admin, include only those projects to which the
+            // user has access.
+            projSearcher.setResearcher(user.getResearcher());
         }
+        List <Project> billedProjects = projSearcher.search();
+        List<Project> projects = new ArrayList<Project>();
+        projects.addAll(billedProjects);
+
+        if (groupMan.isMember(user.getResearcher().getID(), "administrators"))
+        {
+            // Add subsidized projects only if the user making this request is an admin.
+            projSearcher = new ProjectsSearcher();
+            projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
+            projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
+            List<Project> subsidizedProjects = projSearcher.search();
+            projects.addAll(subsidizedProjects);
+        }
+
+
+        Collections.sort(projects, new ProjectPIComparator());
+        request.setAttribute("projects", projects);
+
+
         
         if(request.getParameter("popup") != null)
         {
