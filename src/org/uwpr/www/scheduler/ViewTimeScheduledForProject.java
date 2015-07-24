@@ -153,7 +153,7 @@ public class ViewTimeScheduledForProject extends Action {
                                                                                                         filterForm.getPaymentMethodId(),
                                                                                                         startDate,
                                                                                                         endDate);
-        // sort the blocks by instrument and then by start date
+        // sort the blocks by instrument and then by start date, descending
         Collections.sort(usageBlocks, new Comparator<UsageBlock>() {
 			@Override
 			public int compare(UsageBlock o1, UsageBlock o2) {

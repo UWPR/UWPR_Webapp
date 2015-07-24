@@ -201,6 +201,7 @@
 	<forward name="viewAllInstrumentCalendar" path="/viewAllInstrumentCalendar.do"/>
 	<forward name="viewEditInstrumentTimeForm" path="/viewEditInstrumentTimeForm.do"/>
     <forward name="viewEditBlockPaymentForm" path="/viewEditBlockPaymentForm.do"/>
+    <forward name="viewTimeScheduledForInstrument" path="/viewTimeScheduledForInstrument.do"/>
 
     </global-forwards>
 
@@ -782,6 +783,26 @@
       <forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForProject.jsp" redirect="false" />
       <forward name="Failure" path="/viewProject.do" redirect="false"/>
     </action>
+
+    <action
+      path="/viewTimeScheduledForInstrument"
+      type="org.uwpr.www.scheduler.ViewTimeScheduledForInstrument"
+      input="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp"
+      name="viewScheduledTimeDetailsForm"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="false" />
+      <forward name="Failure" path="/allInstrumentUsageSummary.do" redirect="false"/>
+    </action>
+
+	<action
+      path="/shiftTimeScheduledForInstrument"
+      type="org.uwpr.www.scheduler.ShiftTimeScheduledForInstrument"
+     >
+		<forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="true" />
+		<forward name="Failure" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="false"/>
+	</action>
+
     
 	<!-- ================================================================================== -->
 	<!-- Actions related to setting up time blocks, rates etc. for the cost center -->

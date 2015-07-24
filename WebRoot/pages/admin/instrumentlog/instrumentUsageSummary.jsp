@@ -60,14 +60,14 @@
 	DataSet piStats = (DataSet)(session.getAttribute("piStats"));
 	String piStatsChartURL = GoogleApiChartCreator.getPieChartURL(piStats, 330, 160);
 %>
-<img src="<%=piStatsChartURL%>" align="top" alt="Usage(%) by PI"></img>
+<img src="<%=piStatsChartURL%>" align="top" alt="Usage(%) by PI" />
 </logic:present>
 <logic:present name="monthlyStats">
 <% 
 	DataSet monthlyStats = (DataSet)(session.getAttribute("monthlyStats"));
 	String monthsStatsChartURL = GoogleApiChartCreator.getLineChartURL(monthlyStats, 450, 200);
 %>
-<img src="<%=monthsStatsChartURL%>" align="top" alt="Usage(%) by Month"></img>
+<img src="<%=monthsStatsChartURL%>" align="top" alt="Usage(%) by Month" />
 </logic:present>
 </div>
 </center>
@@ -107,7 +107,7 @@
 				<a href="/pr/viewInstrumentUsageForm.do?usageID=<bean:write name="usageBlock" property="ID" />">
 				<font style="font-size:8pt;"><bean:write name="usageBlock" property="startDateFormated" /> - <bean:write name="usageBlock" property="endDateFormated" /></font></a>
 				&nbsp;&nbsp;
-				<a href="javascript:confirmDelete('<bean:write name="usageBlock" property="ID" />', <bean:write name="usage" property="instrumentID" />)">
+				<a href="javascript:confirmDelete('<bean:write name="usageBlock" property="ID" />', '<bean:write name="usage" property="instrumentID" />')">
 				<font style="font-size:8pt; color: #ff0000">[delete]</font></a>
 				<br>
 			</logic:iterate>
@@ -119,6 +119,9 @@
 	
 	<div style="font-weight:bold;font-size:9pt;text-align:center;">
 		<html:link href="/pr/viewAllInstrumentCalendar.do" >View Calendar</html:link>
+        &nbsp;
+        &nbsp;
+        <a href="/pr/viewTimeScheduledForInstrument.do?instrumentId=<%=instrumentUsage.getInstrumentID()%>">List Usage</a>
 	</div>
 </yrcwww:contentbox>
 </logic:present>
