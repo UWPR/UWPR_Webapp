@@ -49,6 +49,10 @@
 			&nbsp;
 			
 		<html:link href="/pr/viewAllInstrumentCalendar.do" >View Calendar</html:link>
+            &nbsp;
+            &nbsp;
+        <html:link href="/pr/viewTimeScheduledForInstrument.do" paramId="instrumentId" paramName="instrument" paramProperty="instrumentID">List Usage</html:link>
+
 	</div>
 
 </yrcwww:contentbox>

@@ -132,7 +132,9 @@ public class DeleteProjectInstrumentTimeAction extends Action {
         	return newFwd;
         }
 
-        // delete
+		log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
+
+		// delete
 		InstrumentUsageDAO.getInstance().delete(usageBlockId);
 		
 		ActionForward fwd = mapping.findForward("Success");

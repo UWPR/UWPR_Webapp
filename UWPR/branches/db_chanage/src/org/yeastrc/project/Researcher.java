@@ -73,7 +73,7 @@ public class Researcher implements Comparable, IData {
 	 * Test these two researchers to see if they represent the same researcher
 	 * Yes, it's possible to have two distinct Researcher objects representing the same researcher
 	 * The test is based on the researcherID of each Researcher
-	 * @param researcher The researcher to test against this one.
+	 * @param o The researcher to test against this one.
 	 * @return true if they represent the same researcher, false if not
 	 */
 	public boolean equals(Object o) {
@@ -390,7 +390,7 @@ public class Researcher implements Comparable, IData {
 	/**
 	 * Set the researcher's ID.
 	 * <P>Only use this method if you really know what you're doing.
-	 * @param id The researcher's ID
+	 * @param ID The researcher's ID
 	 */
 	public void setID(int ID) { this.id = ID; }
 
@@ -414,7 +414,7 @@ public class Researcher implements Comparable, IData {
 
 	/**
 	 * Set the researcher's email address.
-	 * @param name The researcher's email address
+	 * @param email The researcher's email address
 	 */
 	public void setEmail(String email) { this.email = email; }
 
