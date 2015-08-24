@@ -46,6 +46,18 @@
     	</logic:equal>
    </tr>
    <tr>
+	   <td>
+		   <logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
+			   Budget
+		   </logic:equal>
+		   <logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
+			   PO
+		   </logic:equal>
+		   Name
+	   </td>
+	   <td><html:text  property="paymentMethodName" size="40" /></td>
+   </tr>
+   <tr>
    		<td>Federal Funding:</td>
    		<td colspan="4">
    			<html:checkbox property="federalFunding"></html:checkbox>

@@ -19,6 +19,7 @@ public class PaymentMethod {
 	private int id;
 	private String uwbudgetNumber;
 	private String ponumber;
+	public String paymentMethodName;
 	private String contactFirstName;
 	private String contactLastName;
 	private String contactEmail;
@@ -60,6 +61,17 @@ public class PaymentMethod {
 	public void setPonumber(String ponumber) {
 		this.ponumber = ponumber;
 	}
+
+	public String getPaymentMethodName()
+	{
+		return paymentMethodName;
+	}
+
+	public void setPaymentMethodName(String paymentMethodName)
+	{
+		this.paymentMethodName = paymentMethodName;
+	}
+
 	public String getContactFirstName() {
 		return contactFirstName;
 	}
@@ -183,15 +195,35 @@ public class PaymentMethod {
 
     public String getDisplayString()
     {
+		StringBuilder displayString = new StringBuilder();
         if(!StringUtils.isBlank(getUwbudgetNumber()))
         {
-            return "UW: " + getUwbudgetNumber();
+            displayString.append("UW: ").append(getUwbudgetNumber());
         }
         else if(!StringUtils.isBlank(getPonumber()))
         {
-            return "PO: "+getPonumber();
+            displayString.append("PO: ").append(getPonumber());
         }
-        else
-            return "NO NAME";
+		else
+		{
+			return "BUDGET NUMBER OR PO NUMBER NOT FOUND";
+		}
+		String name = getName50Chars();
+		if(!StringUtils.isBlank(name))
+		{
+			displayString.append(", ").append(name);
+		}
+
+        return displayString.toString();
     }
+
+	public String getName50Chars()
+	{
+		if(!StringUtils.isBlank(paymentMethodName))
+		{
+			// Truncate if necessary
+			return paymentMethodName.length() > 50 ? paymentMethodName.substring(0,46) + "..." : paymentMethodName;
+		}
+		return "";
+	}
 }

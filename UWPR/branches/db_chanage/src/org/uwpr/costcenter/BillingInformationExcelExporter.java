@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
@@ -93,10 +94,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 
 		if(writeHeader) {
 			// write the header
-			if(this.isSummarize())
-				writeHeaderSummarized(sheet);
-			else
-				writeHeaderDetailed(sheet);
+			writeHeaderDetailed(sheet);
 		}
 		
 		// get the project
@@ -130,10 +128,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 
 		if(writeHeader) {
 			// write the header
-			if(this.isSummarize())
-				writeHeaderSummarized(sheet);
-			else
-				writeHeaderDetailed(sheet);
+			writeHeaderSummarized(sheet);
 		}
 		
 		// get the project
@@ -223,6 +218,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 		// if(this.isBillPartialBlocks())
 		//	row.createCell(cellnum++).setCellValue("Billed_Hours");
 		row.createCell(cellnum++).setCellValue("Payment_Method");
+		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
 		row.createCell(cellnum++).setCellValue("Federal_Funding");
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
@@ -252,6 +248,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 		row.createCell(cellnum++).setCellValue("End");
 		row.createCell(cellnum++).setCellValue("Hours_Used");
 		row.createCell(cellnum++).setCellValue("Payment_Method");
+		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
 		row.createCell(cellnum++).setCellValue("Federal_Funding");
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
@@ -263,7 +260,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 	}
 	
 	// Format:
-	// ProjectID	PI	Researcher	Instrument	Block	Start	End	PaymentMethod	FederalFunding	%Charged	Cost	
+	// ProjectID	PI	Researcher	Instrument	Block	Start	End	PaymentMethod	PaymentMethodName	FederalFunding	%Charged	Cost
 	private void writeBlockDetails(Project project, UsageBlockBase block, Sheet sheet) throws BillingInformationExporterException, SQLException {
 		
 		// get the name of the researcher that scheduled the instrument time
@@ -368,7 +365,12 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 			throw new BillingInformationExporterException("Did not find a UW Budget number or a PO numer for payment method ID: "
 					+paymentMethod.getId());
 		}
-
+		String paymentMethodName = paymentMethod.getPaymentMethodName();
+		if(StringUtils.isBlank(paymentMethodName))
+		{
+			paymentMethodName = "";
+		}
+		row.createCell(cellnum++).setCellValue(paymentMethodName);
 		
 		row.createCell(cellnum++).setCellValue(String.valueOf(paymentMethod.isFederalFunding()));
 		

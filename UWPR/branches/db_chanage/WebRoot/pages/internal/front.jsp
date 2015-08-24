@@ -19,7 +19,15 @@
 
 <P>Welcome to the internal Proteomics Resource web site.</P>
 
-<p>
+<logic:present name="showReminder">
+	<!--
+	<div id="acknowledgementReminder" style="color:red;font-weight:bold;margin-top:20px;margin-bottom:20px;">
+		Please acknowledge the University of Washington's proteomics resource in your publications.
+	</div>
+	-->
+</logic:present>
+
+	<p>
 From here, you can view and update your abstract information, request new collaborations and retrieve your proteomics data. 
 To initiate a new project you need to submit a short project description and billing information.
 </p>
