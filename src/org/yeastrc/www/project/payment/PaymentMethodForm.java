@@ -27,6 +27,7 @@ public class PaymentMethodForm extends ActionForm {
 	private int paymentMethodId; // only available when we are editing an existing payment method
 	private String uwBudgetNumber;
 	private String poNumber;
+	private String paymentMethodName;
 	private String contactFirstName;
 	private String contactLastName;
 	private String contactEmail;
@@ -183,6 +184,16 @@ public class PaymentMethodForm extends ActionForm {
 
 	public void setPoNumber(String poNumber) {
 		this.poNumber = poNumber;
+	}
+
+	public String getPaymentMethodName()
+	{
+		return paymentMethodName;
+	}
+
+	public void setPaymentMethodName(String paymentMethodName)
+	{
+		this.paymentMethodName = paymentMethodName;
 	}
 
 	public String getContactFirstName() {

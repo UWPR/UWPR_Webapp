@@ -70,11 +70,15 @@ public class LoginAction extends Action {
 		// Save the login info in the user.
 		user.setLastLoginTime(new java.util.Date());
 		user.setLastLoginIP(request.getRemoteAddr());
+		user.incrementLoginCount();
 		user.save();
 
 		// Save this user in their session, and consider them authenticated
 		session.setAttribute("user", user);
-
+		if(user.getLoginCount() % 5 == 0)
+		{
+			request.setAttribute("showReminder", true);
+		}
 
 		// Forward them on to the happy success page!
 		return mapping.findForward("Success");

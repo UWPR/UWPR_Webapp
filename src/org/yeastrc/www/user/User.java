@@ -94,6 +94,7 @@ public class User implements IData {
 		this.lastLoginTime = null;
 		this.lastLoginIP = null;
 		this.lastPasswordChange = null;
+		this.loginCount = 0;
 	}
 
 
@@ -144,6 +145,7 @@ public class User implements IData {
 				if (this.lastLoginIP == null) { rs.updateNull("lastLoginIP"); }
 				else { rs.updateString("lastLoginIP", this.lastLoginIP); }
 
+				rs.updateInt("loginCount", this.loginCount);
 
 				// Update the row
 				rs.updateRow();
@@ -169,6 +171,7 @@ public class User implements IData {
 				if (this.lastLoginIP == null) { rs.updateNull("lastLoginIP"); }
 				else { rs.updateString("lastLoginIP", this.lastLoginIP); }
 
+				rs.updateInt("loginCount", this.loginCount);
 
 				rs.insertRow();
 
@@ -250,6 +253,7 @@ public class User implements IData {
 			this.lastLoginTime = rs.getDate("lastLoginTime");
 			this.lastLoginIP = rs.getString("lastLoginIP");
 			this.lastPasswordChange = rs.getDate("lastPasswordChange");
+			this.loginCount = rs.getInt("loginCount");
 			
 			rs.close();
 			rs = null;
@@ -397,7 +401,7 @@ public class User implements IData {
 	
 	/**
 	 * Set the value for the last IP number from which the user accessed the site
-	 * @param The value for the last IP number from which the user accessed the site
+	 * @param lastip value for the last IP number from which the user accessed the site
 	 */
 	public void setLastLoginIP(String lastip) { this.lastLoginIP = lastip; }
 	
@@ -457,6 +461,16 @@ public class User implements IData {
 		return buf.toString();
 	}
 
+	public void incrementLoginCount()
+	{
+		loginCount++;
+	}
+
+	public int getLoginCount()
+	{
+		return loginCount;
+	}
+
 	// instance variables
 
 	// The researcher id of this User
@@ -480,4 +494,6 @@ public class User implements IData {
 	// The IP they last logged in from
 	private String lastLoginIP;
 
+	// How many times the user has logged in
+	private int loginCount;
 }

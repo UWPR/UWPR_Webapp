@@ -132,6 +132,7 @@
                 <thead>
                     <th style="font-size: smaller;">Type</th>
                     <th>Number</th>
+					<th>Name</th>
                     <th>Current</th>
                     <th>Total Used</th>
                     <th>Invoiced</th>
@@ -155,6 +156,9 @@
                             </logic:greaterThan>
                         </td>
 					</logic:notEmpty>
+					<td style="padding:3px">
+						<bean:write name="paymentMethod" property="name50Chars" />
+					</td>
 					<td style="padding:3px">
 						<logic:equal name="paymentMethod" property="current" value="true">
 							<span style="color:green">Yes</span>
