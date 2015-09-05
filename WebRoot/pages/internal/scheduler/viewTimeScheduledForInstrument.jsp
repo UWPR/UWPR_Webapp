@@ -126,7 +126,7 @@ function getTotalCost() {
 
 
 <div style="margin:20px; text-align:left; align:center">
-<html:form action="viewScheduledTimeDetails" method="POST">
+<html:form action="viewTimeScheduledForInstrument" method="POST">
     <html:hidden property="projectId" styleId="projectId"/>
     <table align="center">
         <tr>
@@ -192,6 +192,7 @@ function getTotalCost() {
 		<tr>
 			<th class="scheduler">ID</th>
 			<th class="scheduler">Instrument</th>
+            <th class="scheduler">Project</th>
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
@@ -208,6 +209,11 @@ function getTotalCost() {
 			<tr>
 				<td><bean:write name="usageBlock" property="ID"/></td>
 				<td><bean:write name="usageBlock" property="instrumentName"/></td>
+                <td>
+                    <html:link action="viewProject" paramId="ID" paramName="usageBlock" paramProperty="projectID">
+                        <bean:write name="usageBlock" property="projectTitle"/>
+                    </html:link>
+                </td>
 				<td>
 					<logic:notEmpty name="usageBlock" property="payments">
 						<ul>
