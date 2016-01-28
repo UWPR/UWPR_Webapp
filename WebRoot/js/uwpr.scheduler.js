@@ -176,6 +176,11 @@
 					 	menudiv += "<nobr><b>PI: "+event.projectPI+"</b></nobr>";
 					 	menudiv += "<br>";
 					 }
+					if(event.instrumentOperator)
+					{
+						menudiv += "<nobr><b>User: "+event.instrumentOperator+"</b></nobr>";
+						menudiv += "<br>";
+					}
 					 
 					 if(event.blocks) {
 						 
@@ -525,6 +530,7 @@
 	       				dataType: "json",
 	       				data: {"projectId":options.projectId,
 	       				       "instrumentId": options.instrumentId,
+							   "instrumentOperatorId": information.instrumentOperatorId,
 	       				       "paymentMethodId1": information.paymentMethodId1,
 	       				       "paymentMethod1Percent": information.paymentMethod1Perc,
 	       				       "paymentMethodId2": information.paymentMethodId2,

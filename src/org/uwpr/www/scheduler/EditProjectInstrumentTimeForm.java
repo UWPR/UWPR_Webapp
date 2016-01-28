@@ -24,6 +24,7 @@ public class EditProjectInstrumentTimeForm extends ActionForm{
 	private int projectId;
 	private int instrumentId;
 	private String instrumentName;
+	private int instrumentOperatorId;
 	private String usageBlockIdsToEdit;
 	private int creatorId;
 	private String createDate;
@@ -172,5 +173,15 @@ public class EditProjectInstrumentTimeForm extends ActionForm{
 
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
+	}
+
+	public int getInstrumentOperatorId()
+	{
+		return instrumentOperatorId;
+	}
+
+	public void setInstrumentOperatorId(int instrumentOperatorId)
+	{
+		this.instrumentOperatorId = instrumentOperatorId;
 	}
 }

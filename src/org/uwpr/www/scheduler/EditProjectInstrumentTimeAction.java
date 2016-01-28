@@ -10,6 +10,7 @@ import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
 import org.yeastrc.project.*;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -89,6 +90,27 @@ public class EditProjectInstrumentTimeAction extends Action {
                     		"Instrument ID: "+projectId+". ERROR: "+e.getMessage()),
     				"viewProject", "?ID="+projectId);
         }
+
+		// We need an instrument operator
+		int instrumentOperatorId = editForm.getInstrumentOperatorId();
+		if(instrumentOperatorId == 0)
+		{
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.scheduler.invalidid",
+							"Ivalid instrument operator ID: "+instrumentOperatorId),
+					        "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
+					);
+		}
+		if(!Groups.getInstance().isMember(instrumentOperatorId, Groups.INSTRUMENT_OPERATOR))
+		{
+			Researcher operator = new Researcher();
+			operator.load(instrumentId);
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.scheduler.invalidid",
+							operator.getFullName() + " is not a verified instrument operator."),
+					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
+			);
+		}
 
         // set the year and month so that the scheduler initializes at the correct year and month.
         Calendar startCal = Calendar.getInstance();
@@ -181,7 +203,7 @@ public class EditProjectInstrumentTimeAction extends Action {
         // Get the rate type -- UW, non-profit, commercial etc.
         RateType rateType = null;
         if(project instanceof BilledProject) {
-        	Affiliation affiliation = ((BilledProject)project).getAffiliation();
+        	Affiliation affiliation = project.getAffiliation();
         	rateType = RateTypeDAO.getInstance().getRateTypeForAffiliation(affiliation, project.isMassSpecExpertiseRequested());
         	if(rateType == null) {
         		return returnError(mapping, request, "scheduler", 
@@ -213,6 +235,7 @@ public class EditProjectInstrumentTimeAction extends Action {
             UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
             usageBlock.setProjectID(projectId);
             usageBlock.setInstrumentID(instrumentId);
+			usageBlock.setInstrumentOperatorId(instrumentOperatorId);
             usageBlock.setInstrumentRateID(rate.getId());
             usageBlock.setResearcherID(oldBlock.getResearcherID());
             usageBlock.setUpdaterResearcherID(user.getResearcher().getID());

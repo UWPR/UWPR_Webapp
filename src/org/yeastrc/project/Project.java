@@ -1055,7 +1055,30 @@ public abstract class Project implements Comparable, IData, ComparableProject {
         return this.researchers;
     }
 
-
+	public List<Researcher> getInstrumentOperators(List<Researcher> allInstrumentOperators)
+	{
+		Set<Integer> instrumentOperatorIds = new HashSet<Integer>(allInstrumentOperators.size());
+		for(Researcher operator: allInstrumentOperators)
+		{
+			instrumentOperatorIds.add(operator.getID());
+		}
+		// Filter the instrument operator list to the users listed on the project
+		List<Researcher> projectResearchers = getResearchers();
+		List<Researcher> projectInstrumentOperators = new ArrayList<Researcher>(projectResearchers.size());
+		for(Researcher researcher: projectResearchers)
+		{
+			if(instrumentOperatorIds.contains(researcher.getID()))
+			{
+				projectInstrumentOperators.add(researcher);
+			}
+		}
+		Researcher pi = getPI();
+		if(pi != null && instrumentOperatorIds.contains(pi.getID()))
+		{
+			projectInstrumentOperators.add(pi);
+		}
+		return projectInstrumentOperators;
+	}
 	/**
 	 * Returns the project submit date as a String
 	 * @return the project submit date in string form

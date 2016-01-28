@@ -4,20 +4,17 @@
 package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.ProjectInstrumentUsageDAO;
 import org.uwpr.instrumentlog.UsageBlock;
+import org.uwpr.instrumentlog.UsageBlockDAO;
 import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
+import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -78,12 +75,9 @@ public class ViewTimeScheduledForProject extends Action {
         	project = ProjectFactory.getProject(projectId);
         	if(!project.checkAccess(user.getResearcher())) {
         		ActionErrors errors = new ActionErrors();
-        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","User does not have access to schedule instrument time for project."));
+        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","User does not have access to project ID " + projectId));
         		saveErrors( request, errors );
-        		ActionForward fwd = mapping.findForward("Failure");
-    			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
-            	return newFwd;
-
+            	return mapping.findForward("standardHome");
         	}
         }
         catch(Exception e) {
@@ -94,7 +88,6 @@ public class ViewTimeScheduledForProject extends Action {
 			ActionForward fwd = mapping.findForward("Failure");
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
-
         }
 
         int instrumentId;
@@ -111,6 +104,15 @@ public class ViewTimeScheduledForProject extends Action {
         catch(NumberFormatException e) {
             paymentMethodId = 0;
         }
+
+        int instrumentOperatorId;
+        try {
+            instrumentOperatorId = Integer.parseInt(request.getParameter("instrumentOperatorId"));
+        }
+        catch(NumberFormatException e) {
+            instrumentOperatorId = 0;
+        }
+
         String startDateString = request.getParameter("startDate");
         String endDateString = request.getParameter("endDate");
         Date startDate = null;
@@ -168,6 +170,16 @@ public class ViewTimeScheduledForProject extends Action {
         request.setAttribute("project", project);
         request.setAttribute("usageBlocks", usageBlocks);
 
+        int totalHours = 0;
+        double totalCost = 0;
+        for(UsageBlock block: usageBlocks)
+        {
+            totalCost += block.getRate().doubleValue();
+            totalHours += block.getHours();
+        }
+        request.setAttribute("totalCost", totalCost);
+        request.setAttribute("totalHours", totalHours);
+
         List<MsInstrument> instrumentList = MsInstrumentUtils.instance().getMsInstruments();
         List<PaymentMethod> paymentMethods;
         if(project instanceof BilledProject)
@@ -180,6 +192,10 @@ public class ViewTimeScheduledForProject extends Action {
         }
         request.setAttribute("instruments", instrumentList);
         request.setAttribute("paymentMethods", paymentMethods);
+
+        // Put a list of instrument operators listed on the project.
+        List<Researcher> allInstrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
+        request.setAttribute("instrumentOperators", project.getInstrumentOperators(allInstrumentOperators));
 
         if(usageBlocks.size() == 0
            && instrumentId == 0

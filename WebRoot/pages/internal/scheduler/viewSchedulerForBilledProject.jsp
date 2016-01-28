@@ -37,6 +37,11 @@
 		font-size:8pt;
 		font-weight:normal;
 	}
+	div.cal_selector
+	{
+		margin:15px 0 15px 0;
+		text-align:left;
+	}
 
 </style>
 
@@ -52,7 +57,25 @@ $(document).ready(function() {
 	// select the correct project in the drop-down menu
 	// project selector is displayed only for site admins.
 	$("#projectSelector").val(<bean:write name="projectId"/>);
-	
+
+	$('select#instrumentOperatorSelector').change(function()
+	{
+		var selected = $('select#instrumentOperatorSelector :selected').val();
+		$('.operatorTimeRemaining').hide();
+		var id = "operator_" +selected;
+		// alert("set id to " + selected);
+		$('#' + id).show();
+	});
+
+	// If we have only one instrument operator for this project select it now
+	// We will have 2 <option> elements if there is only 1 instrument operator.
+	// alert($('select#instrumentOperatorSelector option').length);
+	if($('select#instrumentOperatorSelector option').length == 2) {
+
+		$('select#instrumentOperatorSelector option:last').attr("selected", "selected");
+		$('select#instrumentOperatorSelector').change();
+	}
+
 	// If we have only one payment method for this project select it now
 	// We will have 2 <option> elements if there is only 1 payment method
 	//alert($('select#paymentMethodSelector_1 option').length);
@@ -90,19 +113,24 @@ function getInstrumentId() {
 }
 
 function getRequestInformation() {
-	
 	var information = {};
 	information.requestUrl = "/pr/requestInstrumentTimeAjax.do";
 	information.projectId = getProjectId();
 	information.instrumentId = getInstrumentId();
+	information.instrumentOperatorId = $("#instrumentOperatorSelector :selected").val();
 	information.hasPaymentMethodInfo = true;
 	information.paymentMethodId1 = $("#paymentMethodSelector_1 :selected").val();
 	information.paymentMethod1Perc = $("#paymentMethodPercent_1").val();
     // check if there is a second payment method
 	information.paymentMethodId2 = $("#paymentMethodSelector_2 :selected").val();
 	information.paymentMethod2Perc = $("#paymentMethodPercent_2").val();
-    
-    
+
+
+	if (information.instrumentOperatorId == 0) {
+		information.errorMessage = "Please select an instrument operator.";
+		return information;
+	}
+
     if (information.paymentMethodId1 == 0) {
     	information.errorMessage = "Please select a payment method.";
     	return information;
@@ -350,7 +378,7 @@ function updatePercent() {
 <yrcwww:contentbox title="Schedule Instrument Time">
 <center>
 
-<div class="ui-state-default">
+<div class="ui-state-default" style="padding:10px;">
 
 <div style="margin:5px 0 0 0; text-align:center;">
 Project ID: <bean:write name="projectId"/>
@@ -359,23 +387,11 @@ Project ID: <bean:write name="projectId"/>
 </span>
 </div>
 
-<!-- Instrument Selector -->
-<div style="margin:20px 0 20px 0; text-align:center;">
-Select Instrument:
-<select id="instrumentSelector" onchange='switchInstrument(<bean:write name="projectId" />)'>
-<logic:iterate name="instruments" id="instrument">
-	<logic:equal name="instrument" property="active" value="true">
-		<option value='<bean:write name="instrument" property="ID" />'><bean:write name="instrument" property="name" /></option>
-	</logic:equal>
-</logic:iterate>
-
-</select>
-</div>
 
 <!-- Project selector -->
 <logic:present name="projects">
-	<div style="margin:20px 0 20px 0; text-align:center;">
-	Select Project:
+	<div class="cal_selector">
+	Select project:
 	<select id="projectSelector" onchange='switchProject()'>
 		<logic:iterate name="projects" id="project">
 			<option value='<bean:write name="project" property="ID" />'><bean:write name="project" property="label" /></option>
@@ -384,11 +400,53 @@ Select Instrument:
 	</div>
 </logic:present>
 
+<!-- Instrument Selector -->
+<div class="cal_selector">
+	Select instrument:
+	<select id="instrumentSelector" onchange='switchInstrument(<bean:write name="projectId" />)'>
+		<logic:iterate name="instruments" id="instrument">
+			<logic:equal name="instrument" property="active" value="true">
+				<option value='<bean:write name="instrument" property="ID" />'><bean:write name="instrument" property="name" /></option>
+			</logic:equal>
+		</logic:iterate>
+
+	</select>
+</div>
+
+<!-- Instrument Operator Selector -->
+<div class="cal_selector">
+	Select instrument operator:
+	<select id="instrumentOperatorSelector">
+		<option value='0'>Select</option>
+		<logic:iterate name="instrumentOperators" id="instrumentOperator">
+			<option value='<bean:write name="instrumentOperator" property="ID" />'>
+				<bean:write name="instrumentOperator" property="fullName" />
+			</option>
+		</logic:iterate>
+	</select>
+	&nbsp;
+	<logic:iterate name="instrumentOperators" id="instrumentOperator">
+		<span class="operatorTimeRemaining" id="operator_<bean:write name='instrumentOperator' property='ID'/>" style="display:none; font-size:8pt; color:red">
+			<bean:write name="instrumentOperator" property="timeRemaining" /> hrs remaining
+			&nbsp;
+			<html:link action="viewTimeScheduledForOperator.do" paramId="instrumentOperatorId" paramName="instrumentOperator" paramProperty="ID">[View Details]</html:link>
+		</span>
+	</logic:iterate>
+
+	<logic:empty name="instrumentOperators">
+		<br>
+		<span style="color:red;font-size:8pt;">
+			There are no verified mass spec. instrument operators listed on this project.
+			Please contact us to give permission to reserachers in your lab to operate the instruments.
+		</span>
+	</logic:empty>
+</div>
+
 <!-- Payment Selector -->
-<div style="margin:20px 0 20px 0; text-align:center;">
-Select Payment Method(s):
+<div class="cal_selector">
+Select payment method(s):
 <!-- User is allowed to use up to two payment methods -->
-<table align="center">
+<table>
 <tr>
 <td>
 UW Budget # / PO Number:
@@ -406,7 +464,7 @@ UW Budget # / PO Number:
 </tr>
 
 <tr id="addPaymentMethodLinkRow">
-	<td colspan="3" align="center">
+	<td colspan="3" align="left">
 		<a href="#" onclick="showSecondPaymentMethod(); return false;" style="color:red;font-size:8pt;text-decoration:underline;">[Add a payment method]</a>
 	</td>
 </tr>

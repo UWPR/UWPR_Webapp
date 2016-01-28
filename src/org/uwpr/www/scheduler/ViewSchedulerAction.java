@@ -5,13 +5,7 @@
  */
 package org.uwpr.www.scheduler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,14 +24,8 @@ import org.uwpr.costcenter.RateTypeDAO;
 import org.uwpr.costcenter.TimeBlock;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
-import org.yeastrc.project.Collaboration;
-import org.yeastrc.project.CollaborationStatus;
-import org.yeastrc.project.Project;
-import org.yeastrc.project.ProjectFactory;
-import org.yeastrc.project.ProjectPIComparator;
-import org.yeastrc.project.ProjectsSearcher;
+import org.uwpr.scheduler.ProjectInstrumentTimeApprover;
+import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 import org.yeastrc.www.user.Groups;
@@ -226,10 +214,22 @@ public class ViewSchedulerAction extends Action {
         	if(block.getNumHours() == 0) // time blocks associated with old scheduled instrument time
         		iter.remove();
         }
-        
-        
-        
+
         request.setAttribute("instruments", instruments); // set in the request to display as a drop down menu
+		// Get a list of verified instrument operators;
+		List<Researcher> allInstrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
+		// Put a list of instrument operators listed on the project.
+		List<Researcher> projectInstrumentOperators = project.getInstrumentOperators(allInstrumentOperators);
+		List<Map<String, Object>> instrumentOperators = new ArrayList<Map<String, Object>>(projectInstrumentOperators.size());
+		for(Researcher researcher: projectInstrumentOperators)
+		{
+			Map<String, Object> values = new HashMap<String, Object>(3);
+			values.put("ID", researcher.getID());
+			values.put("fullName", researcher.getFullName());
+			values.put("timeRemaining", ProjectInstrumentTimeApprover.getRemainingInstrumentTimeForOperator(researcher));
+			instrumentOperators.add(values);
+		}
+		request.setAttribute("instrumentOperators", instrumentOperators);
         request.setAttribute("projectId", projectId);
         request.setAttribute("instrumentId", instrumentId);
         request.setAttribute("timeBlocks", timeBlocks);

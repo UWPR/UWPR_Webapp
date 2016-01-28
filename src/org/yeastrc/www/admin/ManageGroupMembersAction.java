@@ -5,8 +5,12 @@ package org.yeastrc.www.admin;
 
 import javax.servlet.http.*;
 import org.apache.struts.action.*;
-import java.util.Collection;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.*;
 import org.yeastrc.project.Projects;
 
@@ -54,13 +58,22 @@ public class ManageGroupMembersAction extends Action {
 
 		// Are we adding someone to a group?
 		if (action != null && action.equals("add")) {
-			int researcherID = ((ManageGroupMembersForm)form).getResearcherID();
-			try {
-				groupMan.addToGroup(groupName, researcherID);
-			} catch (Exception e) {
+
+			List<Researcher> selectedResearchers = ((ManageGroupMembersForm)form).getSelectedResearchers();
+			List<Integer> researcherIds = new ArrayList<Integer>(selectedResearchers.size());
+			for(Researcher researcher: selectedResearchers)
+			{
+				researcherIds.add(researcher.getID());
+			}
+
+			try
+			{
+				groupMan.addToGroup(groupName, researcherIds);
+			}
+			catch (Exception e) {
 				ActionErrors errors = new ActionErrors();
 				errors.add("access", new ActionMessage("error.groups.adddberror"));
-				saveErrors( request, errors );
+				saveErrors(request, errors);
 			}
 		}
 		
@@ -79,11 +92,11 @@ public class ManageGroupMembersAction extends Action {
 		request.setAttribute("groupName", groupName);
 		
 		// Get a list of all of the members of this group
-		java.util.List memberList = groupMan.getMembers(groupName);
+		List<Researcher> memberList = groupMan.getMembers(groupName);
 		request.setAttribute("memberList", memberList);
 		
 		// Set up a Collection of all the Researchers to use in the form as a pull-down menu for researchers
-		Collection researchers = Projects.getAllResearchers();
+		List<Researcher> researchers = Projects.getAllResearchers();
 		request.setAttribute("researchers", researchers);
 		
 		// Set up an ActionForm for this Action

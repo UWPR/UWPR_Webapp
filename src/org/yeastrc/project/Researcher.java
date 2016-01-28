@@ -507,6 +507,11 @@ public class Researcher implements Comparable, IData {
 	    return listing;
 	}
 
+	public String getFullName()
+	{
+		return this.getFirstName() + " " + this.getLastName();
+	}
+
 	/**
 	 * Get the researcher's organization.
 	 * @return The researcher's organization.

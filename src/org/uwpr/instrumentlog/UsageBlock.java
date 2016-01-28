@@ -3,6 +3,7 @@ package org.uwpr.instrumentlog;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class UsageBlock extends UsageBlockBase {
 	private String piName;
 	private int piID;
 	private String instrumentName;
+	private String operatorName;
 	private String projectTitle;
 	private List<InstrumentUsagePayment> payments;
 	private BigDecimal rate;
@@ -28,7 +30,17 @@ public class UsageBlock extends UsageBlockBase {
 	public void setProjectPI(String piName) {
 	    this.piName = piName;
 	}
-	
+
+	public String getOperatorName()
+	{
+		return operatorName;
+	}
+
+	public void setOperatorName(String operatorName)
+	{
+		this.operatorName = operatorName;
+	}
+
 	public int getPIID() {
 		return piID;
 	}
@@ -37,11 +49,9 @@ public class UsageBlock extends UsageBlockBase {
 	    this.piID = piID;
 	}
 	
-	public List<InstrumentUsagePayment> getPayments() {
-		if(payments == null)
-			return new ArrayList<InstrumentUsagePayment>(0);
-		else
-			return payments;
+	public List<InstrumentUsagePayment> getPayments()
+	{
+		return payments == null ? Collections.<InstrumentUsagePayment>emptyList() : payments;
 	}
 
 	public void setPayments(List<InstrumentUsagePayment> payments) {
@@ -113,17 +123,10 @@ public class UsageBlock extends UsageBlockBase {
 	public UsageBlockBase copy() {
         
         UsageBlock blk = new UsageBlock();
-        blk.setID(getID());
-        blk.setInstrumentID(getInstrumentID());
+		super.copy(blk);
+		blk.setOperatorName(getOperatorName());
         blk.setInstrumentRateID(getInstrumentRateID());
         blk.setPayments(getPayments());
-        blk.setProjectID(getProjectID());
-        blk.setResearcherID(getResearcherID());
-        blk.setStartDate(getStartDate());
-        blk.setEndDate(getEndDate());
-        blk.setDateCreated(getDateCreated());
-        blk.setDateChanged(getDateChanged());
-        blk.setNotes(getNotes());
         blk.setInstrumentName(getInstrumentName());
         blk.setPIID(getPIID());
         blk.setProjectPI(getProjectPI());

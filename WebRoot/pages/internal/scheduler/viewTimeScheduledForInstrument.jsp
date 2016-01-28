@@ -28,19 +28,17 @@ $(document).ready(function() {
     $("#blocklist_table").tablesorter({
     	headers: { 
             // assign the third column (we start counting zero) 
-            2: { 
+            3: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             }, 
             // assign the seventh column (we start counting zero) 
-            7: { 
+            8: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             } 
         } 
     });
-    
-    $("#totalCost").text(getTotalCost()); 
 }); 
 
 function submitForm()
@@ -95,17 +93,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
     }
 }
 
-function getTotalCost() {
-
-	var cost = 0;
-	
-	$(".costColumn").each(function() {
-		cost += parseFloat($(this).text());
-	});
-	cost = isNaN(cost) || cost === '' || cost === null ? 0.00 : cost;
-    return parseFloat(cost).toFixed(2)
-}
-
 </script>
 
 <logic:notPresent name="instruments">
@@ -127,7 +114,6 @@ function getTotalCost() {
 
 <div style="margin:20px; text-align:left; align:center">
 <html:form action="viewTimeScheduledForInstrument" method="POST">
-    <html:hidden property="projectId" styleId="projectId"/>
     <table align="center">
         <tr>
             <td>
@@ -135,7 +121,6 @@ function getTotalCost() {
             </td>
             <td>
                 <html:select property="instrumentId" styleId="instrumentId">
-                    <html:option value="0">ALL</html:option>
                     <html:optionsCollection name="instruments" value="ID" label="name"/>
                 </html:select>
             </td>

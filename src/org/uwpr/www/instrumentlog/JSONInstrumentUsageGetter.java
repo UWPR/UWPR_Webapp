@@ -5,6 +5,7 @@
  */
 package org.uwpr.www.instrumentlog;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.uwpr.costcenter.InvoiceInstrumentUsage;
@@ -282,12 +283,19 @@ public class JSONInstrumentUsageGetter {
             for(InstrumentUsagePayment payment: paymentList)
             {
                 if(!first) paymentMethodString.append(", ");
-                paymentMethodString.append(payment.getPaymentMethod().getDisplayString());
+				// 01/20/15 - It is not useful to Priska to see the name of the payment method so we will
+				// only display the budget number.
+                paymentMethodString.append(payment.getPaymentMethod().getShortDisplayString());
                 first = false;
             }
+			String user = "";
+			if(block.getOperatorName() != null)
+			{
+				user = ", " + block.getOperatorName();
+			}
 			JSONObject blockObject = new JSONObject();
 			blockObject.put("id",block.getID());
-			blockObject.put("label",block.getStartDateFormated()+" - "+block.getEndDateFormated() + " (" + paymentMethodString.toString() + ")");
+			blockObject.put("label",block.getStartDateFormated()+" - "+block.getEndDateFormated() + " (" + paymentMethodString.toString() + ")" + user);
 			// If this block has already been billed it cannot be deleted or edited even by admins
 			InvoiceInstrumentUsage billedBlock = null;
 			try {

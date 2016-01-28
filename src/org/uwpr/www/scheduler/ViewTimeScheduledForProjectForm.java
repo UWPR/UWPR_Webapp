@@ -16,6 +16,7 @@ public class ViewTimeScheduledForProjectForm extends ActionForm {
 
     private int projectId = 0;
     private int instrumentId = 0;
+    private int instrumentOperatorId = 0;
     private int paymentMethodId = 0;
     private String startDateString;
     private String endDateString;;
@@ -34,6 +35,16 @@ public class ViewTimeScheduledForProjectForm extends ActionForm {
 
     public void setInstrumentId(int instrumentId) {
         this.instrumentId = instrumentId;
+    }
+
+    public int getInstrumentOperatorId()
+    {
+        return instrumentOperatorId;
+    }
+
+    public void setInstrumentOperatorId(int instrumentOperatorId)
+    {
+        this.instrumentOperatorId = instrumentOperatorId;
     }
 
     public int getPaymentMethodId() {

@@ -1,0 +1,1 @@
+ALTER TABLE instrumentUsage add column instrumentOperatorId int AFTER instrumentID;

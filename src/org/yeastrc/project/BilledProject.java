@@ -15,10 +15,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 
@@ -31,8 +28,9 @@ public class BilledProject extends Project {
 	private boolean isBlocked = false;
 	
 	
-	public List<PaymentMethod> getPaymentMethods() {
-		return paymentMethods;
+	public List<PaymentMethod> getPaymentMethods()
+	{
+		return paymentMethods == null ? Collections.<PaymentMethod>emptyList() : paymentMethods;
 	}
 
 	public void setPaymentMethods(List<PaymentMethod> paymentMethods) {

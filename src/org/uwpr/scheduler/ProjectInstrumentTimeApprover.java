@@ -5,17 +5,18 @@
  */
 package org.uwpr.scheduler;
 
+import org.apache.log4j.Logger;
+import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.UsageBlockBaseDAO;
+import org.yeastrc.project.Researcher;
+import org.yeastrc.www.user.Groups;
+import org.yeastrc.www.user.User;
+
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.uwpr.instrumentlog.ProjectInstrumentUsageDAO;
-import org.uwpr.instrumentlog.UsageBlockBase;
-import org.yeastrc.www.user.Groups;
-import org.yeastrc.www.user.User;
 
 /**
  * 
@@ -26,7 +27,7 @@ public class ProjectInstrumentTimeApprover {
 	
 	private static final Logger log = Logger.getLogger(ProjectInstrumentTimeApprover.class);
 	
-	public static int HOURS_QUOTA_BILLED_PROJECT = 24 * 7;
+	public static int HOURS_QUOTA_BILLED_PROJECT = 24 * 20; // 480 hours
 	public static int HOURS_QUOTA_FREE_PROJECT = 24 * 5;
 	
 	private ProjectInstrumentTimeApprover() {}
@@ -34,60 +35,94 @@ public class ProjectInstrumentTimeApprover {
 	public static ProjectInstrumentTimeApprover getInstance() {
 		return instance;
 	}
-	
-	public boolean billedProjectExceedsQuota(int projectId, int instrumentId, User user,
-			List<? extends UsageBlockBase> blocksBeingScheduled,
-			List<? extends UsageBlockBase> ignoreBlocks) throws SQLException {
-		
-		// If the user is an admin return true
-		Groups groupsMan = Groups.getInstance();
-		
-		if (groupsMan.isMember(user.getResearcher().getID(), "administrators"))
-			return false;
-		
-		// The total requested time for this project beyond the current date
-		// should not exceed 24 * 7 hours
-		
-		Set<Integer> ignoreBlockIds = new HashSet<Integer>();
-		if(ignoreBlocks != null) {
-			for(UsageBlockBase blk: ignoreBlocks) {
-				ignoreBlockIds.add(blk.getID());
-			}
-		}
-		
-		// get the time scheduled for this project beyond the current date
-		Date now = new Date();
-		List<UsageBlockBase> usageBlocks = ProjectInstrumentUsageDAO.getInstance().getUsageBlocksForProjectInRange(projectId, now, null);
-		int totalhours = 0;
-		for(UsageBlockBase block: usageBlocks) {
-			
-			if(ignoreBlockIds.contains(block.getID()))
-				continue;
-			
-			if(block.getInstrumentID() != instrumentId)
-				continue;
-			Date sDate = block.getStartDate();
-			Date eDate = block.getEndDate();
-			totalhours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
-		}
-		
-		// add up the time for the blocks being scheduled now
-		for(UsageBlockBase block: blocksBeingScheduled) {
-			
-			if(block.getInstrumentID() != instrumentId)
-				continue;
-			Date sDate = block.getStartDate();
-			Date eDate = block.getEndDate();
-			totalhours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
+
+	public TimeRequest processTimeRequest(User user, Researcher instrumentOperator,
+										  List<? extends UsageBlockBase> blocksBeingScheduled)
+			                                 throws SQLException
+	{
+		// Requests by admins should always be approved.
+		if(Groups.getInstance().isAdministrator(user.getResearcher()))
+		{
+			return APPROVED;
 		}
 
-		log.info("Total hours scheduled for project beyond "+now+": "+totalhours);
-		if(totalhours >= HOURS_QUOTA_BILLED_PROJECT)
-			return true;
-		
-		return false;
+		int unusedHours = getUnusedInstrumentTimeForOperator(instrumentOperator);
+		int totalRequested = getTotalHours(blocksBeingScheduled);
+
+		log.info("Total hours requested for instrument operator (" + instrumentOperator.getID() + ", " + instrumentOperator.getFullName() + "): " + totalRequested);
+		return new TimeRequest(unusedHours, totalRequested);
 	}
-	
+
+	public static int getRemainingInstrumentTimeForOperator(Researcher researcher) throws SQLException
+	{
+		int timeUsed = getUnusedInstrumentTimeForOperator(researcher);
+		TimeRequest request = new TimeRequest(timeUsed, 0);
+		return request.getTimeRemaining();
+	}
+
+	private static int getUnusedInstrumentTimeForOperator(Researcher operator) throws SQLException
+	{
+		if(Groups.getInstance().isAdministrator(operator))
+		{
+			return APPROVED.getTimeUsed();
+		}
+		Date now = new Date();
+		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForInstrumentOperator(operator.getID(), now, null);
+		int totalHours = getTotalHours(usageBlocks);
+
+		log.info("Total unused hours scheduled for instrumentOperator (" + operator.getID() + ", " + operator.getFullName() + ")  at " + now + ": " + totalHours);
+		return totalHours;
+	}
+
+	private static int getTotalHours(List<? extends UsageBlockBase> blocksBeingScheduled)
+	{
+		int totalHours = 0;
+		for(UsageBlockBase block: blocksBeingScheduled) {
+
+			Date sDate = block.getStartDate();
+			Date eDate = block.getEndDate();
+			totalHours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
+		}
+		return totalHours;
+	}
+
+	public static final class TimeRequest
+	{
+		private final int _timeUsed;
+		private int _timeRequested;
+
+		public TimeRequest(int scheduledTime, int timeRequested)
+		{
+			_timeUsed = scheduledTime;
+			_timeRequested = timeRequested;
+		}
+
+		public int getTimeUsed()
+		{
+			return _timeUsed;
+		}
+
+		public int getTimeRequested()
+		{
+			return _timeRequested;
+		}
+
+		public int getTimeRemaining()
+		{
+			int remaining = HOURS_QUOTA_BILLED_PROJECT - _timeUsed;
+			// return remaining < 0 ? 0: remaining;
+			return remaining;
+		}
+
+		public boolean valid()
+		{
+			return getTimeRemaining() >= _timeRequested;
+		}
+	}
+
+	public static final TimeRequest APPROVED = new TimeRequest(0, 0);
+
+
 	public boolean subsidizedProjectExceedsQuota(int projectId, User user,
 			List<? extends UsageBlockBase> blocksBeingScheduled) throws SQLException {
 		
@@ -114,30 +149,23 @@ public class ProjectInstrumentTimeApprover {
 		}
 		
 		// get all the time scheduled for this project
-		List<UsageBlockBase> usageBlocks = ProjectInstrumentUsageDAO.getInstance().getUsageBlocksForProjectInRange(projectId, null, null);
+		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForProject(projectId, null, null);
 		int totalhours = 0;
-		for(UsageBlockBase block: usageBlocks) {
-			
+		for(UsageBlockBase block: usageBlocks)
+		{
 			if(ignoreBlockIds.contains(block.getID()))
 				continue;
-			Date sDate = block.getStartDate();
-			Date eDate = block.getEndDate();
-			totalhours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
+			totalhours += block.getHours();
 		}
 		
 		// add up the time for the blocks being scheduled now
-		for(UsageBlockBase block: blocksBeingScheduled) {
-			
-			Date sDate = block.getStartDate();
-			Date eDate = block.getEndDate();
-			totalhours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
+		for(UsageBlockBase block: blocksBeingScheduled)
+		{
+			totalhours += block.getHours();
 		}
 		
 		log.info("Total hours scheduled for free project: "+totalhours);
-		if(totalhours >= HOURS_QUOTA_FREE_PROJECT)
-			return true;
-		
-		return false;
+		return totalhours >= HOURS_QUOTA_FREE_PROJECT;
 	}
 	
 	public boolean startDateApproved(Date startDate, User user) {

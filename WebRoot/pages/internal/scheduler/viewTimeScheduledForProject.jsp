@@ -29,19 +29,19 @@ $(document).ready(function() {
     $("#blocklist_table").tablesorter({
     	headers: { 
             // assign the third column (we start counting zero) 
-            2: { 
+            3: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             }, 
             // assign the seventh column (we start counting zero) 
-            7: { 
+            8: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             } 
         } 
     });
     
-    $("#totalCost").text(getTotalCost()); 
+    // $("#totalCost").text(getTotalCost());
 }); 
 
 function submitForm()
@@ -49,6 +49,7 @@ function submitForm()
     var projectId = $("#projectId").val();
     var instrumentId = $("#instrumentId").val();
     var paymentMethodId = $("#paymentMethodId").val();
+    var instrumentOperatorId = $("#instrumentOperatorId").val();
     var startDate = $("#startDate").val();
     var endDate = $("#endDate").val();
 
@@ -56,6 +57,7 @@ function submitForm()
     url += "?projectId=" + projectId +
             "&instrumentId=" + instrumentId +
             "&paymentMethodId=" + paymentMethodId +
+            "&instrumentOperatorId=" + instrumentOperatorId +
             "&startDate=" + startDate + "&endDate=" + endDate;
 
     // alert("Changing URL to " + url);
@@ -126,7 +128,7 @@ function getTotalCost() {
                 </html:select>
             </td>
             <td>
-                Payment Method:
+                Payment method:
             </td>
             <td>
                 <html:select property="paymentMethodId" styleId="paymentMethodId">
@@ -137,14 +139,23 @@ function getTotalCost() {
         </tr>
 
         <tr>
-            <td align="left">Start Date:</td>
+            <td align="left">Start date:</td>
             <td>
                 <html:text property="startDateString" styleClass="datepicker" styleId="startDate"></html:text>
                 <span style="font-size:8pt;">e.g. 04/29/2011</span>
             </td>
+            <td>
+                Instrument operator:
+            </td>
+            <td>
+                <html:select property="instrumentOperatorId" styleId="instrumentOperatorId">
+                    <html:option value="0">ALL</html:option>
+                    <html:optionsCollection name="instrumentOperators" value="ID" label="fullName"/>
+                </html:select>
+            </td>
         </tr>
         <tr>
-            <td align="left">End Date:</td>
+            <td align="left">End date:</td>
             <td>
                 <html:text property="endDateString" styleClass="datepicker" styleId="endDate"></html:text>
                 <span style="font-size:8pt;">e.g. 04/29/2011</span>
@@ -170,7 +181,9 @@ function getTotalCost() {
 
 <logic:notEmpty name="usageBlocks">
 <div style="font-weight:bold; text-alignment:center;margin:10px;">
-	Total Cost: $<span id="totalCost" style="color:red;"></span>
+	Total cost: $<span style="color:red;"><bean:write name="totalCost"/></span>
+    &nbsp;
+    Total hours: <span style="color:red;"><bean:write name="totalHours"/></span>
 </div>
 <div style="font-weight:bold; text-alignment:center; font-size:8pt">
 	<html:link action="viewScheduler.do" paramName="project" paramProperty="ID" paramId="projectId">
@@ -183,6 +196,7 @@ function getTotalCost() {
 		<tr>
 			<th class="scheduler">ID</th>
 			<th class="scheduler">Instrument</th>
+            <th class="scheduler">Operator</th>
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
@@ -199,6 +213,7 @@ function getTotalCost() {
 			<tr>
 				<td><bean:write name="usageBlock" property="ID"/></td>
 				<td><bean:write name="usageBlock" property="instrumentName"/></td>
+                <td><bean:write name="usageBlock" property="operatorName"/></td>
 				<td>
 					<logic:notEmpty name="usageBlock" property="payments">
 						<ul>

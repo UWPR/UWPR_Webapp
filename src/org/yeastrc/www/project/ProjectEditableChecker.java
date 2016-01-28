@@ -6,6 +6,7 @@ package org.yeastrc.www.project;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.uwpr.instrumentlog.ProjectInstrumentUsageDAO;
 import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Collaboration;
@@ -70,7 +71,7 @@ public class ProjectEditableChecker {
 		
 		// If any instrument time has been scheduled for this project the Affiliation and "Mass Spec. Analysis performed by..." fields
 		// should not be editable
-		int blockCount = ProjectInstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID());
+		int blockCount = InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID());
 		if(blockCount > 0) {
 			return PART_EDITABLE;
 		}

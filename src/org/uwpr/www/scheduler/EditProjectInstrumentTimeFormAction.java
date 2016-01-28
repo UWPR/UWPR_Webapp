@@ -13,16 +13,14 @@ import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.Researcher;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * 
@@ -160,7 +158,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         
         
         // load the usage blocks
-        List<UsageBlockBase> blocksToDelete = new ArrayList<UsageBlockBase>(usageBlockIds.size());
+        List<UsageBlockBase> blocksToEdit = new ArrayList<UsageBlockBase>(usageBlockIds.size());
         for(int usageBlockId: usageBlockIds) {
         	
         	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
@@ -172,12 +170,12 @@ public class EditProjectInstrumentTimeFormAction extends Action {
                 ActionForward fwd = mapping.findForward("viewScheduler");
                 return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, fwd.getRedirect());
         	}
-        	blocksToDelete.add(usageBlock);
+        	blocksToEdit.add(usageBlock);
         }
         
         // get the project for the given usage blocks.  They should all be for the same project.
         // the instrumentID form the blocks should also be the same
-        for(UsageBlockBase block: blocksToDelete) {
+        for(UsageBlockBase block: blocksToEdit) {
         	
         	int blkProjId = block.getProjectID();
         	if(blkProjId != projectId) {
@@ -201,7 +199,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         }
         
         // Make sure the old blocks can be deleted.
-        for(UsageBlockBase block: blocksToDelete) {
+        for(UsageBlockBase block: blocksToEdit) {
         	StringBuilder errorMessage = new StringBuilder();
         	if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(block, user, errorMessage)) {
         		ActionErrors errors = new ActionErrors();
@@ -215,7 +213,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         }
         
         // sort the blocks by start date/time
-        Collections.sort(blocksToDelete, new Comparator<UsageBlockBase>() {
+        Collections.sort(blocksToEdit, new Comparator<UsageBlockBase>() {
 			@Override
 			public int compare(UsageBlockBase blk1, UsageBlockBase blk2) {
 				return blk1.getStartDate().compareTo(blk2.getStartDate());
@@ -225,39 +223,42 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         
         // TODO Multiple creators??
         Researcher creator = new Researcher();
-        creator.load(blocksToDelete.get(0).getResearcherID());
+        creator.load(blocksToEdit.get(0).getResearcherID());
         Researcher updater = null;
-        if(blocksToDelete.get(0).getUpdaterResearcherID() != 0) {
+        if(blocksToEdit.get(0).getUpdaterResearcherID() != 0) {
         	updater = new Researcher();
-        	updater.load(blocksToDelete.get(0).getUpdaterResearcherID());
+        	updater.load(blocksToEdit.get(0).getUpdaterResearcherID());
         }
         
         EditProjectInstrumentTimeForm editForm = new EditProjectInstrumentTimeForm();
         SimpleDateFormat dateFmt = new SimpleDateFormat("MM/dd/yyyy");
         SimpleDateFormat timeFmt = new SimpleDateFormat("H");
-        editForm.setStartDate(dateFmt.format(blocksToDelete.get(0).getStartDate()));
-        editForm.setEndDate(dateFmt.format(blocksToDelete.get(blocksToDelete.size() - 1).getEndDate()));
-        editForm.setStartTime(timeFmt.format(blocksToDelete.get(0).getStartDate()));
-        editForm.setEndTime(timeFmt.format(blocksToDelete.get(blocksToDelete.size() - 1).getEndDate()));
+        editForm.setStartDate(dateFmt.format(blocksToEdit.get(0).getStartDate()));
+        editForm.setEndDate(dateFmt.format(blocksToEdit.get(blocksToEdit.size() - 1).getEndDate()));
+        editForm.setStartTime(timeFmt.format(blocksToEdit.get(0).getStartDate()));
+        editForm.setEndTime(timeFmt.format(blocksToEdit.get(blocksToEdit.size() - 1).getEndDate()));
         editForm.setProjectId(projectId);
         editForm.setInstrumentId(instrumentId);
+        editForm.setInstrumentOperatorId(blocksToEdit.get(0).getInstrumentOperatorId());
         editForm.setInstrumentName(instrument.getName());
         editForm.setUsageBlockIdsToEdit(usageBlockIdString);
         
         // TODO Multiple creators??
         editForm.setCreatorId(creator.getID());
         dateFmt = new SimpleDateFormat("MM/dd/yyyy HH:mm a");
-        editForm.setCreateDate(dateFmt.format(blocksToDelete.get(0).getDateCreated()));
+        editForm.setCreateDate(dateFmt.format(blocksToEdit.get(0).getDateCreated()));
         if(updater != null) {
         	editForm.setUpdaterId(updater.getID());
-        	editForm.setUpdateDate(dateFmt.format(blocksToDelete.get(0).getDateChanged()));
+        	editForm.setUpdateDate(dateFmt.format(blocksToEdit.get(0).getDateChanged()));
         }
         
         request.setAttribute("editInstrumentTimeForm", editForm);
         request.getSession().setAttribute("startTimeOptions", TimeOption.getStartTimeOptions(user));
         request.getSession().setAttribute("endTimeOptions", TimeOption.getEndTimeOptions(user));
         
-        
+        List<Researcher> instrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
+        request.setAttribute("instrumentOperators", project.getInstrumentOperators(instrumentOperators));
+
         return mapping.findForward("Success");
 	}
 }
