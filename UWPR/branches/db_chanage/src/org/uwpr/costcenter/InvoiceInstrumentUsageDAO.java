@@ -55,15 +55,13 @@ public class InvoiceInstrumentUsageDAO {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
-			if(rs.next()) {
+			if(rs.next())
+			{
 				InvoiceInstrumentUsage invoiceBlock = new InvoiceInstrumentUsage();
 				invoiceBlock.setId(rs.getInt("id"));
 				invoiceBlock.setInvoiceId(rs.getInt("invoiceID"));
 				invoiceBlock.setInstrumentUsageId(rs.getInt("instrumentUsageID"));
 				return invoiceBlock;
-			}
-			else {
-				log.error("No entry found in table invoiceInstrumentUsage for instrumentUsageID: "+instrumentUsageId);
 			}
 		}
 		finally {

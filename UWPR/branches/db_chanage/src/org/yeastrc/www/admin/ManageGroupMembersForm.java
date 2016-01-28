@@ -4,7 +4,11 @@
 package org.yeastrc.www.admin;
 
 import org.apache.struts.action.*;
+import org.yeastrc.project.Researcher;
+
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ActionForm for adding users to YRC groups
@@ -18,6 +22,7 @@ public class ManageGroupMembersForm extends ActionForm {
 	// The form variables we'll be tracking
 	private String groupName = null;
 	private int researcherID = 0;
+	private List<Researcher> selectedResearchers;
 
 	/**
 	 * Validate the properties that have been sent from the HTTP request,
@@ -61,4 +66,26 @@ public class ManageGroupMembersForm extends ActionForm {
 		researcherID = i;
 	}
 
+	public List<Researcher> getSelectedResearchers()
+	{
+		return selectedResearchers;
+	}
+
+	public void setSelectedResearchers(List<Researcher> selectedResearchers)
+	{
+		this.selectedResearchers = selectedResearchers;
+	}
+
+	public Researcher getSelectedResearcher(int index)
+	{
+		if(selectedResearchers == null)
+		{
+			selectedResearchers = new ArrayList<Researcher>();
+		}
+		while(index >= selectedResearchers.size())
+		{
+			selectedResearchers.add(new Researcher());
+		}
+		return selectedResearchers.get(index);
+	}
 }

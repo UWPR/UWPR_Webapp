@@ -50,11 +50,7 @@ import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.scheduler.UsageBlockRepeatBuilder;
 import org.uwpr.www.costcenter.UwprSupportedProjectPaymentMethodGetter;
-import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
-import org.yeastrc.project.Collaboration;
-import org.yeastrc.project.Project;
-import org.yeastrc.project.ProjectFactory;
+import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -94,7 +90,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         	projectId = 0;
         }
         if(projectId == 0) {
-        	return sendError(response,"Invalid projectID: "+projectId+" in request");
+        	return sendError(response, "Invalid projectID: " + projectId + " in request");
         }
         
         // Make sure the user has access to the project
@@ -120,7 +116,28 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         	instrumentId = 0;
         }
         
-        
+        // Get the instrument operator.
+		String instrOperatorParam = request.getParameter("instrumentOperatorId");
+		Researcher instrumentOperator = new Researcher();
+		try {
+
+			int instrumentOperatorId = Integer.parseInt(instrOperatorParam);
+			try
+			{
+				instrumentOperator.load(instrumentOperatorId);
+			}
+			catch(Exception e)
+			{
+				log.error("Error getting researcher object for instrument operator ID: "+instrumentOperatorId, e);
+				return sendError(response,"Error getting instrument operator for ID: " + instrumentOperatorId);
+			}
+		}
+		catch(NumberFormatException e) {
+			log.error("Invalid instrument operator ID in request: "+instrOperatorParam, e);
+			return sendError(response,"Invalid instrument operator ID (" + instrOperatorParam + ") in request.");
+		}
+
+
         // get a list of ms instruments
         List <MsInstrument> instruments = MsInstrumentUtils.instance().getMsInstruments();
         Collections.sort(instruments, new Comparator<MsInstrument>() {
@@ -235,6 +252,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
             UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
             usageBlock.setProjectID(projectId);
             usageBlock.setInstrumentID(instrumentId);
+			usageBlock.setInstrumentOperatorId(instrumentOperator.getID());
             usageBlock.setInstrumentRateID(rate.getId());
             usageBlock.setResearcherID(user.getResearcher().getID());
             usageBlock.setStartDate(startCal.getTime());
@@ -294,16 +312,23 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		
     	// Make sure user has not exceeded instrument time quota
         try {
-        	if(project instanceof BilledProject) {
-        		// Commented out after talking with Priska (06/01/12)
-//        		if(ProjectInstrumentTimeApprover.getInstance().billedProjectExceedsQuota(projectId, instrumentId, user, allBlocks)) {
-//        			return sendError(response,"You have exceeded the allowed limit. "+
-//        					"You can only schedule upto "+ProjectInstrumentTimeApprover.HOURS_QUOTA_BILLED_PROJECT+
-//        			" hours of instrument time beyond the current date.");
-//        		}
+        	if(project instanceof BilledProject)
+			{
+				ProjectInstrumentTimeApprover.TimeRequest timeRequest = ProjectInstrumentTimeApprover.getInstance().processTimeRequest(user, instrumentOperator, allBlocks);
+
+        		if(!timeRequest.valid())
+				{
+        			return sendError(response,"Could not schedule instrument time." +
+							" Requested instrument time exceeds the limit of  " + ProjectInstrumentTimeApprover.HOURS_QUOTA_BILLED_PROJECT + " for " +
+							instrumentOperator.getFullName() +
+        					". Total unused time scheduled on all instruments: " + timeRequest.getTimeUsed() + "  hours." +
+					        " Time remaining: " + timeRequest.getTimeRemaining() + " hours. ");
+        		}
         	}
-        	else if(project instanceof Collaboration) {
-        		if(ProjectInstrumentTimeApprover.getInstance().subsidizedProjectExceedsQuota(projectId, user, allBlocks)) {
+        	else if(project instanceof Collaboration)
+			{
+        		if(ProjectInstrumentTimeApprover.getInstance().subsidizedProjectExceedsQuota(projectId, user, allBlocks))
+				{
         			return sendError(response,"You have exceeded the allowed limit. "+
         					"You can only schedule upto "+ProjectInstrumentTimeApprover.HOURS_QUOTA_FREE_PROJECT+
         			" hours of instrument time for a subsidized project.");

@@ -92,8 +92,8 @@ public class Projects {
 	 * @param researcherID The researcher ID to use
 	 * @return An list of populated Project objects
 	 */
-	public static ArrayList getProjectsByResearcher(int researcherID) throws SQLException, InvalidProjectTypeException {
-		ArrayList retList = new ArrayList();
+	public static List<Project> getProjectsByResearcher(int researcherID) throws SQLException, InvalidProjectTypeException {
+		List<Project> retList = new ArrayList();
 
 		// Get our connection to the database.
 		Connection conn = DBConnectionManager.getMainDbConnection();
@@ -128,7 +128,7 @@ public class Projects {
 				} else if (type.equals(Projects.BILLED_PROJECT)) {
 					proj = new BilledProject();
 				} else {
-					throw new InvalidProjectTypeException("Type wasn't C or B...");
+					throw new InvalidProjectTypeException("Type wasn't C (Collaboration) or B (Billed Project)...");
 				}
 				
 				try {
@@ -278,8 +278,8 @@ public class Projects {
 	 * Simply return an ArrayList of all the researchers in the database (as Researcher objects)
 	 * @return A list of all the Researchers in the database
 	 */
-	public static ArrayList getAllResearchers() throws SQLException, InvalidIDException {
-		ArrayList retList = new ArrayList();
+	public static List<Researcher> getAllResearchers() throws SQLException, InvalidIDException {
+		ArrayList retList = new ArrayList<Researcher>();
 
 		// Get our connection to the database.
 		Connection conn = DBConnectionManager.getMainDbConnection();

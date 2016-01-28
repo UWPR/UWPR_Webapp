@@ -196,18 +196,8 @@ public class PaymentMethod {
     public String getDisplayString()
     {
 		StringBuilder displayString = new StringBuilder();
-        if(!StringUtils.isBlank(getUwbudgetNumber()))
-        {
-            displayString.append("UW: ").append(getUwbudgetNumber());
-        }
-        else if(!StringUtils.isBlank(getPonumber()))
-        {
-            displayString.append("PO: ").append(getPonumber());
-        }
-		else
-		{
-			return "BUDGET NUMBER OR PO NUMBER NOT FOUND";
-		}
+		displayString.append(getShortDisplayString());
+
 		String name = getName50Chars();
 		if(!StringUtils.isBlank(name))
 		{
@@ -216,6 +206,25 @@ public class PaymentMethod {
 
         return displayString.toString();
     }
+
+	public String getShortDisplayString()
+	{
+		StringBuilder displayString = new StringBuilder();
+		if(!StringUtils.isBlank(getUwbudgetNumber()))
+		{
+			displayString.append("UW: ").append(getUwbudgetNumber());
+		}
+		else if(!StringUtils.isBlank(getPonumber()))
+		{
+			displayString.append("PO: ").append(getPonumber());
+		}
+		else
+		{
+			return "BUDGET NUMBER OR PO NUMBER NOT FOUND";
+		}
+
+		return displayString.toString();
+	}
 
 	public String getName50Chars()
 	{

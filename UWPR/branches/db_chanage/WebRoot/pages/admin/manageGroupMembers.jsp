@@ -1,3 +1,4 @@
+<%@ page import="org.yeastrc.project.Researcher" %>
 <%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
@@ -14,6 +15,38 @@
 <%@ include file="/includes/header.jsp" %>
 
 <%@ include file="/includes/errors.jsp" %>
+
+<link rel="stylesheet" href="css/kendo-ui-core/styles/kendo.common.min.css"/>
+<link rel="stylesheet" href="css/kendo-ui-core/styles/kendo.fiori.min.css"/>
+<script src="js/kendo-ui-core/jquery.min.js"></script>
+<script src="js/kendo-ui-core/kendo.ui.core.min.js"></script>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+        var researcherSelector = $("#researcherSelector").kendoMultiSelect(
+                {
+                    autoClose:false,
+                    filter:"contains"
+
+                }
+        ).data("kendoMultiSelect");
+
+        $("#manageGroupMembersForm").submit(function()
+        {
+            var researcherIds = researcherSelector.value();
+            // console.log("selected IDs: " + researcherIds);
+            for(var i = 0; i < researcherIds.length; i += 1)
+            {
+                $(this).append('<input type="hidden" name="selectedResearcher[' + i + '].ID" value="' + researcherIds[i] + '"/>');
+            }
+            return true;
+        });
+    });
+
+</script>
+
 
 <yrcwww:contentbox title="Manage Group Members">
 
@@ -49,18 +82,25 @@
   </logic:empty>
 
   <HR>
-  
 
-   <b>Add a new member to this group:</b>
 
-   <html:form action="manageGroupMembers" method="POST">
-    <html:hidden name="manageGroupMembersForm" property="groupName"/>
-    <input type="hidden" name="action" value="add">
-   <P>Select researcher:
-        <html:select property="researcherID">
-				<html:options collection="researchers" property="ID" labelProperty="listing"/>
-    	</html:select><BR>
-    	<html:submit value="Add to Group"/>
+    <html:form action="manageGroupMembers" method="POST" styleId="manageGroupMembersForm">
+        <html:hidden name="manageGroupMembersForm" property="groupName"/>
+        <input type="hidden" name="action" value="add">
+
+        <div>
+        <label for="researcherSelector" style="font-weight:bold;">Add a new member to this group:</label>
+        <select name="researchers" id="researcherSelector" multiple="multiple" data-placeholder="Select one or more researchers...">
+            <logic:iterate id="selectedResearcher" indexId="index" name="researchers">
+               <option value="<%=String.valueOf(((Researcher)selectedResearcher).getID())%>">
+                   <bean:write name="selectedResearcher" property="listing"/>
+               </option>
+            </logic:iterate>
+        </select>
+        </div>
+        <div style="margin-top:15px;">
+            <input type="submit" class="k-button" value="Add to group">
+        </div>
    </html:form>
 
    

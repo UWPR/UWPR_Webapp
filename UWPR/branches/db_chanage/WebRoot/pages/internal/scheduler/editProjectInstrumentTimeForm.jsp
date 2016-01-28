@@ -45,6 +45,15 @@
 	<td></td>
 </tr>
 <tr>
+	<td><b>Instrument operator: </b></td>
+	<td>
+		<html:select name="editInstrumentTimeForm" property="instrumentOperatorId">
+			<html:options collection="instrumentOperators" property="ID" labelProperty="listing"/>
+		</html:select>
+	</td>
+	<td></td>
+</tr>
+<tr>
 	<td><b>Created By: </b></td>
 	<td>
 		<yrcwww:researcherLink researcherId="<%=editForm.getCreatorId()%>"/>

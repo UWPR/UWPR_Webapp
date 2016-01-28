@@ -44,7 +44,8 @@ public class User implements IData {
 	 * Note: The researcher MUST BE LOADED before calling this object.
 	 * @return A list of projects
 	 */
-	public ArrayList getProjects() throws SQLException, InvalidProjectTypeException {
+	public List<Project> getProjects() throws SQLException, InvalidProjectTypeException 
+    {
 		return Projects.getProjectsByResearcher(this.id);
 	}
 	

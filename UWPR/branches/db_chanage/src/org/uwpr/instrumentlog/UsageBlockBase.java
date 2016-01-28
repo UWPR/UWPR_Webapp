@@ -15,6 +15,7 @@ public class UsageBlockBase {
 	private int projectID;
 	private int researcherID; // researcher who created this usage block
 	private int updaterResearcherID; // researcher who updated this usage block
+	private int instrumentOperatorId; // researcher who will operate the instrument
 	private int instrumentRateID; 
 	private Date startDate;
 	private Date endDate;
@@ -23,7 +24,8 @@ public class UsageBlockBase {
 	private String notes;
 	
 	private static DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-	
+	private static int MILLIS_IN_HOUR = 60 * 60 * 1000;
+
 	public UsageBlockBase(int id, int instrumentID, int projectID) {
 	    super();
         this.id = id;
@@ -85,6 +87,16 @@ public class UsageBlockBase {
 
 	public void setUpdaterResearcherID(int updaterResearchID) {
 		this.updaterResearcherID = updaterResearchID;
+	}
+
+	public int getInstrumentOperatorId()
+	{
+		return instrumentOperatorId;
+	}
+
+	public void setInstrumentOperatorId(int instrumentOperatorId)
+	{
+		this.instrumentOperatorId = instrumentOperatorId;
 	}
 
 	/**
@@ -150,7 +162,13 @@ public class UsageBlockBase {
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
-	
+
+	public int getHours()
+	{
+		long time = getEndDate().getTime() - getStartDate().getTime();
+		return (int) (time / MILLIS_IN_HOUR);
+	}
+
     public String toString() {
         StringBuilder buf = new StringBuilder();
         buf.append("UsageBlockBase: ");
@@ -165,6 +183,7 @@ public class UsageBlockBase {
         UsageBlockBase blk = new UsageBlockBase();
         blk.setID(id);
         blk.setInstrumentID(instrumentID);
+		blk.setInstrumentOperatorId(instrumentOperatorId);
         blk.setInstrumentRateID(instrumentRateID);
         blk.setProjectID(projectID);
         blk.setResearcherID(researcherID);
@@ -180,6 +199,7 @@ public class UsageBlockBase {
         
         blk.setID(id);
         blk.setInstrumentID(instrumentID);
+		blk.setInstrumentOperatorId(instrumentOperatorId);
         blk.setInstrumentRateID(instrumentRateID);
         blk.setProjectID(projectID);
         blk.setResearcherID(researcherID);

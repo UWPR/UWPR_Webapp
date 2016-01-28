@@ -62,6 +62,7 @@ public class InstrumentUsageDAO {
 			}
 			
 			rs.updateInt("instrumentID", block.getInstrumentID());
+			rs.updateInt("instrumentOperatorId", block.getInstrumentOperatorId());
 			rs.updateInt("instrumentRateID", block.getInstrumentRateID());
 			rs.updateTimestamp("startDate", new Timestamp(block.getStartDate().getTime()));
 			rs.updateTimestamp("endDate", new Timestamp(block.getEndDate().getTime()));
@@ -106,7 +107,7 @@ public class InstrumentUsageDAO {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
-        StringBuilder sql = new StringBuilder("Update InstrumentUsage SET");
+        StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
         sql.append(" startDate = ?");
         sql.append(", endDate = ?");
         sql.append(", updatedBy = ?");
@@ -136,7 +137,7 @@ public class InstrumentUsageDAO {
 	}
 
 
-	private Connection getConnection() throws SQLException {
+	static final Connection getConnection() throws SQLException {
         return DBConnectionManager.getMainDbConnection();
     }
 
@@ -167,6 +168,34 @@ public class InstrumentUsageDAO {
 		}
 		
 		return false;
+	}
+
+	public int getUsageBlockCountForProject(int projectId) throws SQLException {
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		String sql = "SELECT COUNT(*) FROM instrumentUsage WHERE projectID="+projectId;
+
+		//System.out.println(sql);
+
+		try {
+			conn = getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+			if(rs.next())
+				return rs.getInt(1);
+			else
+				return 0;
+		}
+
+		finally {
+			// Always make sure result sets and statements are closed,
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
 	}
 	
 	public void delete(int usageId) throws SQLException {

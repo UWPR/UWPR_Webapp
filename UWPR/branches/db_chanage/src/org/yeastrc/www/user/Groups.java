@@ -22,8 +22,11 @@ public class Groups {
 	private static final Groups INSTANCE = new Groups();
 
 	// Our HashMap of groups
-	private HashMap groups;
-	
+	private HashMap <String, List<Integer>> groups;
+
+    public static final String INSTRUMENT_OPERATOR = "Instrument Operator";
+    public static final String ADMIN = "administrators";
+
 	// Our constructor
 	private Groups() {
 		this.groups = new HashMap();
@@ -196,7 +199,11 @@ public class Groups {
 		
 		return false;
 	}
-	
+
+    public boolean isAdministrator(Researcher researcher)
+    {
+        return isMember(researcher.getID(), ADMIN);
+    }
 	
 	public List<String> getGroupsFor(List<Integer> researcherIds) throws SQLException {
 
@@ -279,17 +286,17 @@ public class Groups {
 	 * @param groupName The name of the group.
 	 * @return A sorted list of Researcher objects.
 	 */
-	public List getMembers(String groupName) {
-		ArrayList retList = new ArrayList();
+	public List <Researcher> getMembers(String groupName) {
+		ArrayList retList = new ArrayList<Researcher>();
 			
 		if (groupName == null) { return retList; }
 		
-		ArrayList members = (ArrayList)(this.groups.get(groupName));
+		List<Integer> members = this.groups.get(groupName);
 		if (members == null) { return retList; }
 		
-		Iterator iter = members.iterator();
+		Iterator<Integer> iter = members.iterator();
 		while (iter.hasNext()) {
-			Integer resID = (Integer)(iter.next());
+			Integer resID = iter.next();
 			
 			Researcher res = new Researcher();
 			try {
@@ -311,55 +318,65 @@ public class Groups {
 	 * @param researcherID
 	 * @throws SQLException
 	 */
-	public void addToGroup(String groupName, int researcherID) throws SQLException {
+	public void addToGroup(String groupName, int researcherID) throws SQLException
+    {
+        addToGroup(groupName, Collections.singletonList(researcherID));
+    }
+
+    public void addToGroup(String groupName, List<Integer> researcherIds) throws SQLException {
 		int groupID = 0;
 		
-		if (groupName == null) return;
-		
-		// Invalid group name
-		List members = this.getMembers(groupName);
+		if (groupName == null) return; // Invalid group name
+        // Get the groupID value for this group from the table
+        groupID = this.getGroupID(groupName);
+        if (groupID == 0) return; // Group does not exist!
+
+        List<Researcher> members = this.getMembers(groupName);
 		if (members == null) return;
-		
-		// Researcher is already in that group
-		if (members.contains(new Integer(researcherID))) return;
-	
-		// Add this researcher to this group in the database
-		
-		// Get the groupID value for this group from the table
-		groupID = this.getGroupID(groupName);
-		if (groupID == 0) return;		
+
+        List<Integer> memberIds = new ArrayList<Integer>(members.size());
+        for(Researcher member: members)
+        {
+            memberIds.add(member.getID());
+        }
+
+        List<Integer> toAdd = new ArrayList<Integer>();
+        for(Integer researcherId: researcherIds)
+        {
+            if (!memberIds.contains(researcherId))
+            {
+                // Add researcher only if he/she is not already a member of the group.
+                toAdd.add(researcherId);
+            }
+        }
 
 		// Get our connection to the database.
 		Connection conn = null;
 		PreparedStatement stmt = null;
 
+		String sqlStr = "INSERT INTO tblYRCGroupMembers (groupID, researcherID) VALUES (?, ?)";
 		try {
-			String sqlStr = "INSERT INTO tblYRCGroupMembers (groupID, researcherID) VALUES (?, ?)";
-			
-			conn = getConnection();
+            conn = getConnection();
+            conn.setAutoCommit(false);
 			stmt = conn.prepareStatement(sqlStr);
-			stmt.setInt(1, groupID);
-			stmt.setInt(2, researcherID);
-			
-			stmt.executeUpdate();
-			
-			stmt.close();
-			stmt = null;
-			
-			conn.close();
-			conn = null;
+            for(Integer researcherID: toAdd)
+            {
+                stmt.setInt(1, groupID);
+                stmt.setInt(2, researcherID);
+
+                stmt.executeUpdate();
+            }
+			conn.commit();
 
 		} finally {
 
 			// Always make sure result sets and statements are closed,
 			// and the connection is returned to the pool
 			if (stmt != null) {
-				try { stmt.close(); } catch (SQLException e) { ; }
-				stmt = null;
+				try { stmt.close(); } catch (SQLException ignored) { ; }
 			}
 			if (conn != null) {
-				try { conn.close(); } catch (SQLException e) { ; }
-				conn = null;
+				try { conn.close(); } catch (SQLException ignored) { ; }
 			}
 		}
 		
