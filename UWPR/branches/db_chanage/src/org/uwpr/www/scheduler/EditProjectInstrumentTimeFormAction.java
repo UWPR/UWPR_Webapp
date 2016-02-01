@@ -9,6 +9,7 @@ import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -161,7 +162,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         List<UsageBlockBase> blocksToEdit = new ArrayList<UsageBlockBase>(usageBlockIds.size());
         for(int usageBlockId: usageBlockIds) {
         	
-        	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
+        	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		ActionErrors errors = new ActionErrors();
                 errors.add("scheduler", new ActionMessage("error.costcenter.invaliddata", 

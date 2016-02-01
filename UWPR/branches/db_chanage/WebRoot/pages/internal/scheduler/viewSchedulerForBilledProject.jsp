@@ -436,8 +436,8 @@ Project ID: <bean:write name="projectId"/>
 	<logic:empty name="instrumentOperators">
 		<br>
 		<span style="color:red;font-size:8pt;">
-			There are no verified mass spec. instrument operators listed on this project.
-			Please contact us to give permission to reserachers in your lab to operate the instruments.
+			There are no mass spec. instrument operators listed on this project.
+			Please contact us to add researchers on this project to the list of verified instrument operators.
 		</span>
 	</logic:empty>
 </div>
@@ -529,7 +529,7 @@ Instrument time cannot be deleted less that 48 hours prior to the scheduled star
 			<nobr>Total Cost: <span style="color:red;">$</span><span id="totalCost" style="color:red;">0</span></nobr>
 		</div>
 		<div style="margin-top:10px;color:black;font-size:8pt;font-weight:normal;">
-			Click <html:link action="viewScheduledTimeDetails.do" paramId="projectId" paramName="projectId"><b>here</b></html:link> to view <b>all</b> the time scheduled for this project.
+			Click <html:link action="viewTimeScheduledForProject" paramId="projectId" paramName="projectId"><b>here</b></html:link> to view <b>all</b> the time scheduled for this project.
 		</div>
 		<div style="margin-top:10px;color:black;font-size:8pt;font-weight:normal;">
 			<b><a href="/pr/costcenter_resources/UWPR_FAQ_Instrument_scheduling.pdf">View</a></b> the billing FAQ and instructions for scheduling instrument time.

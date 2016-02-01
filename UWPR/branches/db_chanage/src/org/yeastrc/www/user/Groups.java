@@ -24,7 +24,7 @@ public class Groups {
 	// Our HashMap of groups
 	private HashMap <String, List<Integer>> groups;
 
-    public static final String INSTRUMENT_OPERATOR = "Instrument Operator";
+    public static final String INSTRUMENT_OPERATOR = "Instrument Operators";
     public static final String ADMIN = "administrators";
 
 	// Our constructor

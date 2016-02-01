@@ -17,11 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.uwpr.instrumentlog.InstrumentUsagePayment;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.ProjectInstrumentUsageDAO;
-import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.*;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.InvalidProjectTypeException;
 import org.yeastrc.project.Project;
@@ -323,10 +319,12 @@ public class BillingInformationExporter {
 	protected List<UsageBlockBase> getSortedUsageBlocksForProject_byStartDate(Project project)
 				throws BillingInformationExporterException {
 
-		// get the usage blocks for this project between the start and end dates
+		// Get the usage blocks for this project where the start OR end of the block falls between the
+		// start and end dates.
 		List<UsageBlockBase> usageBlocks = null;
 		try {
-			usageBlocks = ProjectInstrumentUsageDAO.getInstance().getUsageBlocksForProject(project.getID(), startDate, endDate);
+			usageBlocks = UsageBlockBaseDAO.getUsageBlocksForProject(project.getID(), startDate, endDate,
+					false); // Return blocks that have their start OR end dates within the given date range.
 		} catch (SQLException e) {
 			throw new BillingInformationExporterException("Error loading usage blocks for project ID: "+project.getID(), e);
 		}

@@ -135,7 +135,7 @@ public class ShiftTimeScheduledForInstrument extends Action
             return mapping.findForward("Failure"); // TODO: go to ViewTimeScheduledForInstrument.
         }
 
-        java.util.List<UsageBlock> usageBlocks = MsInstrumentUtils.instance().getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
+        java.util.List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
         List<UsageBlock> usageBlocksToShift = new ArrayList<UsageBlock>();
 
         Calendar calendar = Calendar.getInstance();
@@ -168,7 +168,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         calendar.setTime(endDate);
         calendar.add(Calendar.DATE, shiftByDays);
         endDate = calendar.getTime();
-        usageBlocks = MsInstrumentUtils.instance().getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
+        usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
 
         request.setAttribute("usageBlocks", usageBlocks);
 

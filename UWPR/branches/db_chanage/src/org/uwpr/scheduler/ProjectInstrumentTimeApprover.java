@@ -13,10 +13,7 @@ import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 
@@ -40,13 +37,21 @@ public class ProjectInstrumentTimeApprover {
 										  List<? extends UsageBlockBase> blocksBeingScheduled)
 			                                 throws SQLException
 	{
+		return processTimeRequest(user, instrumentOperator, blocksBeingScheduled, Collections.<UsageBlockBase>emptyList());
+	}
+
+	public TimeRequest processTimeRequest(User user, Researcher instrumentOperator,
+										  List<? extends UsageBlockBase> blocksBeingScheduled,
+										  List<UsageBlockBase> oldBlocksToIgnore)
+			throws SQLException
+	{
 		// Requests by admins should always be approved.
 		if(Groups.getInstance().isAdministrator(user.getResearcher()))
 		{
 			return APPROVED;
 		}
 
-		int unusedHours = getUnusedInstrumentTimeForOperator(instrumentOperator);
+		int unusedHours = getUnusedInstrumentTimeForOperator(instrumentOperator, oldBlocksToIgnore);
 		int totalRequested = getTotalHours(blocksBeingScheduled);
 
 		log.info("Total hours requested for instrument operator (" + instrumentOperator.getID() + ", " + instrumentOperator.getFullName() + "): " + totalRequested);
@@ -55,19 +60,38 @@ public class ProjectInstrumentTimeApprover {
 
 	public static int getRemainingInstrumentTimeForOperator(Researcher researcher) throws SQLException
 	{
-		int timeUsed = getUnusedInstrumentTimeForOperator(researcher);
+		int timeUsed = getUnusedInstrumentTimeForOperator(researcher, Collections.<UsageBlockBase>emptyList());
 		TimeRequest request = new TimeRequest(timeUsed, 0);
 		return request.getTimeRemaining();
 	}
 
-	private static int getUnusedInstrumentTimeForOperator(Researcher operator) throws SQLException
+	private static int getUnusedInstrumentTimeForOperator(Researcher operator, List<UsageBlockBase> blocksToIgnore) throws SQLException
 	{
 		if(Groups.getInstance().isAdministrator(operator))
 		{
 			return APPROVED.getTimeUsed();
 		}
 		Date now = new Date();
-		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForInstrumentOperator(operator.getID(), now, null);
+		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForInstrumentOperator(operator.getID(), now, null,
+				true); // return blocks that are contained in the given date range.
+
+		if(blocksToIgnore != null && blocksToIgnore.size() > 0)
+		{
+			Set<Integer> blockIdsToIgnore = new HashSet<Integer>();
+			for(UsageBlockBase block: blocksToIgnore)
+			{
+				blockIdsToIgnore.add(block.getID());
+			}
+
+			Iterator<UsageBlockBase> iterator = usageBlocks.iterator();
+			while(iterator.hasNext())
+			{
+				if(blockIdsToIgnore.contains(iterator.next().getID()))
+				{
+					iterator.remove();
+				}
+			}
+		}
 		int totalHours = getTotalHours(usageBlocks);
 
 		log.info("Total unused hours scheduled for instrumentOperator (" + operator.getID() + ", " + operator.getFullName() + ")  at " + now + ": " + totalHours);
@@ -149,7 +173,7 @@ public class ProjectInstrumentTimeApprover {
 		}
 		
 		// get all the time scheduled for this project
-		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForProject(projectId, null, null);
+		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForProject(projectId, null, null, false);
 		int totalhours = 0;
 		for(UsageBlockBase block: usageBlocks)
 		{

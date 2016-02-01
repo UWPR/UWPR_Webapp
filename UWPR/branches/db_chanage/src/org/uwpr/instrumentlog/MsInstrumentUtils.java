@@ -1,7 +1,5 @@
 package org.uwpr.instrumentlog;
 
-import org.uwpr.costcenter.InstrumentRate;
-import org.uwpr.costcenter.InstrumentRateDAO;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.InvalidProjectTypeException;
@@ -27,8 +25,22 @@ public class MsInstrumentUtils {
 	/**
 	 * Returns a list of all instruments (active and retired).
 	 */
-	public List <MsInstrument> getMsInstruments() {
-		return getMsInstruments(false); 
+	public List <MsInstrument> getMsInstruments()
+	{
+		List<MsInstrument> instruments = getMsInstruments(false);
+		Collections.sort(instruments, new Comparator<MsInstrument>()
+		{
+			@Override
+			public int compare(MsInstrument o1, MsInstrument o2)
+			{
+				if((o1.isActive() && o2.isActive()) || (!o1.isActive() && !o2.isActive()))
+				{
+					return Integer.valueOf(o1.getID()).compareTo(o2.getID());
+				}
+				return o1.isActive() ? -1 : 1;
+			}
+		});
+		return instruments;
 	}
 	
 	public List <MsInstrument> getMsInstruments(boolean activeOnly) {
@@ -159,315 +171,7 @@ public class MsInstrumentUtils {
 		
 		return null;
 	}
-	
-	//--------------------------------------------------------------------------------------------
-    // UsageBlockBase
-    //--------------------------------------------------------------------------------------------
-    public UsageBlockBase getUsageBlockBase(int usageID) {
-        // Get our connection to the database.
-        Connection conn = null;
-        try {
-            conn = getConnection();
-            return getUsageBlockBase(usageID, conn);
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            // Make sure the connection is returned to the pool
-            if (conn != null) {
-                try { conn.close(); } catch (SQLException e) { ; }
-                conn = null;
-            }
-        }
-        return null;
-    }
-    
-    UsageBlockBase getUsageBlockBase(int usageID, Connection conn) {
-        
-        if (conn == null)
-            return null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        
-        try {
-            String sql = "SELECT * from instrumentUsage WHERE id="+usageID;
-            stmt = conn.prepareStatement(sql);
-            rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                UsageBlockBase blk = makeUsageBlockBase(rs);
-                return blk;
-            }
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        finally {
-
-            // Always make sure result sets and statements are closed,
-            if (rs != null) {
-                try { rs.close(); } catch (SQLException e) { ; }
-                rs = null;
-            }
-            if (stmt != null) {
-                try { stmt.close(); } catch (SQLException e) { ; }
-                stmt = null;
-            }
-        }
-        
-        return null;
-    }
-    
-    private void truncateBlock(UsageBlockBase newBlk, java.util.Date startDate, java.util.Date endDate) {
-        if(startDate != null) {
-            Date start = newBlk.getStartDate();
-            start = start.after(startDate) ? start : startDate; // DateUtils.defaultStartTime(startDate);
-            newBlk.setStartDate(start);
-        }
-        if(endDate != null) {
-            Date end = newBlk.getEndDate();
-            end = end.before(endDate) ? end : endDate; // DateUtils.defaultEndTime(endDate);
-            newBlk.setEndDate(end);
-        }
-        
-    }
-
-    private UsageBlockBase makeUsageBlockBase(ResultSet rs) throws SQLException {
-        UsageBlockBase blk = new UsageBlockBase();
-        blk.setID(rs.getInt("id"));
-        blk.setResearcherID(rs.getInt("enteredBy"));
-        blk.setInstrumentID(rs.getInt("instrumentID"));
-        blk.setProjectID(rs.getInt("projectID"));
-        blk.setStartDate(rs.getTimestamp("startDate"));
-        blk.setEndDate(rs.getTimestamp("endDate"));
-        blk.setDateCreated(rs.getTimestamp("dateEntered"));
-        Integer updaterResearcherId = rs.getInt("updatedBy");
-        if(updaterResearcherId != null) {
-        	blk.setUpdaterResearcherID(updaterResearcherId);
-        }
-        blk.setDateChanged(rs.getTimestamp("lastChanged"));
-        blk.setNotes(rs.getString("notes"));
-        return blk;
-    }
-    
-	//--------------------------------------------------------------------------------------------
-	// UsageBlock
-	//--------------------------------------------------------------------------------------------
-	public UsageBlock getUsageBlock(int usageID) {
-		// Get our connection to the database.
-		Connection conn = null;
-		try {
-			conn = getConnection();
-			return getUsageBlock(usageID, conn);
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			// Make sure the connection is returned to the pool
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException e) { ; }
-				conn = null;
-			}
-		}
-		return null;
-	}
-	
-	UsageBlock getUsageBlock(int usageID, Connection conn) {
-		
-		if (conn == null)
-			return null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		
-		try {
-			String sql = makeUsageSql(usageID);
-			stmt = conn.prepareStatement(sql);
-			rs = stmt.executeQuery();
-
-			if (rs.next()) {
-				return makeUsageBlock(rs);
-			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		finally {
-
-			// Always make sure result sets and statements are closed,
-			if (rs != null) {
-				try { rs.close(); } catch (SQLException e) { ; }
-				rs = null;
-			}
-			if (stmt != null) {
-				try { stmt.close(); } catch (SQLException e) { ; }
-				stmt = null;
-			}
-		}
-		
-		return null;
-	}
-	
-	public List<UsageBlock> getAllUsageBlocks(java.util.Date startDate, java.util.Date endDate) throws SQLException {
-	    return getAllUsageBlocks(startDate, endDate, true, null); // truncate blocks to fit the start and end dates
-	}
-	
-	public List<UsageBlock> getAllUsageBlocks(java.util.Date startDate, java.util.Date endDate, boolean truncate) throws SQLException {
-	    return getAllUsageBlocks(startDate, endDate, truncate, null);
-	}
-	
-	List<UsageBlock> getAllUsageBlocks(java.util.Date startDate, java.util.Date endDate, boolean truncate, String sortBy) throws SQLException {
-        return getUsageBlocksForInstrument(-1, startDate, endDate, truncate, sortBy);
-    }
-
-	public List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate) throws SQLException {
-	    return getUsageBlocksForInstrument(instrumentID, startDate, endDate, true, null); // truncate blocks to fit the start and end dates
-	}
-	
-	public List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate,
-			                                            boolean truncate) throws SQLException {
-	    return getUsageBlocksForInstrument(instrumentID, startDate, endDate, truncate, null);
-	}
-	
-	List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate, 
-			boolean truncate, String sortBy) throws SQLException {
-	    // Get our connection to the database.
-        Connection conn = null;
-        try {
-            conn = getConnection();
-            return getUsageBlocksForInstrument(instrumentID, startDate, endDate, truncate, sortBy, conn);
-            
-        } 
-        finally {
-            // Make sure the connection is returned to the pool
-            if (conn != null) {
-                try { conn.close(); } catch (SQLException e) { ; }
-                conn = null;
-            }
-        }
-	}
-	
-	List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, 
-	        java.util.Date startDate, java.util.Date endDate, boolean truncate,
-	        String sortBy, Connection conn) throws SQLException {
-        if (conn == null)
-            return null;
-        List <UsageBlock> usageBlks = new ArrayList<UsageBlock>();
-        
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        
-        try {
-            String sql = makeUsageSql(instrumentID, startDate, endDate, sortBy);
-            stmt = conn.prepareStatement(sql);
-            rs = stmt.executeQuery();
-            while (rs.next()) {
-                
-                UsageBlock newBlk = makeUsageBlock(rs);
-                
-                // Truncate the actual usage time, if required, to match the given start and end dates.
-                if(truncate) {
-                	truncateBlock(newBlk, startDate, endDate);
-                }
-                usageBlks.add(newBlk);
-            }
-            return usageBlks;
-            
-        } 
-        
-        finally {
-            // Always make sure result sets and statements are closed,
-            if (rs != null) {
-                try { rs.close(); } catch (SQLException e) { ; }
-                rs = null;
-            }
-            if (stmt != null) {
-                try { stmt.close(); } catch (SQLException e) { ; }
-                stmt = null;
-            }
-        }
-    }
-	
-    private UsageBlock makeUsageBlock(ResultSet rs) throws SQLException {
-        UsageBlock blk = new UsageBlock();
-        blk.setID(rs.getInt("id"));
-        blk.setResearcherID(rs.getInt("enteredBy"));
-        blk.setInstrumentID(rs.getInt("instrumentID"));
-        blk.setInstrumentRateID(rs.getInt("instrumentRateID"));
-        blk.setInstrumentName(rs.getString("name"));
-        blk.setProjectID(rs.getInt("projectID"));
-        blk.setProjectTitle(rs.getString("projectTitle"));
-        blk.setPIID(rs.getInt("projectPI"));
-        blk.setProjectPI(rs.getString("researcherLastName"));
-        blk.setStartDate(rs.getTimestamp("startDate"));
-        blk.setEndDate(rs.getTimestamp("endDate"));
-        blk.setDateCreated(rs.getTimestamp("dateEntered"));
-        blk.setDateChanged(rs.getTimestamp("lastChanged"));
-        blk.setNotes(rs.getString("notes"));
-        
-        InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-        List<InstrumentUsagePayment> payments = iupDao.getPaymentsForUsage(blk.getID());
-        blk.setPayments(payments);
-        
-        InstrumentRateDAO rateDao = InstrumentRateDAO.getInstance();
-        InstrumentRate rate = rateDao.getInstrumentRate(blk.getInstrumentRateID());
-        if(rate == null)
-        	throw new SQLException("No instrument rate found for ID: "+blk.getInstrumentRateID());
-        blk.setRate(rate.getRate());
-        
-        return blk;
-    }
-	
-    
-    //--------------------------------------------------------------------------------------------
-    // Project instrument usage
-    //--------------------------------------------------------------------------------------------
-    public List <ProjectInstrumentUsage> getAllProjectInstrumentUsage(java.util.Date startDate, java.util.Date endDate) throws SQLException {
-        
-        List<UsageBlock> usageBlocks = getAllUsageBlocks(startDate, endDate);
-        
-        // sort by projectID and then instrumentID
-        Collections.sort(usageBlocks, new Comparator<UsageBlock>() {
-            public int compare(UsageBlock o1, UsageBlock o2) {
-                if(o1.getProjectID() < o2.getProjectID())   return -1;
-                if(o1.getProjectID() > o2.getProjectID())   return 1;
-                if(o1.getInstrumentID() < o2.getInstrumentID()) return -1;
-                if(o1.getInstrumentID() > o2.getInstrumentID()) return 1;
-                return 0;
-            }});
-        
-        List <ProjectInstrumentUsage> projUsageList = new ArrayList<ProjectInstrumentUsage>();
-        
-        Timestamp startTs = startDate == null ? null : new Timestamp(startDate.getTime());
-        Timestamp endTs = endDate == null ? null : new Timestamp(endDate.getTime());
-        
-        
-        ProjectInstrumentUsage projUsage = null;
-        for(UsageBlock usageBlock: usageBlocks) {
-            
-               
-            if (projUsage == null || 
-                    (projUsage.getProjectID() != usageBlock.getProjectID() ||
-                     projUsage.getInstrumentID() != usageBlock.getInstrumentID())) {
-                projUsage = new ProjectInstrumentUsage(usageBlock.getProjectID(),
-                                usageBlock.getProjectTitle(), 
-                                usageBlock.getPIID(),
-                                usageBlock.getProjectPI(),
-                                usageBlock.getInstrumentID(),
-                                usageBlock.getInstrumentName(),
-                                startTs, 
-                                endTs);
-                projUsageList.add(projUsage);
-            }
-            
-            projUsage.addUsageBlock(usageBlock);
-        }
-        return projUsageList;
-    }
-    
 	//--------------------------------------------------------------------------------------------
 	// MS instrument usage
 	//--------------------------------------------------------------------------------------------
@@ -518,7 +222,7 @@ public class MsInstrumentUtils {
 		}
 	}
 	
-	MsInstrumentUsage getInsrumentUsage(int instrumentID, java.util.Date startDate, java.util.Date endDate, Connection conn) throws SQLException {
+	private MsInstrumentUsage getInsrumentUsage(int instrumentID, java.util.Date startDate, java.util.Date endDate, Connection conn) throws SQLException {
 		
 		if (conn == null)
 			return null;
@@ -528,9 +232,9 @@ public class MsInstrumentUtils {
 			return null;
 		}
 		
-		List<UsageBlock> usageBlocks = getUsageBlocksForInstrument(instrumentID, startDate, endDate, 
-																   true, // truncate blocks to given start and end dates 
-																   "projectID", conn);
+		List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentID, startDate, endDate,
+				true, // truncate blocks to given start and end dates
+				"projectID", conn);
 		
 		List <ProjectInstrumentUsage> projUsageList = new ArrayList<ProjectInstrumentUsage>();
 		
@@ -612,7 +316,12 @@ public class MsInstrumentUtils {
 		InstrumentCalendar calendar = new InstrumentCalendar(year, month, instrument.getName(), instrumentID);
 		
 		try {
-			String sql = makeUsageSql(instrumentID, startDate, endDate, "projectID");
+			UsageBlockFilter filter = new UsageBlockFilter();
+			filter.setInstrumentId(instrumentID);
+			filter.setStartDate(startDate);
+			filter.setEndDate(endDate);
+			filter.setSortColumn("projectID");
+			String sql = UsageBlockBaseDAO.makeSql(filter);
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			
@@ -651,66 +360,6 @@ public class MsInstrumentUtils {
 		for (int i = startDay; i <= endDay; i++) {
 			calendar.addBusyDay(i, projectID);
 		}
-	}
-
-	//--------------------------------------------------------------------------------------------
-	// SQL
-	//--------------------------------------------------------------------------------------------
-	private String makeUsageSql(int usageId) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(baseSql());
-        buf.append("AND insUsg.id="+usageId);
-        System.out.println(buf.toString());
-        return buf.toString();
-    }
-	
-	private String makeUsageSql(int instrumentID, java.util.Date startDate, java.util.Date endDate, String orderBy) {
-		StringBuilder buf = new StringBuilder();
-		buf.append(baseSql());
-		if (instrumentID != -1) {
-			buf.append("AND instrumentID=");
-			buf.append(instrumentID);
-			buf.append(" ");
-		}
-		if(startDate != null) {
-		    buf.append("AND startDate <= ");
-		    buf.append(makeDateForQuery(endDate));
-		    buf.append(" ");
-		}
-		if(endDate != null) {
-		    buf.append("AND endDate >= ");
-		    buf.append(makeDateForQuery(startDate));
-		    buf.append(" ");
-		}
-		if (orderBy != null)
-			buf.append("ORDER BY "+orderBy);
-		
-//		System.out.println(buf.toString());
-		return buf.toString();
-	}
-	
-	private String baseSql() {
-	    StringBuilder buf = new StringBuilder();
-        buf.append("SELECT insUsg.*, "+
-                "ins.name, "
-                +"proj.projectTitle, proj.projectPI, "+
-                "r.researcherLastName "
-                 );
-        buf.append("FROM " + DBConnectionManager.getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
-        buf.append("WHERE proj.projectID=insUsg.projectID ");
-        buf.append("AND r.researcherID=proj.projectPI ");
-        buf.append("AND ins.id=insUsg.instrumentID ");
-        return buf.toString();
-	}
-	
-	private String makeDateForQuery(java.util.Date date) {
-//		StringBuilder buf = new StringBuilder("DATE('"+DateUtils.getYear(date)+"-"+DateUtils.getMonth(date)+"-"+DateUtils.getDay(date));
-//		buf.append(" "+DateUtils.getHour24(date)+":"+DateUtils.getMinutes(date)+":"+DateUtils.getSeconds(date)+"')");
-	    
-	    StringBuilder buf = new StringBuilder("'"+DateUtils.getYear(date)+"-"+DateUtils.getMonth(date)+"-"+DateUtils.getDay(date));
-	    buf.append(" "+DateUtils.getHour24(date)+":"+DateUtils.getMinutes(date)+":"+DateUtils.getSeconds(date)+"'");
-		
-		return buf.toString();
 	}
 }
 

@@ -137,7 +137,7 @@ public class BillingInformationExcelExporter extends BillingInformationExporter 
 		// make sure the dates are alright
 		super.checkDates();
 
-		// get the usage blocks for this project between the start and end dates
+		// Get the usage blocks for this project that have their start OR end dates within the given date range.
 		List<UsageBlockBase> usageBlocks = getSortedUsageBlocksForProject_byStartDate(project);
 
 		

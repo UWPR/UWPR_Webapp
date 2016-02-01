@@ -5,28 +5,19 @@
  */
 package org.uwpr.www.costcenter;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import org.apache.log4j.Logger;
+import org.apache.struts.action.*;
+import org.uwpr.costcenter.*;
+import org.uwpr.www.util.TimeUtils;
+import org.yeastrc.www.user.Groups;
+import org.yeastrc.www.user.User;
+import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
-import org.uwpr.costcenter.BillingInformationExcelExporter;
-import org.uwpr.costcenter.BillingInformationExporterException;
-import org.uwpr.costcenter.Invoice;
-import org.uwpr.costcenter.InvoiceBlockCreator;
-import org.uwpr.costcenter.InvoiceDAO;
-import org.yeastrc.www.user.Groups;
-import org.yeastrc.www.user.User;
-import org.yeastrc.www.user.UserUtils;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 
@@ -78,22 +69,11 @@ public class ExportBillingInformationAction extends Action {
         try {
         	
         	BillingInformationExcelExporter exporter = new BillingInformationExcelExporter();
-        	Calendar startCal = Calendar.getInstance();
-        	startCal.setTime(startDate);
-        	startCal.set(Calendar.MILLISECOND, 0);
-        	startCal.set(Calendar.SECOND, 0);
-        	startCal.set(Calendar.MINUTE, 0);
-        	startCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
-    		
-        	exporter.setStartDate(startCal.getTime());
-        	
-        	Calendar endCal = Calendar.getInstance();
-        	endCal.setTime(endDate);
-        	endCal.set(Calendar.MILLISECOND, 0);
-        	endCal.set(Calendar.SECOND, 0);
-        	endCal.set(Calendar.MINUTE, 0);
-        	endCal.set(Calendar.HOUR_OF_DAY, 24); // this will be 12:00 am of the next day
-        	exporter.setEndDate(endCal.getTime());
+
+			Date startBillDate = TimeUtils.makeBeginningOfDay(startDate);
+			Date endBillDate = TimeUtils.makeEndOfDay(endDate);
+        	exporter.setStartDate(startBillDate);
+			exporter.setEndDate(endBillDate);
         	
         	exporter.setSummarize(exportForm.isSummarize());
         	
@@ -101,11 +81,11 @@ public class ExportBillingInformationAction extends Action {
         	// marked.
         	if(exportForm.isExportInvoice()) {
         		
-        		invoice = InvoiceDAO.getInstance().getInvoice(startCal.getTime(), endCal.getTime());
+        		invoice = InvoiceDAO.getInstance().getInvoice(startBillDate, endBillDate);
             	if(invoice == null) {
             		invoice = new Invoice();
-            		invoice.setBillStartDate(startCal.getTime());
-            		invoice.setBillEndDate(endCal.getTime());
+            		invoice.setBillStartDate(startBillDate);
+            		invoice.setBillEndDate(endBillDate);
             		invoice.setCreatedBy(user.getResearcher().getID());
             		InvoiceDAO.getInstance().save(invoice);
             	}

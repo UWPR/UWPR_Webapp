@@ -23,6 +23,7 @@ import org.apache.struts.action.ActionMessage;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.ProjectInstrumentUsage;
+import org.uwpr.instrumentlog.ProjectInstrumentUsageDAO;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsageUtils;
 import org.uwpr.instrumentlog.rawfile.ProjectUsageSummary;
@@ -72,7 +73,7 @@ public class ProjectUsageSummaryAction extends Action {
         
         List<ProjectUsageSummary> usageList = new ArrayList<ProjectUsageSummary>(projects.size());
         
-        List<ProjectInstrumentUsage> projInstrUsage = MsInstrumentUtils.instance().getAllProjectInstrumentUsage(null, null);
+        List<ProjectInstrumentUsage> projInstrUsage = ProjectInstrumentUsageDAO.getInstance().getAllProjectInstrumentUsage(null, null);
         // sort by projectID
         Collections.sort(projInstrUsage, new Comparator<ProjectInstrumentUsage>() {
             public int compare(ProjectInstrumentUsage o1, ProjectInstrumentUsage o2) {

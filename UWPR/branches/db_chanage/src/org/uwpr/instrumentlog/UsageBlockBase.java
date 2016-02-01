@@ -1,5 +1,7 @@
 package org.uwpr.instrumentlog;
 
+import org.uwpr.www.util.TimeUtils;
+
 import java.util.Date;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -24,7 +26,6 @@ public class UsageBlockBase {
 	private String notes;
 	
 	private static DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-	private static int MILLIS_IN_HOUR = 60 * 60 * 1000;
 
 	public UsageBlockBase(int id, int instrumentID, int projectID) {
 	    super();
@@ -166,7 +167,7 @@ public class UsageBlockBase {
 	public int getHours()
 	{
 		long time = getEndDate().getTime() - getStartDate().getTime();
-		return (int) (time / MILLIS_IN_HOUR);
+		return (int) (time / TimeUtils.MILLIS_IN_HOUR);
 	}
 
     public String toString() {
