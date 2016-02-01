@@ -22,6 +22,7 @@ import org.apache.struts.action.ActionMessage;
 import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -112,7 +113,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 
         for(int usageBlockId: usageBlockIds) {
         	
-        	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
+        	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		responseWriter.write("ERROR: No usage block found for usageBlockId: "+usageBlockId);
         		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

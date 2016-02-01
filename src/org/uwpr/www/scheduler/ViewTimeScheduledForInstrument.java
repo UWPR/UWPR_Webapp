@@ -5,10 +5,8 @@ package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
-import org.uwpr.instrumentlog.DateUtils;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlock;
+import org.uwpr.instrumentlog.*;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -83,6 +81,7 @@ public class ViewTimeScheduledForInstrument extends Action {
             try
             {
                 startDate = dateFormat.parse(startDateString);
+                startDate = TimeUtils.makeBeginningOfDay(startDate);
             }
             catch(ParseException e)
             {
@@ -94,7 +93,10 @@ public class ViewTimeScheduledForInstrument extends Action {
         {
             try
             {
+                // 2/15/2016 will be parsed as 2016-02-05 00-00-00 (12AM)
+                // Add a day (minus 1 millisec.) to the end date so that we include scheduled blocks that start on the end date.
                 endDate = dateFormat.parse(endDateString);
+                endDate = TimeUtils.makeEndOfDay(endDate);
             }
             catch(ParseException e)
             {
@@ -115,12 +117,12 @@ public class ViewTimeScheduledForInstrument extends Action {
             endDateString = dateFormat.format(endDate);
         }
 
-        ViewTimeScheduledForProjectForm filterForm = (ViewTimeScheduledForProjectForm)form;
+        TimeScheduledFilterForm filterForm = (TimeScheduledFilterForm)form;
         filterForm.setInstrumentId(instrumentId);
         filterForm.setStartDateString(startDateString);
         filterForm.setEndDateString(endDateString);
 
-        List<UsageBlock> usageBlocks = MsInstrumentUtils.instance().getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
+        List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
 
         // sort the blocks by start date, descending
         Collections.sort(usageBlocks, new Comparator<UsageBlock>() {
@@ -131,6 +133,16 @@ public class ViewTimeScheduledForInstrument extends Action {
 		});
         
         request.setAttribute("usageBlocks", usageBlocks);
+
+        int totalHours = 0;
+        double totalCost = 0;
+        for(UsageBlock block: usageBlocks)
+        {
+            totalCost += block.getRate().doubleValue();
+            totalHours += block.getHours();
+        }
+        request.setAttribute("totalCost", totalCost);
+        request.setAttribute("totalHours", totalHours);
 
         List<MsInstrument> instrumentList = MsInstrumentUtils.instance().getMsInstruments();
         request.setAttribute("instruments", instrumentList);

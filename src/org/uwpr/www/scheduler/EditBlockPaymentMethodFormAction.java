@@ -163,7 +163,7 @@ public class EditBlockPaymentMethodFormAction extends Action {
         List<UsageBlockBase> blocksToUpdate = new ArrayList<UsageBlockBase>(usageBlockIds.size());
         for(int usageBlockId: usageBlockIds) {
         	
-        	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
+        	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		ActionErrors errors = new ActionErrors();
                 errors.add("scheduler", new ActionMessage("error.costcenter.invaliddata", 

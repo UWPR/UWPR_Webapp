@@ -133,7 +133,7 @@
     <form-bean name="editBlockPaymentForm" type="org.uwpr.www.scheduler.EditBlockPaymentMethodForm" />
 	<form-bean name="uploadFileForm" type="org.yeastrc.www.files.UploadFileForm"></form-bean>
 	<form-bean name="viewInstrumentRatesForm" type="org.uwpr.www.costcenter.ViewInstrumentRatesForm"></form-bean>
-    <form-bean name="viewScheduledTimeDetailsForm" type="org.uwpr.www.scheduler.ViewTimeScheduledForProjectForm"></form-bean>
+    <form-bean name="timeScheduledFilterForm" type="org.uwpr.www.scheduler.TimeScheduledFilterForm"></form-bean>
     </form-beans>
 
 
@@ -197,11 +197,12 @@
 	<forward name="viewCurrentInstrumentRates" path="/viewCurrentInstrumentRates.do" />
 	<forward name="editPaymentMethod" path="/editPaymentMethod.do" />
 	<forward name="costCenterHome" path="/costCenterHome.do" />
-	<forward name="viewScheduledTimeDetails" path="/viewScheduledTimeDetails.do"/>
+	<forward name="viewTimeScheduledForProject" path="/viewTimeScheduledForProject.do"/>
 	<forward name="viewAllInstrumentCalendar" path="/viewAllInstrumentCalendar.do"/>
 	<forward name="viewEditInstrumentTimeForm" path="/viewEditInstrumentTimeForm.do"/>
     <forward name="viewEditBlockPaymentForm" path="/viewEditBlockPaymentForm.do"/>
     <forward name="viewTimeScheduledForInstrument" path="/viewTimeScheduledForInstrument.do"/>
+    <forward name="viewTimeScheduledForOperator" path="/viewTimeScheduledForOperator.do"/>
 
     </global-forwards>
 
@@ -774,10 +775,10 @@
     </action>
     
     <action
-      path="/viewScheduledTimeDetails"
+      path="/viewTimeScheduledForProject"
       type="org.uwpr.www.scheduler.ViewTimeScheduledForProject"
       input="/pages/internal/scheduler/viewTimeScheduledForProject.jsp"
-      name="viewScheduledTimeDetailsForm"
+      name="timeScheduledFilterForm"
       validate="false"
       >
       <forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForProject.jsp" redirect="false" />
@@ -788,7 +789,7 @@
       path="/viewTimeScheduledForInstrument"
       type="org.uwpr.www.scheduler.ViewTimeScheduledForInstrument"
       input="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp"
-      name="viewScheduledTimeDetailsForm"
+      name="timeScheduledFilterForm"
       validate="false"
       >
       <forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="false" />
@@ -801,6 +802,16 @@
      >
 		<forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="true" />
 		<forward name="Failure" path="/pages/internal/scheduler/viewTimeScheduledForInstrument.jsp" redirect="false"/>
+	</action>
+
+	<action
+			path="/viewTimeScheduledForOperator"
+			type="org.uwpr.www.scheduler.ViewTimeScheduledForOperator"
+			input="/pages/internal/scheduler/viewTimeScheduledForOperator.jsp"
+			name="timeScheduledFilterForm"
+			validate="false"
+			>
+		<forward name="Success" path="/pages/internal/scheduler/viewTimeScheduledForOperator.jsp" redirect="false" />
 	</action>
 
     

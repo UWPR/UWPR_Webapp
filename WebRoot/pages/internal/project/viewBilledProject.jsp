@@ -201,7 +201,7 @@
 				</div>
 				
 				<div style="margin:5px 0px 15px 0px">
-					<html:link action="viewScheduledTimeDetails.do" paramId="projectId" paramName="project" paramProperty="ID">
+					<html:link action="viewTimeScheduledForProject" paramId="projectId" paramName="project" paramProperty="ID">
 					<b>[View]</b>
 					</html:link>
 					instrument time scheduled for the project

@@ -1,20 +1,15 @@
 package org.uwpr.www.instrumentlog;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.InstrumentUsageDAO;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DeleteInstrumentUsageAction extends Action {
 
@@ -63,7 +58,7 @@ public class DeleteInstrumentUsageAction extends Action {
 			return mapping.findForward("Failure");
 		}
 		
-		UsageBlockBase blk = MsInstrumentUtils.instance().getUsageBlockBase(usageID);
+		UsageBlockBase blk = UsageBlockBaseDAO.getUsageBlockBase(usageID);
 		if (blk == null) {
 			ActionErrors errors = new ActionErrors();
 			errors.add("instrumentlog", new ActionMessage("error.instrumentlog.invalid.usageid"));

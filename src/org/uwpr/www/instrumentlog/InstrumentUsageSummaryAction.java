@@ -16,12 +16,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.chart.google.DataSet;
-import org.uwpr.instrumentlog.DateUtils;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUsage;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlock;
-import org.uwpr.instrumentlog.UsageStatsCalculator;
+import org.uwpr.instrumentlog.*;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -121,7 +116,8 @@ public class InstrumentUsageSummaryAction extends Action {
 		// get the usage stats
 		List<UsageBlock> usageBlks;
 		try {
-			usageBlks = MsInstrumentUtils.instance().getUsageBlocksForInstrument(instrumentID, startDate, endDate);
+			usageBlks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentID, startDate, endDate,
+					true); // Trim blocks to fit in range
 		} catch (SQLException e1) {
 			log.error("Error loading instrument usage.", e1);
 			ActionErrors errors = new ActionErrors();

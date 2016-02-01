@@ -101,13 +101,25 @@ public class EditProjectInstrumentTimeAction extends Action {
 					        "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
 					);
 		}
-		if(!Groups.getInstance().isMember(instrumentOperatorId, Groups.INSTRUMENT_OPERATOR))
+		Researcher instrumentOperator = new Researcher();
+		try
 		{
-			Researcher operator = new Researcher();
-			operator.load(instrumentId);
+			instrumentOperator.load(instrumentOperatorId);
+		}
+		catch(Exception e)
+		{
 			return returnError(mapping, request, "scheduler",
 					new ActionMessage("error.scheduler.invalidid",
-							operator.getFullName() + " is not a verified instrument operator."),
+							" No researcher found for ID " + instrumentOperatorId),
+					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
+			);
+		}
+
+		if(!Groups.getInstance().isMember(instrumentOperatorId, Groups.INSTRUMENT_OPERATOR))
+		{
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.scheduler.invalidid",
+							instrumentOperator.getFullName() + " is not a verified instrument operator."),
 					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
 			);
 		}
@@ -154,7 +166,7 @@ public class EditProjectInstrumentTimeAction extends Action {
         List<UsageBlockBase> blocksToDelete = new ArrayList<UsageBlockBase>(usageBlockIds.size());
         for(int usageBlockId: usageBlockIds) {
         	
-        	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
+        	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		return returnError(mapping, request, "scheduler", 
         				new ActionMessage("error.costcenter.invaliddata", 
@@ -264,7 +276,6 @@ public class EditProjectInstrumentTimeAction extends Action {
         
 		
     	// Make sure user has not exceeded instrument time quota
-    	// 10/4/13 -- Check only for UWPR supported projects. No quota for billed projects.
         if(project instanceof Collaboration) {
             try {
                 if(ProjectInstrumentTimeApprover.getInstance().subsidizedProjectExceedsQuota(projectId, user, allBlocks, blocksToDelete)) {
@@ -283,6 +294,21 @@ public class EditProjectInstrumentTimeAction extends Action {
                         "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
             }
         }
+		else if(project instanceof BilledProject)
+		{
+			ProjectInstrumentTimeApprover.TimeRequest timeRequest = ProjectInstrumentTimeApprover.getInstance().processTimeRequest(user, instrumentOperator, allBlocks, blocksToDelete);
+			if(!timeRequest.valid())
+			{
+				String message = "Could not schedule instrument time." +
+						" Requested instrument time exceeds the limit of  " + ProjectInstrumentTimeApprover.HOURS_QUOTA_BILLED_PROJECT + " for " +
+						instrumentOperator.getFullName() +
+						". Total unused time scheduled on all instruments: " + timeRequest.getTimeUsed() + "  hours." +
+						" Time remaining: " + timeRequest.getTimeRemaining() + " hours. ";
+
+				return returnError(mapping, request, "scheduler", new ActionMessage(message),
+						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+			}
+		}
         
         
         // Check if the instrument is available

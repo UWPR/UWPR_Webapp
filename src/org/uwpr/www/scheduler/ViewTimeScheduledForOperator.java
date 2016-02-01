@@ -10,9 +10,7 @@ import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
-import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
-import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -21,10 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * ViewTimeScheduledForProject.java
@@ -32,16 +27,16 @@ import java.util.List;
  * May 31, 2011
  * 
  */
-public class ViewTimeScheduledForProject extends Action {
+public class ViewTimeScheduledForOperator extends Action {
 
-    private static final Logger log = Logger.getLogger(ViewTimeScheduledForProject.class);
+    private static final Logger log = Logger.getLogger(ViewTimeScheduledForOperator.class);
 
     private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
-			HttpServletRequest request, HttpServletResponse response) throws Exception {
-		
-		
+			HttpServletRequest request, HttpServletResponse response) throws Exception
+    {
+
 		// User making this request
 		User user = UserUtils.getUser(request);
 		if (user == null) {
@@ -50,42 +45,22 @@ public class ViewTimeScheduledForProject extends Action {
 			saveErrors( request, errors );
 			return mapping.findForward("authenticate");
 		}
-		
-        
-        // we need a projectID
-        int projectId;
-        try {
-        	projectId = Integer.parseInt(request.getParameter("projectId"));
+
+        // we need an instrument operatorId
+        String instrumentOperatorParam = request.getParameter("instrumentOperatorId");
+        int instrumentOperatorId = 0;
+        try
+        {
+            instrumentOperatorId = Integer.parseInt(instrumentOperatorParam);
         }
-        catch(NumberFormatException e) {
-        	projectId = 0;
-        }
-        if(projectId == 0) {
+        catch(NumberFormatException e) {}
+
+        if(instrumentOperatorId == 0) {
         	ActionErrors errors = new ActionErrors();
-            errors.add("scheduler", new ActionMessage("error.scheduler.invalidid", "Invalid projectID in request"));
+            errors.add("scheduler", new ActionMessage("error.scheduler.invalidid",
+                       "Invalid instrument operator ID (" + instrumentOperatorParam + ") found in request"));
             saveErrors( request, errors );
             return mapping.findForward("standardHome");
-        }
-        
-        // Make sure the user has access to the project
-        Project project;
-        try {
-        	project = ProjectFactory.getProject(projectId);
-        	if(!project.checkAccess(user.getResearcher())) {
-        		ActionErrors errors = new ActionErrors();
-        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","User does not have access to project ID " + projectId));
-        		saveErrors( request, errors );
-            	return mapping.findForward("standardHome");
-        	}
-        }
-        catch(Exception e) {
-        	ActionErrors errors = new ActionErrors();
-			errors.add("scheduler", new ActionMessage("error.scheduler.load","Error loading project to check access."));
-			saveErrors( request, errors );
-			log.error("Error checking access to project ID: "+projectId, e);
-			ActionForward fwd = mapping.findForward("Failure");
-			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
-        	return newFwd;
         }
 
         int instrumentId;
@@ -102,13 +77,37 @@ public class ViewTimeScheduledForProject extends Action {
         catch(NumberFormatException e) {
             paymentMethodId = 0;
         }
-
-        int instrumentOperatorId;
-        try {
-            instrumentOperatorId = Integer.parseInt(request.getParameter("instrumentOperatorId"));
+        int projectId = 0;
+        try
+        {
+            projectId = Integer.parseInt(request.getParameter("projectId"));
         }
-        catch(NumberFormatException e) {
-            instrumentOperatorId = 0;
+        catch(NumberFormatException e){}
+
+        if(projectId > 0)
+        {
+            // Make sure the user has access to the project
+            Project project;
+            try
+            {
+                project = ProjectFactory.getProject(projectId);
+                if (!project.checkAccess(user.getResearcher()))
+                {
+                    ActionErrors errors = new ActionErrors();
+                    errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess", "User does not have access to project ID " + projectId));
+                    saveErrors(request, errors);
+                    return mapping.findForward("standardHome");
+                }
+            } catch (Exception e)
+            {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.scheduler.load", "Error loading project to check access."));
+                saveErrors(request, errors);
+                log.error("Error checking access to project ID: " + projectId, e);
+                ActionForward fwd = mapping.findForward("Failure");
+                ActionForward newFwd = new ActionForward(fwd.getPath() + "?ID=" + projectId, fwd.getRedirect());
+                return newFwd;
+            }
         }
 
         String startDateString = request.getParameter("startDate");
@@ -146,15 +145,16 @@ public class ViewTimeScheduledForProject extends Action {
             log.warn("Start date cannot be after end date. Selected start date: "+startDateString + ". End date: "+endDateString);
         }
 
+
         UsageBlockFilter filter = new UsageBlockFilter();
+        filter.setInstrumentOperatorId(instrumentOperatorId);
         filter.setProjectId(projectId);
         filter.setInstrumentId(instrumentId);
-        filter.setInstrumentOperatorId(instrumentOperatorId);
         filter.setPaymentMethodId(paymentMethodId);
         filter.setStartDate(startDate);
         filter.setEndDate(endDate);
-        filter.setContainedInRange(false);
         filter.setTrimToFit(false);
+        filter.setContainedInRange(false);
 
         ((TimeScheduledFilterForm)form).setFilterCriteria(filter);
 
@@ -171,7 +171,6 @@ public class ViewTimeScheduledForProject extends Action {
 			}
 		});
         
-        request.setAttribute("project", project);
         request.setAttribute("usageBlocks", usageBlocks);
 
         int totalHours = 0;
@@ -184,22 +183,35 @@ public class ViewTimeScheduledForProject extends Action {
         request.setAttribute("totalCost", totalCost);
         request.setAttribute("totalHours", totalHours);
 
+        User instrumentOperator = new User();
+        instrumentOperator.load(instrumentOperatorId);
+
         List<MsInstrument> instrumentList = MsInstrumentUtils.instance().getMsInstruments();
-        List<PaymentMethod> paymentMethods;
-        if(project instanceof BilledProject)
+        List<PaymentMethod> paymentMethods = new ArrayList<PaymentMethod>();
+        List<Project> allProjects = instrumentOperator.getProjects();
+        List<Project> billedOperatorProjects = new ArrayList<Project>();
+        for(Project project: allProjects)
         {
-            paymentMethods = ((BilledProject)project).getPaymentMethods();
+            if(project instanceof BilledProject)
+            {
+                paymentMethods.addAll(((BilledProject)project).getPaymentMethods());
+                billedOperatorProjects.add(project);
+            }
         }
-        else
-        {
-            paymentMethods = Collections.emptyList();
-        }
+        request.setAttribute("projects", billedOperatorProjects);
         request.setAttribute("instruments", instrumentList);
         request.setAttribute("paymentMethods", paymentMethods);
+        request.setAttribute("instrumentOperator", instrumentOperator);
 
-        // Put a list of instrument operators listed on the project.
-        List<Researcher> allInstrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
-        request.setAttribute("instrumentOperators", project.getInstrumentOperators(allInstrumentOperators));
+        if(billedOperatorProjects.size() == 1)
+        {
+            ((TimeScheduledFilterForm)form).setProjectId(billedOperatorProjects.get(0).getID());
+        }
+        if(paymentMethods.size() == 1)
+        {
+            ((TimeScheduledFilterForm)form).setPaymentMethodId(paymentMethods.get(0).getId());
+        }
+
 
         if(usageBlocks.size() == 0
            && instrumentId == 0

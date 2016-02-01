@@ -169,7 +169,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
 
 <logic:notEmpty name="usageBlocks">
 <div style="font-weight:bold; text-alignment:center;margin:10px;">
-	Total Cost: $<span id="totalCost" style="color:red;"></span>
+    Total cost: $<span style="color:red;"><bean:write name="totalCost"/></span>
+    &nbsp;
+    Total hours: <span style="color:red;"><bean:write name="totalHours"/></span>
 </div>
 
 <table id="blocklist_table" class="tablesorter" border="0" cellpadding="7">

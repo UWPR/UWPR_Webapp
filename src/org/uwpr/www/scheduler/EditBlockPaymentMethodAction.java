@@ -8,10 +8,7 @@ package org.uwpr.www.scheduler;
 import org.apache.struts.action.*;
 import org.uwpr.costcenter.InvoiceInstrumentUsage;
 import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
-import org.uwpr.instrumentlog.InstrumentUsagePayment;
-import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.PatternToDateConverter;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -127,7 +124,7 @@ public class EditBlockPaymentMethodAction extends Action {
         List<UsageBlockBase> blocksToUpdate = new ArrayList<UsageBlockBase>(usageBlockIds.size());
         for(int usageBlockId: usageBlockIds) {
         	
-        	UsageBlockBase usageBlock = MsInstrumentUtils.instance().getUsageBlockBase(usageBlockId);
+        	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		return returnError(mapping, request, "scheduler", 
         				new ActionMessage("error.costcenter.invaliddata", 

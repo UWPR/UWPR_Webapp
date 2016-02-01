@@ -137,7 +137,8 @@ public class InstrumentUsageDAO {
 	}
 
 
-	static final Connection getConnection() throws SQLException {
+	static final Connection getConnection() throws SQLException
+	{
         return DBConnectionManager.getMainDbConnection();
     }
 

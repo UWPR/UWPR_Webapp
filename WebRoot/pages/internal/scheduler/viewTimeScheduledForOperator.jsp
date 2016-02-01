@@ -38,6 +38,8 @@ $(document).ready(function() {
             } 
         } 
     });
+    
+    // $("#totalCost").text(getTotalCost());
 }); 
 
 function submitForm()
@@ -71,36 +73,24 @@ function deleteTimeBlock(usageBlockId, projectId) {
 </script>
 
 <logic:notPresent name="instruments">
-	<logic:forward name="viewTimeScheduledForProject"/>
+	<logic:forward name="viewTimeScheduledForOperator"/>
 </logic:notPresent>
 
-<yrcwww:contentbox title="Scheduled Instrument Time for Project">
+<yrcwww:contentbox title="Scheduled Instrument Time for Instrument Operator">
 <center>
 
 <logic:present name="noInstrumentTimeScheduled">
     <div style="margin:20px;">
-        There is no instrument time scheduled for project ID <bean:write name="project" property="ID"/>.
-        <br/>
-        Click <html:link action="viewScheduler.do" paramId="projectId" paramName="project" paramProperty="ID">here</html:link> to schedule time for this project.
-        </div>
+        There is no instrument time scheduled for instrument operator <bean:write name="instrumentOperator" property="researcher.fullName"/>.
+    </div>
 </logic:present>
 
 
 <logic:notPresent name="noInstrumentTimeScheduled">
 
-
-<div style="font-weight:bold; text-alignment:center;">
-    Project ID: <bean:write name="project" property="ID"/>
-    <html:link action="viewProject.do" paramName="project" paramProperty="ID" paramId="ID" >
-        <span style="font-size:8pt;">(back to project)</span>
-    </html:link>
-    <br/>
-    <bean:write name="project" property="title"/>
-</div>
-
 <div style="margin:20px; text-align:left; align:center">
-<html:form action="viewTimeScheduledForProject" method="POST">
-    <html:hidden property="projectId" styleId="projectId"/>
+<html:form action="viewTimeScheduledForOperator" method="POST">
+    <html:hidden property="instrumentOperatorId" styleId="instrumentOperatorId"/> <!-- This comes from the form -->
     <table align="center">
         <tr>
             <td>
@@ -112,6 +102,8 @@ function deleteTimeBlock(usageBlockId, projectId) {
                     <html:optionsCollection name="instruments" value="ID" label="name"/>
                 </html:select>
             </td>
+        </tr>
+        <tr>
             <td>
                 Payment method:
             </td>
@@ -124,19 +116,22 @@ function deleteTimeBlock(usageBlockId, projectId) {
         </tr>
 
         <tr>
+            <td>
+                Project:
+            </td>
+            <td colspan="3">
+                <html:select property="projectId" styleId="projectId">
+                    <html:option value="0">ALL</html:option>
+                    <html:optionsCollection name="projects" value="ID" label="title"/>
+                </html:select>
+            </td>
+        </tr>
+
+        <tr>
             <td align="left">Start date:</td>
             <td>
                 <html:text property="startDateString" styleClass="datepicker" styleId="startDate"></html:text>
                 <span style="font-size:8pt;">e.g. 04/29/2011</span>
-            </td>
-            <td>
-                Instrument operator:
-            </td>
-            <td>
-                <html:select property="instrumentOperatorId" styleId="instrumentOperatorId">
-                    <html:option value="0">ALL</html:option>
-                    <html:optionsCollection name="instrumentOperators" value="ID" label="fullName"/>
-                </html:select>
             </td>
         </tr>
         <tr>
@@ -157,9 +152,8 @@ function deleteTimeBlock(usageBlockId, projectId) {
 
 <logic:empty name="usageBlocks">
     <div style="margin:20px;">
-        No scheduled instrument time was found for project ID
-        <bean:write name="project" property="ID"/>
-        with the selected criteria.
+        No scheduled instrument time was found for <bean:write name="instrumentOperator" property="researcher.fullName"/>
+        with the selected filtering criteria.
     </div>
 </logic:empty>
 
@@ -169,11 +163,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 	Total cost: $<span style="color:red;"><bean:write name="totalCost"/></span>
     &nbsp;
     Total hours: <span style="color:red;"><bean:write name="totalHours"/></span>
-</div>
-<div style="font-weight:bold; text-alignment:center; font-size:8pt">
-	<html:link action="viewScheduler.do" paramName="project" paramProperty="ID" paramId="projectId">
-		[Schedule Time for Project]
-	</html:link>
 </div>
 
 <table id="blocklist_table" class="tablesorter" border="0" cellpadding="7">
@@ -226,7 +215,7 @@ function deleteTimeBlock(usageBlockId, projectId) {
 					</logic:notEmpty>
 				</td>
 				<td style="font-size:10pt;color:red">
-					<a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
+					<a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="usageBlock" property="projectID" />)'>[Delete]</a>
 				</td>
 				
 			</tr>
