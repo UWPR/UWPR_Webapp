@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class UsageBlockBaseDAO
 {
-    static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 
     public static UsageBlockBase getUsageBlockBase(int usageID)
     {
@@ -128,7 +128,7 @@ public class UsageBlockBaseDAO
         {
             throw new SQLException("Invalid instrumentOperatorId: " + instrumentOperatorId);
         }
-        UsageBlockFilter filter = new UsageBlockFilter();
+        UsageBlockBaseFilter filter = new UsageBlockBaseFilter();
         filter.setInstrumentOperatorId(instrumentOperatorId);
         filter.setStartDate(startDate);
         filter.setEndDate(endDate);
@@ -149,7 +149,7 @@ public class UsageBlockBaseDAO
         {
             throw new SQLException("Invalid projectId: " + projectId);
         }
-        UsageBlockFilter filter = new UsageBlockFilter();
+        UsageBlockBaseFilter filter = new UsageBlockBaseFilter();
         filter.setProjectId(projectId);
         filter.setStartDate(startDate);
         filter.setEndDate(endDate);
@@ -157,7 +157,28 @@ public class UsageBlockBaseDAO
         return getUsageBlocks(filter);
     }
 
-    private static List<UsageBlockBase> getUsageBlocks(UsageBlockFilter filter) throws SQLException
+    /**
+     * Returns a list of usage blocks for the given instrument operator.
+     * If containedInRange is true, only blocks that start AND end in the given time range are returned.
+     * If startDate or endDate are null they are ignored.
+     * @throws SQLException
+     */
+    public static List<UsageBlockBase> getUsageBlocksForInstrumentRate(int instrumentRateId, Date startDate, Date endDate,
+                                                                           boolean containedInRange) throws SQLException
+    {
+        if(instrumentRateId <= 0)
+        {
+            throw new SQLException("Invalid instrumentRateId: " + instrumentRateId);
+        }
+        UsageBlockBaseFilter filter = new UsageBlockBaseFilter();
+        filter.setInstrumentRateId(instrumentRateId);
+        filter.setStartDate(startDate);
+        filter.setEndDate(endDate);
+        filter.setContainedInRange(containedInRange);
+        return getUsageBlocks(filter);
+    }
+
+    private static List<UsageBlockBase> getUsageBlocks(UsageBlockBaseFilter filter) throws SQLException
     {
         Connection conn = null;
         Statement stmt = null;
@@ -189,7 +210,7 @@ public class UsageBlockBaseDAO
         }
     }
 
-    static String makeSql(UsageBlockFilter filter)
+    static String makeSql(UsageBlockBaseFilter filter)
     {
         StringBuilder buf = new StringBuilder();
         buf.append("SELECT * FROM instrumentUsage");
@@ -206,16 +227,16 @@ public class UsageBlockBaseDAO
             buf.append(" instrumentID = ").append(filter.getInstrumentId());
             joiner = " AND ";
         }
+        if(filter.getInstrumentRateId() != 0)
+        {
+            buf.append(joiner);
+            buf.append(" instrumentRateID = ").append(filter.getInstrumentRateId());
+            joiner = " AND ";
+        }
         if(filter.getInstrumentOperatorId() != 0)
         {
             buf.append(joiner);
             buf.append(" instrumentOperatorId = ").append(filter.getInstrumentOperatorId());
-            joiner = " AND ";
-        }
-        if(filter.getPaymentMethodId() != 0)
-        {
-            buf.append(joiner);
-            buf.append(" paymentMethodID = ").append(filter.getPaymentMethodId());
             joiner = " AND ";
         }
         if(filter.isContainedInRange())
