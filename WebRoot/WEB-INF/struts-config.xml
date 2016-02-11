@@ -134,6 +134,7 @@
 	<form-bean name="uploadFileForm" type="org.yeastrc.www.files.UploadFileForm"></form-bean>
 	<form-bean name="viewInstrumentRatesForm" type="org.uwpr.www.costcenter.ViewInstrumentRatesForm"></form-bean>
     <form-bean name="timeScheduledFilterForm" type="org.uwpr.www.scheduler.TimeScheduledFilterForm"></form-bean>
+	<form-bean name="addInstrumentForm" type="org.yeastrc.www.admin.AddInstrumentForm"/>
     </form-beans>
 
 
@@ -184,6 +185,7 @@
 	<forward name="viewRegister" path="/viewRegister.do" />
 	<forward name="manageGroups" path="/manageGroups.do" />
 	<forward name="manageGroupMembers" path="/manageGroupMembers.do" />
+	<forward name="manageInstruments" path="/manageInstruments.do" />
 	<forward name="adminHome" path="/pages/admin/search/searchProjects.jsp"/>
 	<forward name="projectSearchForm" path="/pages/admin/search/searchProjects.jsp"/>
 	<forward name="standardHome" path="/viewFrontPage.do"/>
@@ -373,6 +375,51 @@
 	  <forward name="Success" path="/pages/admin/manageGroupMembers.jsp" redirect="false"/>
 	  <forward name="Failure" path="/manageGroups.do" redirect="false"/>
 	</action>
+
+	<!-- ================================================================================== -->
+	<!-- Actions related to instruments -->
+	<!-- ================================================================================== -->
+	<action
+		path="/manageInstruments"
+		type="org.yeastrc.www.admin.ManageInstrumentsAction"
+		>
+		<forward name="Success" path="/pages/admin/manageInstruments.jsp" redirect="false"/>
+		<forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
+	</action>
+
+	<action
+		path="/addInstrument"
+		name="addInstrumentForm"
+		input="/pages/admin/addInstrument.jsp"
+		type="org.yeastrc.www.admin.AddInstrumentFormAction"
+		validate="false"
+		>
+		<forward name="Success" path="/pages/admin/addInstrument.jsp" redirect="false"/>
+		<forward name="Failure" path="/manageInstruments.do" redirect="false"/>
+	</action>
+
+	<action
+		path="/editInstrument"
+		name="addInstrumentForm"
+		input="/pages/admin/addInstrument.jsp"
+		type="org.yeastrc.www.admin.EditInstrumentAction"
+		validate="false"
+		>
+		<forward name="Success" path="/pages/admin/addInstrument.jsp" redirect="false"/>
+		<forward name="Failure" path="/manageInstruments.do" redirect="false"/>
+	</action>
+
+	<action
+		path="/saveInstrument"
+		type="org.yeastrc.www.admin.SaveInstrumentAction"
+		name="addInstrumentForm"
+		input="/pages/admin/addInstrument.jsp"
+		validate="true"
+			>
+		<forward name="Success" path="/manageInstruments.do" redirect="true"/>
+		<forward name="Failure" path="/pages/admin/addInstrument.jsp" redirect="false"/>
+	</action>
+
 	
 	<!-- ============================================================================================ -->
 	<!-- LAB DIRECTOR  -->

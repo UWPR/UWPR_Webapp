@@ -1,15 +1,8 @@
 package org.uwpr.instrumentlog;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.uwpr.chart.google.DataPoint;
 import org.uwpr.chart.google.DataSeries;
 import org.uwpr.chart.google.DataSet;
@@ -207,7 +200,12 @@ public class UsageStatsCalculator {
 		instrumentStats.addSeries(maintSeries);
 		//instrumentStats.addSeries(billedProjSeries);
 		instrumentStats.addSeries(series);
-		
+
+		Map<Integer, MsInstrument> instrumentMap = new HashMap<Integer, MsInstrument>();
+		for(MsInstrument instrument: instruments)
+		{
+			instrumentMap.put(instrument.getID(), instrument);
+		}
 		for(int i = 0; i < usageRangeList.size(); i++) {
 		    MyUsageRange r = usageRangeList.get(i);
 		    MyUsageRange mr = maintUsageRangeList.get(i);
@@ -221,7 +219,8 @@ public class UsageStatsCalculator {
 		    DataPoint dp = new DataPoint(r.getName(), getPercent(nomaint, totalUsableHours));
 		    if(r.getAllUsageBlocks().size() > 0) {
 		        int instrumentId = r.getAllUsageBlocks().get(0).getInstrumentID();
-		        dp.setColor(InstrumentColors.getColor(instrumentId));
+				String color = instrumentMap.get(instrumentId).getColor();
+		        dp.setColor(StringUtils.isBlank(color) ? InstrumentColors.getColor(instrumentId) : color);
 		    }
 		    series.addDataPoint(dp);
 		    
@@ -312,13 +311,20 @@ public class UsageStatsCalculator {
 				allUsageRange.addUsageBlock(blk);
 			monthlyStats.addSeries(monthlyStatsForUsageRange(monthBlocks, allUsageRange));
 		}
-		
+
+		Map<Integer, MsInstrument> instrumentMap = new HashMap<Integer, MsInstrument>();
+		for(MsInstrument instrument: instruments)
+		{
+			instrumentMap.put(instrument.getID(), instrument);
+		}
+
 		// create a series for each instrument
 		for (MyUsageRange usageRange: usageRangeList) {
 		    if(usageRange.getAllUsageBlocks().size() == 0) continue;
-		    DataSeries series = monthlyStatsForUsageRange(monthBlocks, (MyUsageRange)usageRange);
+		    DataSeries series = monthlyStatsForUsageRange(monthBlocks, usageRange);
 		    int instrumentId = usageRange.getAllUsageBlocks().get(0).getInstrumentID();
-		    series.setSeriesColor(InstrumentColors.getColor(instrumentId));
+			String color = instrumentMap.get(instrumentId).getColor();
+			series.setSeriesColor(StringUtils.isBlank(color) ? InstrumentColors.getColor(instrumentId) : color);
 			monthlyStats.addSeries(series);
 		}
 		

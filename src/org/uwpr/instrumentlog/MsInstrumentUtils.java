@@ -3,6 +3,7 @@ package org.uwpr.instrumentlog;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.InvalidProjectTypeException;
+import org.yeastrc.www.admin.SaveInstrumentAction;
 
 import java.sql.*;
 import java.util.*;
@@ -81,11 +82,7 @@ public class MsInstrumentUtils {
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
-				int id = rs.getInt("id");
-				String name = rs.getString("name");
-				String desc = rs.getString("description");
-				boolean active = rs.getBoolean("active");
-				list.add(new MsInstrument(id, name, desc, active));
+				list.add(getMsInstrument(rs));
 			}
 			
 		} catch (SQLException e) {
@@ -145,11 +142,7 @@ public class MsInstrumentUtils {
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
 			if (rs.next()) {
-				int id = rs.getInt("id");
-				String name = rs.getString("name");
-				String desc = rs.getString("description");
-				boolean active = rs.getBoolean("active");
-				return new MsInstrument(id, name, desc, active);
+				return getMsInstrument(rs);
 			}
 			
 		} catch (SQLException e) {
@@ -170,6 +163,16 @@ public class MsInstrumentUtils {
 		}
 		
 		return null;
+	}
+
+	private MsInstrument getMsInstrument(ResultSet rs) throws SQLException
+	{
+		int id = rs.getInt("id");
+		String name = rs.getString("name");
+		String desc = rs.getString("description");
+		boolean active = rs.getBoolean("active");
+		String color = rs.getString("color");
+		return new MsInstrument(id, name, desc, active, color);
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -359,6 +362,75 @@ public class MsInstrumentUtils {
 		int endDay = DateUtils.getDay(end);
 		for (int i = startDay; i <= endDay; i++) {
 			calendar.addBusyDay(i, projectID);
+		}
+	}
+
+	public void saveInstrument(MsInstrument instrument)
+	{
+		if(instrument.getID() != 0)
+		{
+			updateInstrument(instrument);
+			return;
+		}
+
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		String sql = "INSERT INTO " + DBConnectionManager.getInstrumentsTableSQL() + " (name, description, active, color) VALUES(?,?,?,?)";
+		try
+		{
+			conn = getConnection();
+			stmt = conn.prepareStatement(sql);
+			stmt.setString(1, instrument.getNameOnly());
+			stmt.setString(2, instrument.getDescription());
+			stmt.setInt(3, instrument.isActive() ? 1 : 0);
+			stmt.setString(4, instrument.getColor());
+			stmt.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+
+		finally
+		{
+			if (rs != null) {try { rs.close(); } catch (SQLException ignored) {}}
+			if (stmt != null) {try { stmt.close(); } catch (SQLException ignored) {}}
+			if (conn != null) {try { conn.close(); } catch (SQLException ignored) {}}
+
+		}
+	}
+
+	private void updateInstrument(MsInstrument instrument)
+	{
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		String sql = "UPDATE " + DBConnectionManager.getInstrumentsTableSQL() + " SET name=?, description=?, active=?, color=? WHERE id=?";
+		try
+		{
+			conn = getConnection();
+			stmt = conn.prepareStatement(sql);
+			stmt.setString(1, instrument.getNameOnly());
+			stmt.setString(2, instrument.getDescription());
+			stmt.setInt(3, instrument.isActive() ? 1 : 0);
+			stmt.setString(4, instrument.getColor());
+			stmt.setInt(5, instrument.getID());
+			stmt.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+
+		finally
+		{
+			if (rs != null) {try { rs.close(); } catch (SQLException ignored) {}}
+			if (stmt != null) {try { stmt.close(); } catch (SQLException ignored) {}}
+			if (conn != null) {try { conn.close(); } catch (SQLException ignored) {}}
+
 		}
 	}
 }

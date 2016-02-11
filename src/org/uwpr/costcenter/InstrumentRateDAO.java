@@ -185,6 +185,7 @@ public class InstrumentRateDAO {
 	}
 
     public static final String saveInstrumentRateSql = "INSERT INTO instrumentRate (instrumentID, blockID, rateTypeID, fee, createDate, isCurrent) VALUES (?,?,?,?,?,?)";
+	public static final String updateInstrumentRateSql = "UPDATE instrumentRate set instrumentID=?, blockID=?, rateTypeID=?, fee=?, isCurrent=? WHERE id=?";
 
     public void saveInstrumentRate(InstrumentRate rate) throws SQLException {
 		
@@ -193,7 +194,7 @@ public class InstrumentRateDAO {
 		
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
-			stmt = conn.prepareStatement(saveInstrumentRateSql);
+			stmt = prepareStatementGetId(saveInstrumentRateSql, conn);
 			saveInstrumentRate(rate, stmt);
 		}
 		finally {
@@ -202,7 +203,12 @@ public class InstrumentRateDAO {
 		}
 	}
 
-    public int saveInstrumentRate(InstrumentRate rate, PreparedStatement stmt) throws SQLException {
+	public static PreparedStatement prepareStatementGetId(String sql, Connection conn) throws SQLException
+	{
+		return conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	}
+
+    public void saveInstrumentRate(InstrumentRate rate, PreparedStatement stmt) throws SQLException {
 
         stmt.setInt(1, rate.getInstrument().getID());
         stmt.setInt(2, rate.getTimeBlock().getId());
@@ -211,9 +217,44 @@ public class InstrumentRateDAO {
         stmt.setTimestamp(5, new java.sql.Timestamp(System.currentTimeMillis()));
         stmt.setBoolean(6, rate.isCurrent());
 
-        return stmt.executeUpdate();
-
+        int rowsAffected =  stmt.executeUpdate();
+		if(rowsAffected != 0)
+		{
+			ResultSet rs = null;
+			try
+			{
+				rs = stmt.getGeneratedKeys();
+				if(rs.next())
+				{
+					rate.setId(rs.getInt(1));
+				}
+				else
+				{
+					throw new SQLException("Failed to get auto-generated id for instrumentRate.");
+				}
+			}
+			finally
+			{
+				if(rs != null) try {rs.close();} catch(Exception ignored){}
+			}
+		}
+		else
+		{
+			throw new SQLException("No rows inserted in instrumentRate.");
+		}
     }
+
+	public int updateInstrumentRate(InstrumentRate rate, PreparedStatement stmt) throws SQLException {
+
+		stmt.setInt(1, rate.getInstrument().getID());
+		stmt.setInt(2, rate.getTimeBlock().getId());
+		stmt.setInt(3, rate.getRateType().getId());
+		stmt.setBigDecimal(4, rate.getRate());
+		stmt.setBoolean(5, rate.isCurrent());
+		stmt.setInt(6, rate.getId());
+
+		return stmt.executeUpdate();
+	}
 	
 	public void updateInstrumentRate(InstrumentRate rate) throws SQLException {
 		
@@ -275,18 +316,36 @@ public class InstrumentRateDAO {
 		}
 	}
 		
-	public InstrumentRate getInstrumentCurrentRate(int instrumentId, int timeBlockId, int rateTypeId) throws SQLException {
-		
-		String sql = "SELECT * FROM instrumentRate WHERE instrumentID="+instrumentId+
-		             " AND blockID="+timeBlockId+" AND rateTypeID="+rateTypeId+
-		             " AND isCurrent=1";
+	public InstrumentRate getInstrumentCurrentRate(int instrumentId, int timeBlockId, int rateTypeId) throws SQLException
+	{
 		Connection conn = null;
+		try
+		{
+			conn = DBConnectionManager.getMainDbConnection();
+			return getInstrumentCurrentRate(instrumentId, timeBlockId, rateTypeId, conn);
+		}
+		finally
+		{
+			if(conn != null) try {conn.close();} catch(Exception ignored){}
+		}
+	}
+
+	public InstrumentRate getInstrumentCurrentRate(int instrumentId, int timeBlockId, int rateTypeId, Connection conn) throws SQLException {
+
+		String sql = "SELECT * FROM instrumentRate WHERE instrumentID="+instrumentId+
+				" AND blockID="+timeBlockId+" AND rateTypeID="+rateTypeId+
+				" AND isCurrent=1";
+
+		return getInstrumentRate(sql, conn);
+	}
+
+	private InstrumentRate getInstrumentRate(String sql, Connection conn) throws SQLException
+	{
 		Statement stmt = null;
 		ResultSet rs = null;
 		
 		InstrumentRate rate = null;
 		try {
-			conn = DBConnectionManager.getMainDbConnection();
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
@@ -296,7 +355,6 @@ public class InstrumentRateDAO {
 			}
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
@@ -334,26 +392,15 @@ public class InstrumentRateDAO {
 		
 		String sql = "SELECT * FROM instrumentRate WHERE id="+instrumentRateId;
 		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
-		InstrumentRate rate = null;
-		try {
+		try
+		{
 			conn = DBConnectionManager.getMainDbConnection();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(sql);
-			
-			if(rs.next()) {
-				
-				rate = makeInstrumentRate(conn, rs);
-			}
+			return getInstrumentRate(sql, conn);
 		}
-		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
+		finally
+		{
+			if(conn != null) try {conn.close();} catch(Exception ignored){}
 		}
-		return rate;
 	}
 		
 }

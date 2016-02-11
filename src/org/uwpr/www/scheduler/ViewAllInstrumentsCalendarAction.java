@@ -6,6 +6,7 @@
  */
 package org.uwpr.www.scheduler;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.InstrumentColors;
 import org.uwpr.instrumentlog.MsInstrument;
@@ -64,7 +65,8 @@ public class ViewAllInstrumentsCalendarAction extends Action {
         	item.setName(instrument.getName());
         	
         	item.setActive(instrument.isActive());
-        	item.setColor(InstrumentColors.getColor(instrument.getID()));
+            String color = instrument.getColor();
+        	item.setColor(StringUtils.isBlank(color) ? InstrumentColors.getColor(instrument.getID()) : color);
         	instrumentNameColors.add(item);
         }
         request.setAttribute("instruments", instrumentNameColors);

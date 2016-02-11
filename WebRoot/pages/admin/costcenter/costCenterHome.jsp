@@ -39,7 +39,7 @@
 
 <yrcwww:contentbox title="Cost Center Setup Options">
 <center>
-<div style="width:60%";" align="left">
+<div style="width:60%;" align="left">
 <table>
 
 	<tr>

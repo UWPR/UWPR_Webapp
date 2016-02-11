@@ -89,49 +89,6 @@ public class UsageBlockDAO
         return blk;
     }
 
-//    static String makeUsageSql(int instrumentID, java.util.Date startDate, java.util.Date endDate, String orderBy)
-//    {
-//        StringBuilder buf = new StringBuilder();
-//        buf.append(baseSql());
-//        if (instrumentID != -1)
-//        {
-//            buf.append("AND instrumentID=");
-//            buf.append(instrumentID);
-//            buf.append(" ");
-//        }
-//        if(startDate != null)
-//        {
-//            buf.append("AND startDate <= ");
-//            buf.append(makeDateForQuery(endDate));
-//            buf.append(" ");
-//        }
-//        if(endDate != null)
-//        {
-//            buf.append("AND endDate >= ");
-//            buf.append(makeDateForQuery(startDate));
-//            buf.append(" ");
-//        }
-//        if (orderBy != null)
-//            buf.append("ORDER BY "+orderBy);
-//
-////		System.out.println(buf.toString());
-//        return buf.toString();
-//    }
-
-//    private static String baseSql() {
-//        StringBuilder buf = new StringBuilder();
-//        buf.append("SELECT insUsg.*, "+
-//                        "ins.name, "
-//                        +"proj.projectTitle, proj.projectPI, "+
-//                        "r.researcherLastName "
-//        );
-//        buf.append("FROM " + DBConnectionManager.getInstrumentsTableSQL() + " AS ins, instrumentUsage AS insUsg, tblProjects AS proj, tblResearchers AS r ");
-//        buf.append("WHERE proj.projectID=insUsg.projectID ");
-//        buf.append("AND r.researcherID=proj.projectPI ");
-//        buf.append("AND ins.id=insUsg.instrumentID ");
-//        return buf.toString();
-//    }
-
     public static List<UsageBlock> getUsageBlocks(UsageBlockFilter filter) throws SQLException
     {
 
