@@ -783,8 +783,8 @@
       path="/deleteInstrumentTime"
       type="org.uwpr.www.scheduler.DeleteProjectInstrumentTimeAction"
       >
-      <forward name="Success" path="/viewScheduledTimeDetails.do" redirect="true" />
-      <forward name="Failure" path="/viewScheduledTimeDetails.do" redirect="false"/>
+      <forward name="Success" path="/viewTimeScheduledForProject.do" redirect="true" />
+      <forward name="Failure" path="/viewTimeScheduledForProject.do" redirect="false"/>
     </action>
     
     <action
