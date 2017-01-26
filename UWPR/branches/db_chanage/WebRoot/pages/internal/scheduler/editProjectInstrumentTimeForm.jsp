@@ -8,10 +8,12 @@
 <%@ include file="/includes/errors.jsp" %>
 
 <link rel='stylesheet' type='text/css' href='/pr/css/jquery_ui/ui-lightness/jquery-ui-1.8.12.custom.css' />
-<link rel='stylesheet' type='text/css' href='/pr/css/fullcalendar.css' />
-
 <script type='text/javascript' src='/pr/js/jquery-1.5.min.js'></script>
 <script type='text/javascript' src='/pr/js/jquery-ui-1.8.12.custom.min.js'></script>
+
+<script>
+	$(document).ready(function() {$(".datepicker").datepicker();});
+</script>
 
 <yrcwww:notauthenticated>
  <logic:forward name="authenticate" />
@@ -94,7 +96,7 @@
 <tr>
 	<td><b>Start:</b></td>
 	<td>
-		<html:text name="editInstrumentTimeForm" property="startDate"/>
+		<html:text name="editInstrumentTimeForm" property="startDate" styleClass="datepicker"/>
 		&nbsp;
 		<html:select name="editInstrumentTimeForm" property="startTime">
 			<html:optionsCollection name="startTimeOptions" value="value" label="display"/>
@@ -104,7 +106,7 @@
 <tr>
 	<td><b>End:</b></td>
 	<td>
-		<html:text name="editInstrumentTimeForm" property="endDate"/>
+		<html:text name="editInstrumentTimeForm" property="endDate" styleClass="datepicker"/>
 		&nbsp;
 		<html:select name="editInstrumentTimeForm" property="endTime">
 			<html:optionsCollection name="endTimeOptions" value="value" label="display"/>

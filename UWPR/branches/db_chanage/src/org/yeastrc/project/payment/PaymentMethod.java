@@ -7,6 +7,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * PaymentMethod.java
@@ -18,6 +21,7 @@ public class PaymentMethod {
 
 	private int id;
 	private String uwbudgetNumber;
+	private Date budgetExpirationDate;
 	private String ponumber;
 	public String paymentMethodName;
 	private String contactFirstName;
@@ -42,6 +46,8 @@ public class PaymentMethod {
 	
 	private static final BigDecimal ZERO = new BigDecimal("0").setScale(1);
 
+	public static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+
 	public int getId() {
 		return id;
 	}
@@ -55,6 +61,17 @@ public class PaymentMethod {
 	public void setUwbudgetNumber(String uwbudgetNumber) {
 		this.uwbudgetNumber = uwbudgetNumber;
 	}
+
+	public Date getBudgetExpirationDate()
+	{
+		return budgetExpirationDate;
+	}
+
+	public void setBudgetExpirationDate(Date budgetExpirationDate)
+	{
+		this.budgetExpirationDate = budgetExpirationDate;
+	}
+
 	public String getPonumber() {
 		return ponumber;
 	}
@@ -204,6 +221,10 @@ public class PaymentMethod {
 			displayString.append(", ").append(name);
 		}
 
+		if(budgetExpirationDate != null)
+		{
+			displayString.append(", exp: " + dateFormat.format(budgetExpirationDate));
+		}
         return displayString.toString();
     }
 

@@ -202,27 +202,6 @@ Fields followed by * are required.
   </tr>
   <tr><td colspan="2"><hr width="100%"></td></tr>
 
-
-   <TR>
-    <TD WIDTH="25%" VALIGN="top">Collaborating with</TD>
-    <TD WIDTH="75%" VALIGN="top" style="padding-bottom: 10px;">
-     	<html:multibox property="groups" value="Bruce"/>Bruce
-     	<html:multibox property="groups" value="Goodlett"/>Goodlett
-     	<html:multibox property="groups" value="Heinecke"/>Heinecke
-     	<html:multibox property="groups" value="Hoofnagle"/>Hoofnagle
-     	<br/>
-     	<html:multibox property="groups" value="MacCoss"/>MacCoss
-     	<html:multibox property="groups" value="Villen"/>Villen
-     	<html:multibox property="groups" value="Wolf-Yadlin"/>Wolf-Yadlin
-     	<br/>
-     	<html:multibox property="groups" value="Informatics"/>Informatics
-     	<html:multibox property="groups" value="von_Haller"/>von Haller
-     	<br>
-     		<span style="font-size:8pt; font-weight:bold;color:red;">Abstract should have been discussed with and approved by the selected collaborator(s).</span>
-   	
-    </TD>
-   </TR>
-
    <TR>
     <TD WIDTH="25%" VALIGN="top">Title*</TD>
     <TD WIDTH="75%" VALIGN="top"><html:text property="title" size="60" maxlength="80"/>

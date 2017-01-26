@@ -7,13 +7,15 @@
 <%@ include file="/includes/header.jsp" %>
 <%@ include file="/includes/errors.jsp" %>
 
-
+<link rel='stylesheet' type='text/css' href='/pr/css/jquery_ui/ui-lightness/jquery-ui-1.8.12.custom.css' />
+<script type='text/javascript' src='/pr/js/jquery-1.5.min.js'></script>
+<script type='text/javascript' src='/pr/js/jquery-ui-1.8.12.custom.min.js'></script>
 
 <script>
-function backToProject() {
-
-	document.location='/pr/viewProject.do?ID='+<bean:write name="paymentMethodForm" property="projectId"/>
-}
+	$(document).ready(function() {$(".datepicker").datepicker();});
+    function backToProject() {
+	   document.location='/pr/viewProject.do?ID='+<bean:write name="paymentMethodForm" property="projectId"/>
+    }
 </script>
 
 <yrcwww:contentbox title="Edit Payment Method">
@@ -22,9 +24,7 @@ function backToProject() {
 <logic:equal name="paymentMethodForm" property="editable" value="false">
 	<div style="font-size:8pt; font-weight:bold; color:red; margin:10px 0 10px 0;">
 	
-		This payment method is already in use. You may only change the status field ("Current"). 
-		If you select "No", this payment method will no longer appear in the drop-down
-		menu when scheduling instrument time. 
+		This payment method is already in use. You may not change the budget number / PO number at this time.
 	</div>
 </logic:equal>
 
@@ -40,7 +40,7 @@ function backToProject() {
 
 <table border="0" cellpadding="7" class="striped">
 
-	<tbody>
+	<lo>
 	<tr>
 		<td><b>Project ID:</b></td>
 		<td>
@@ -98,37 +98,28 @@ function backToProject() {
     	
    </tr>
 
+	<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
+	<tr>
+		<td>Expiration Date:</td>
+		<td><html:text  property="budgetExpirationDateStr" styleClass="datepicker"/> <span style="font-size:10px;">format: MM/dd/yyyy</span></td>
+	</tr>
+	</logic:equal>
+
 	<tr>
 		<td><bean:write name="paymentMethodFormTitle"/></td>
 		<td colspan="4">
-			<!-- Should be able to edit the payment method name anytime -->
 			<html:text  property="paymentMethodName" size="40" />
 		</td>
 	</tr>
 
-   <logic:equal name="paymentMethodForm" property="editable" value="true">
-	   <tr>
-	   		<td>Federal Funding:</td>
-	   		<td colspan="4">
-	   			<html:checkbox property="federalFunding"></html:checkbox>
-	   			<br/>
-	   			<span style="color:red; font-size:10px;">
-	   				Please check this box if the chosen payment method is federally funded.
-	   			</span>
-	   		</td>
-	   </tr>
-   </logic:equal>
-   
-   <logic:equal name="paymentMethodForm" property="editable" value="false">
-   		<tr>
-	   		<td>Federal Funding:</td>
-	   		<td colspan="4">
-	   			<html:checkbox property="federalFunding" disabled="true"></html:checkbox>
-	   			<br/>
-	   		</td>
-	   </tr>
-   </logic:equal>
-   
+	<tr>
+		<td>Federal Funding:</td>
+		<td colspan="4">
+			<html:checkbox property="federalFunding" disabled="false"></html:checkbox>
+			<br/>
+		</td>
+   </tr>
+
    <tr>
    		<td>Current:</td>
    		<td>
@@ -139,145 +130,80 @@ function backToProject() {
    
    <tr>
    		<td colspan="5" style="color:red;font-size:10pt;">
-   			Please provide contact information of the person responsible for accounting and billing.
+   			Contact information of the person responsible for accounting and billing.
    		</td>
    </tr>
    
    <tr>
    		<td>First Name:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="contactFirstName" size="40" />
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="contactFirstName" />
-   				<html:hidden  name="paymentMethodForm" property="contactFirstName" />
-   			</logic:equal>
+   			<html:text  property="contactFirstName" size="40" />
    		</td>
    	</tr>
    	<tr>
    		<td>Last Name:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="contactLastName" size="40" />
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="contactLastName" />
-				<html:hidden  name="paymentMethodForm" property="contactLastName" />
-   			</logic:equal>
+   			<html:text  property="contactLastName" size="40" />
    		</td>
    	</tr>
    	<tr>
    		<td>Email:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="contactEmail" size="40" />
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="contactEmail" />
-				<html:hidden  name="paymentMethodForm" property="contactEmail" />
-   			</logic:equal>
+   			<html:text  property="contactEmail" size="40" />
    		</td>
    	</tr>
    	<tr>
    		<td>Phone:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="contactPhone"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="contactPhone" />
-				<html:hidden  name="paymentMethodForm" property="contactPhone" />
-   			</logic:equal>
+   			<html:text  property="contactPhone"/>
    		</td>
    	</tr>
    	<tr>
    		<td>Organization:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="organization" size="40"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="organization" />
-				<html:hidden  name="paymentMethodForm" property="organization" />
-   			</logic:equal>
+   			<html:text  property="organization" size="40"/>
    		</td>
    	</tr>
    	<tr>
    		<td>Address Line 1:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="addressLine1" size="80"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="addressLine1" />
-				<html:hidden  name="paymentMethodForm" property="addressLine1" />
-   			</logic:equal>
+   			<html:text  property="addressLine1" size="80"/>
    		</td>
    	</tr>
    	<tr>
    		<td>Address Line 2:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="addressLine2" size="80"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="addressLine2" />
-				<html:hidden  name="paymentMethodForm" property="addressLine2" />
-   			</logic:equal>
+   			<html:text  property="addressLine2" size="80"/>
    		</td>
    	</tr>
    	<tr>
    		<td>City:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text  property="city"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="city" />
-				<html:hidden  name="paymentMethodForm" property="city" />
-   			</logic:equal>
+   			<html:text  property="city"/>
    		</td>
    	</tr>
    	<tr>
    		<td>State:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:select property="state">
-		     		<html:option value="No">If in US, choose state:</html:option>
-		     			<html:options collection="states" property="code" labelProperty="name"/>
-	    		</html:select>
-	    	</logic:equal>
-	    	<logic:equal name="paymentMethodForm" property="editable" value="false">
-	    		<bean:write name="paymentMethodForm" property="state"/>
-	    		<html:hidden property="state" />
-	    	</logic:equal>
+   			<html:select property="state">
+				<html:option value="No">If in US, choose state:</html:option>
+				<html:options collection="states" property="code" labelProperty="name"/>
+			</html:select>
+
    		</td>
    	</tr>
    	<tr>
    		<td>Zip/Postal Code:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:text property="zip" size="20" maxlength="255"/>
-   			</logic:equal>
-   			<logic:equal name="paymentMethodForm" property="editable" value="false">
-				<bean:write name="paymentMethodForm" property="zip" />
-				<html:hidden  name="paymentMethodForm" property="zip" />
-   			</logic:equal>
+   			<html:text property="zip" size="20" maxlength="255"/>
    		</td>
    	</tr>
    	<tr>
    		<td>Country:</td>
    		<td colspan="4">
-   			<logic:equal name="paymentMethodForm" property="editable" value="true">
-   				<html:select property="country">
-	     			<html:options collection="countries" property="code" labelProperty="name"/>
-	    		</html:select>
-	    	</logic:equal>
-	    	<logic:equal name="paymentMethodForm" property="editable" value="false">
-	    		<bean:write name="paymentMethodForm" property="country"/>
-	    		<html:hidden property="country" />
-	    	</logic:equal>
+   			<html:select property="country">
+				<html:options collection="countries" property="code" labelProperty="name"/>
+			</html:select>
    		</td>
    	</tr>
    	

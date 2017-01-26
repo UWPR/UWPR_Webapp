@@ -369,7 +369,16 @@ public class EditProjectInstrumentTimeAction extends Action {
     		UsageBlockPaymentInformation paymentInfo = new UsageBlockPaymentInformation(projectId);
     		// add the payment methods to the request
     		for(Integer paymentMethodId: paymentInfoMap.keySet()) {
-    			paymentInfo.add(String.valueOf(paymentMethodId), paymentInfoMap.get(paymentMethodId).toString());
+				try
+				{
+					paymentInfo.add(String.valueOf(paymentMethodId), paymentInfoMap.get(paymentMethodId).toString(), rangeEndDate);
+				}
+				catch(SchedulerException e)
+				{
+					return returnError(mapping, request, "scheduler",
+							new ActionMessage("error.costcenter.invaliddata", e.getMessage()),
+							"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+usageBlockIdString);
+				}
     		}
     		
 			String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForBilledProject(allBlocks, paymentInfo);

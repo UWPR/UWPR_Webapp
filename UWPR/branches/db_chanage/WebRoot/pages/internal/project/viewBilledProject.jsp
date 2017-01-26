@@ -22,7 +22,16 @@
 <script>
 	$(document).ready(function() { showFiles( 'project', <bean:write name="project" property="ID" />);});
 </script>
-
+<style>
+	div.tooltip
+	{
+		background: #333;
+		background: rgba(0,0,0,.5);
+		color: #fff;
+		border-radius: 5px;
+		padding: 5px 10px;
+	}
+</style>
 <yrcwww:contentbox title="View Project Details">
 
 <SCRIPT LANGUAGE="JavaScript">
@@ -134,6 +143,7 @@
                     <th>Number</th>
 					<th>Name</th>
                     <th>Current</th>
+					<th>Expires</th>
                     <th>Total Used</th>
                     <th>Invoiced</th>
                     <th>&nbsp;</th>
@@ -152,7 +162,7 @@
                                 <bean:write name="paymentMethod" property="ponumber"/>
                             </span>
                             <logic:greaterThan name="paymentMethod" property="poAmount" value="0">
-                                &nbsp;($<bean:write name="paymentMethod" property="poAmount"/> )
+                                &nbsp;<nobr>($<bean:write name="paymentMethod" property="poAmount"/> )</nobr>
                             </logic:greaterThan>
                         </td>
 					</logic:notEmpty>
@@ -167,6 +177,9 @@
 							&nbsp;
 						</logic:equal>
 					</td>
+					<td style="padding:3px">
+						<nobr><bean:write name="paymentMethod" property="budgetExpirationDate" /></nobr>
+					</td>
                     <td style="padding:3px">
                         $<bean:write name="paymentMethod" property="totalCost" />
                     </td>
@@ -174,7 +187,12 @@
                         $<bean:write name="paymentMethod" property="invoicedCost" />
                     </td>
 					<td style="padding:3px">
-						<a href='/pr/viewPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'>[View]</a>
+						<nobr>
+						<a href='/pr/viewPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/view.png" title="View" width="20" height="20"/></a>
+						&nbsp;&nbsp;
+						<a href='/pr/copyPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/copy.png" title="Copy" width="20" height="20"/>
+						</a>
+						</nobr>
 					</td>
 					</tr>
 				</logic:iterate>

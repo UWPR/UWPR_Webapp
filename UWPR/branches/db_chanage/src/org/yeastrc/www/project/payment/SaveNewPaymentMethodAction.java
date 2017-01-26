@@ -81,6 +81,7 @@ public class SaveNewPaymentMethodAction extends Action {
         PaymentMethod paymentMethod = new PaymentMethod();
         paymentMethod.setUwbudgetNumber(pmForm.getUwBudgetNumber());
         paymentMethod.setPonumber(pmForm.getPoNumber());
+		paymentMethod.setBudgetExpirationDate(pmForm.getBudgetExpirationDate());
 		paymentMethod.setPaymentMethodName(pmForm.getPaymentMethodName());
         paymentMethod.setContactFirstName(pmForm.getContactFirstName());
         paymentMethod.setContactLastName(pmForm.getContactLastName());

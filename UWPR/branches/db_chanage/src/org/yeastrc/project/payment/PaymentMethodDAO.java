@@ -62,6 +62,7 @@ public class PaymentMethodDAO {
         PaymentMethod paymentMethod = new PaymentMethod();
         paymentMethod.setId(rs.getInt("id"));
         paymentMethod.setUwbudgetNumber(rs.getString("UWBudgetNumber"));
+		paymentMethod.setBudgetExpirationDate(rs.getDate("budgetExpirationDate"));
         paymentMethod.setPonumber(rs.getString("PONumber"));
 		paymentMethod.setPaymentMethodName(rs.getString("paymentMethodName"));
         paymentMethod.setContactFirstName(rs.getString("contactNameFirst"));
@@ -118,9 +119,9 @@ public class PaymentMethodDAO {
 	
 	public int savePaymentMethod(PaymentMethod paymentMethod) throws SQLException {
 		
-		String sql = "INSERT INTO paymentMethod (UWBudgetNumber, PONumber, paymentMethodName, contactNameFirst, contactLastName, contactEmail,";
+		String sql = "INSERT INTO paymentMethod (UWBudgetNumber, PONumber, budgetExpirationDate, paymentMethodName, contactNameFirst, contactLastName, contactEmail,";
 		sql += " contactPhone, organization, addressLine1, addressLine2, city, state, zip, country, ";
-		sql += " dateCreated,  createdBy, isCurrent, federalFunding, POAmount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		sql += " dateCreated,  createdBy, isCurrent, federalFunding, POAmount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		
 		Connection conn = null;
 		PreparedStatement stmt = null;
@@ -132,6 +133,8 @@ public class PaymentMethodDAO {
 			stmt = conn.prepareStatement(sql);
 			stmt.setString(i++, paymentMethod.getUwbudgetNumber());
 			stmt.setString(i++, paymentMethod.getPonumber());
+			java.sql.Date expDate = paymentMethod.getBudgetExpirationDate() == null ? null : new java.sql.Date(paymentMethod.getBudgetExpirationDate().getTime());
+			stmt.setDate(i++, expDate);
 			stmt.setString(i++, paymentMethod.getPaymentMethodName());
 			stmt.setString(i++, paymentMethod.getContactFirstName());
 			stmt.setString(i++, paymentMethod.getContactLastName());
@@ -182,6 +185,7 @@ public class PaymentMethodDAO {
 		String sql = "UPDATE paymentMethod ";
 		sql += "SET UWBudgetNumber = ?";
 		sql += ", PONumber = ?";
+		sql += ", budgetExpirationDate = ?";
 		sql += ", paymentMethodName = ?";
 		sql += ", contactNameFirst= ?";
 		sql += ", contactLastName = ?";
@@ -210,6 +214,8 @@ public class PaymentMethodDAO {
 			int i = 0;
 			stmt.setString(++i, paymentMethod.getUwbudgetNumber());
 			stmt.setString(++i, paymentMethod.getPonumber());
+			java.sql.Date expirationDate = paymentMethod.getBudgetExpirationDate() == null ? null : new java.sql.Date(paymentMethod.getBudgetExpirationDate().getTime());
+			stmt.setDate(++i, expirationDate);
 			stmt.setString(++i, paymentMethod.getPaymentMethodName());
 			stmt.setString(++i, paymentMethod.getContactFirstName());
 			stmt.setString(++i, paymentMethod.getContactLastName());

@@ -7,6 +7,12 @@
 <%@ include file="/includes/header.jsp" %>
 <%@ include file="/includes/errors.jsp" %>
 
+<link rel='stylesheet' type='text/css' href='/pr/css/jquery_ui/ui-lightness/jquery-ui-1.8.12.custom.css' />
+<script type='text/javascript' src='/pr/js/jquery-1.5.min.js'></script>
+<script type='text/javascript' src='/pr/js/jquery-ui-1.8.12.custom.min.js'></script>
+<script>
+	$(document).ready(function() {$(".datepicker").datepicker();});
+</script>
 
 <yrcwww:contentbox title="Add New Payment Method">
 <center>
@@ -14,7 +20,7 @@
 
 <table border="0" cellpadding="7" class="striped">
 
-	<tbody>
+	<tr>
 	<tr>
 		<td><b>Project ID:</b></td>
 		<td>
@@ -22,29 +28,35 @@
 			<html:hidden property="projectId"/>
 		</td>
 	</tr>
+	<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
 	<tr>
-		<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
-			<td>UW Budget Number:</td>
-	    	<td>
-	    		<html:text  property="uwBudgetNumber"/> <span style="font-size:10px;">format: 00-0000</span>
-	    	</td>
-		</logic:equal>
-    	
-    	<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
-	    	<td>PO Number:</td>
-	    	<td>
-	    		<html:text  property="poNumber"/>
-	    		<br/>
-	    		<span style="font-weight:bold;">
-	    			<html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment Information</html:link>
-	    		</span>
-	    	</td>
-            <td>
-                Amount:
-                <html:text property="poAmount"/>
-            </td>
-    	</logic:equal>
-   </tr>
+		<td>UW Budget Number:</td>
+		<td>
+			<html:text  property="uwBudgetNumber"/> <span style="font-size:10px;">format: 00-0000</span>
+		</td>
+	</tr>
+	<tr>
+		<td>Expiration Date:</td>
+		<td><html:text  property="budgetExpirationDateStr" styleClass="datepicker"/> <span style="font-size:10px;">format: MM/dd/yyyy</span></td>
+	</tr>
+	</logic:equal>
+
+	<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
+	<tr>
+		<td>PO Number:</td>
+		<td>
+			<html:text  property="poNumber"/>
+			<br/>
+			<span style="font-weight:bold;">
+				<html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment Information</html:link>
+			</span>
+		</td>
+		<td>
+			Amount:
+			<html:text property="poAmount"/>
+		</td>
+	</tr>
+	</logic:equal>
    <tr>
 	   <td>
 		   <logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">

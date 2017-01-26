@@ -107,26 +107,26 @@ public class InstrumentUsageDAO {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
-        StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
-        sql.append(" startDate = ?");
-        sql.append(", endDate = ?");
-        sql.append(", updatedBy = ?");
-        sql.append(" WHERE id = ?");
+		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
+		sql.append(" startDate = ?");
+		sql.append(", endDate = ?");
+		sql.append(", updatedBy = ?");
+		sql.append(" WHERE id = ?");
 		try {
 
-            conn = getConnection();
-            conn.setAutoCommit(false);
-            stmt = conn.prepareStatement(sql.toString());
+			conn = getConnection();
+			conn.setAutoCommit(false);
+			stmt = conn.prepareStatement(sql.toString());
 
-            for(UsageBlockBase block: blocks)
-            {
-                stmt.setTimestamp(1, new Timestamp(block.getStartDate().getTime()));
-                stmt.setTimestamp(2, new Timestamp(block.getEndDate().getTime()));
-                stmt.setInt(3, block.getUpdaterResearcherID());
-                stmt.setInt(4, block.getID());
-                stmt.executeUpdate();
-            }
-            conn.commit();
+			for(UsageBlockBase block: blocks)
+			{
+				stmt.setTimestamp(1, new Timestamp(block.getStartDate().getTime()));
+				stmt.setTimestamp(2, new Timestamp(block.getEndDate().getTime()));
+				stmt.setInt(3, block.getUpdaterResearcherID());
+				stmt.setInt(4, block.getID());
+				stmt.executeUpdate();
+			}
+			conn.commit();
 
 		} finally {
 
@@ -135,6 +135,47 @@ public class InstrumentUsageDAO {
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
+
+    public void updateBlocksProjectAndOperator(List<? extends UsageBlockBase> blocks) throws Exception {
+
+        if (blocks == null || blocks.size() == 0)
+            return;
+
+        log.info("Updating usage blocks (project and instrument operator) on instrument: " + blocks.get(0).getInstrumentID());
+
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
+        sql.append(" projectID = ?");
+        sql.append(", instrumentOperatorId = ?");
+        sql.append(", updatedBy = ?");
+        sql.append(" WHERE id = ?");
+        try {
+
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            stmt = conn.prepareStatement(sql.toString());
+
+            for(UsageBlockBase block: blocks)
+            {
+                stmt.setInt(1, block.getProjectID());
+                stmt.setInt(2, block.getInstrumentOperatorId());
+                stmt.setInt(3, block.getUpdaterResearcherID());
+                stmt.setInt(4, block.getID());
+                stmt.executeUpdate();
+            }
+            conn.commit();
+
+        } finally {
+
+            if(conn != null) try {conn.close();} catch(SQLException e){}
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(rs != null) try {rs.close();} catch(SQLException e){}
+        }
+    }
 
 
 	static final Connection getConnection() throws SQLException

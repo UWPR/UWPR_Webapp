@@ -7,12 +7,16 @@ package org.uwpr.scheduler;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
+
+import javax.print.attribute.standard.DateTimeAtCompleted;
 
 /**
  * 
@@ -33,7 +37,7 @@ public class UsageBlockPaymentInformation {
 		paymentMethodList = new ArrayList<PaymentMethodAndPercent>();
 	}
 	
-	public void add(String paymentMethodIdString, String percentString) throws SchedulerException {
+	public void add(String paymentMethodIdString, String percentString, Date endDate) throws SchedulerException {
 		
 		if(paymentMethodIdString == null)
 			return;
@@ -68,7 +72,25 @@ public class UsageBlockPaymentInformation {
 			}
         	throw new SchedulerException("Payment method selected: "+method.getDisplayString()+" is not associated with the project");
         }
-        
+
+		// If this is a UW budget number and has an expiration date make sure it does not expire before the given endDate
+		if(paymentMethod.getBudgetExpirationDate() != null)
+		{
+			try
+			{
+				Date endDateOnly = PaymentMethod.dateFormat.parse(PaymentMethod.dateFormat.format(endDate));
+				if(endDateOnly.after(paymentMethod.getBudgetExpirationDate()))
+				{
+					throw new SchedulerException("UW Budget number " + paymentMethod.getUwbudgetNumber() + " expires on " +
+							PaymentMethod.dateFormat.format(paymentMethod.getBudgetExpirationDate()) + ". Please select a different budget or adjust the end date (" +
+							PaymentMethod.dateFormat.format(endDate) + ") of the requested time. ");
+				}
+			} catch (ParseException e)
+			{
+				throw new SchedulerException("Error parsing end date " + endDate);
+			}
+		}
+
         
         BigDecimal paymentMethodPerc = null; // percent to be billed to this payment method
         try {
