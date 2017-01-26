@@ -87,7 +87,7 @@ public class NewPaymentMethodAction extends Action {
         
         // set the projectID in the form
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
-        paymentMethodForm.setUwBudgetNumber(""); // Rest Budget number and PO number fields, otherwise cached values get sent in the request.
+        paymentMethodForm.setUwBudgetNumber(""); // Reset Budget number and PO number fields, otherwise cached values get sent in the request.
         paymentMethodForm.setPoNumber("");
         paymentMethodForm.setProjectId(projectId);
         

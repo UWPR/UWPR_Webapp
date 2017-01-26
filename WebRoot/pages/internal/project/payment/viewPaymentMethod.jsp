@@ -84,6 +84,12 @@ function backToProject(projectId) {
 	    		<bean:write name="paymentMethod"  property="uwbudgetNumber"/>
 	    	</td>
 	   </tr>
+		<tr>
+			<td>Expiration Date:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="budgetExpirationDate"/>
+			</td>
+		</tr>
    </logic:notEmpty>
    
    <logic:notEmpty name="paymentMethod" property="ponumber">

@@ -139,20 +139,21 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 
 
         // get a list of ms instruments
+		MsInstrument instrument = null;
         List <MsInstrument> instruments = MsInstrumentUtils.instance().getMsInstruments();
         Collections.sort(instruments, new Comparator<MsInstrument>() {
             public int compare(MsInstrument o1, MsInstrument o2) {
                 return o1.getID() > o2.getID() ? 1 : (o1.getID() == o2.getID() ? 0 : -1);
         }});
-        
-        boolean found = false;
-        for(MsInstrument instrument: instruments) {
-        	if(instrument.getID() == instrumentId) {
-        		found = true;
+
+        for(MsInstrument i: instruments) {
+        	if(i.getID() == instrumentId)
+			{
+        		instrument = i;
         		break;
         	}
         }
-        if(!found) {
+        if(instrument == null) {
         	return sendError(response,"Invalid instrumentID: "+instrumentId+" in request");
         }
         
@@ -343,7 +344,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         
     	// Save the blocks
     	if(project instanceof BilledProject) {
-			String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks);
+			String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rangeEndDate);
 			if(errorMessage != null)
 				return sendError(response, errorMessage);
 		}
@@ -353,7 +354,11 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 				return sendError(response, errorMessage);
 		}
     	
-		
+		// Email admins
+		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+				allBlocks,
+				ProjectInstrumentUsageUpdateEmailer.Action.ADDED);
+
     	// Write the response
         PrintWriter writer = response.getWriter();
         writer.write(getJSONSuccess(allBlocks));
@@ -411,7 +416,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 	}
 	
 	private static String saveUsageBlocksForBilledProject(HttpServletRequest request, HttpServletResponse response, 
-			List<? extends UsageBlockBase> usageBlocks) throws Exception {
+			List<? extends UsageBlockBase> usageBlocks, Date endDate) throws Exception {
 		
 		
 		// Get the payment method(s)
@@ -426,7 +431,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			return "Percent to be billed to payment method 1 not found in request";
 		}
 		try {
-			paymentInfo.add(method1IdString, method1Perc);
+			paymentInfo.add(method1IdString, method1Perc, endDate);
 		}
 		catch(SchedulerException e) {
 			return e.getMessage();
@@ -438,7 +443,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         		return "Percent to be billed to payment method 2 not found in request";
         	}
         	try {
-        		paymentInfo.add(request.getParameter("paymentMethodId2"), request.getParameter("paymentMethod2Percent"));
+        		paymentInfo.add(request.getParameter("paymentMethodId2"), request.getParameter("paymentMethod2Percent"), endDate);
         	}
     		catch(SchedulerException e) {
     			return e.getMessage();

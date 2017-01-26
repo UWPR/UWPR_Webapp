@@ -102,8 +102,8 @@ function getDeleteTimeBlockUrl() {
 function getEditTimeBlockUrl() {
 	return "/pr/viewEditInstrumentTimeForm.do";
 }
-function getEditBlockPaymentMethodUrl() {
-    return "/pr/viewEditBlockPaymentForm.do";
+function getEditBlockDetailsUrl() {
+    return "/pr/viewEditBlockDetailsForm.do";
 }
 function getProjectId() {
 	return <bean:write name="projectId"/>;
@@ -223,7 +223,7 @@ function initCalendar() {
 			onAddEventSuccessFn: addToScheduledTimeTable,
 			eventDeleteUrl: getDeleteTimeBlockUrl(),
 			eventEditUrl: getEditTimeBlockUrl(),
-            eventEditPaymentMethodUrl: getEditBlockPaymentMethodUrl(),
+            eventEditPaymentMethodUrl: getEditBlockDetailsUrl(),
 			onDeleteSuccessFn: deleteFromScheduledTimeTable,
 			projectLinkUrlFn: getProjectUrl,
 			requestInformationFn: getRequestInformation,

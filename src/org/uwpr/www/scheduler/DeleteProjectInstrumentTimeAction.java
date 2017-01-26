@@ -7,9 +7,7 @@ package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
-import org.uwpr.instrumentlog.InstrumentUsageDAO;
-import org.uwpr.instrumentlog.UsageBlockBase;
-import org.uwpr.instrumentlog.UsageBlockBaseDAO;
+import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -18,6 +16,7 @@ import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
 
 /**
  * 
@@ -131,7 +130,13 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 
 		// delete
 		InstrumentUsageDAO.getInstance().delete(usageBlockId);
-		
+
+		// Email admins
+		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(usageBlock.getInstrumentID());
+		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+				Collections.singletonList(usageBlock),
+				ProjectInstrumentUsageUpdateEmailer.Action.DELETED);
+
 		ActionForward fwd = mapping.findForward("Success");
 		ActionForward newFwd = new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
     	return newFwd;

@@ -5,29 +5,20 @@
  */
 package org.uwpr.www.scheduler;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.log4j.Logger;
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
-import org.uwpr.instrumentlog.InstrumentUsageDAO;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlockBase;
-import org.uwpr.instrumentlog.UsageBlockBaseDAO;
+import org.apache.struts.action.*;
+import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -111,6 +102,8 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         
         List<Integer> blockIdsToDelete = new ArrayList<Integer>();
 
+		Integer instrumentId = null;
+		List<UsageBlockBase> usageBlocks = new ArrayList<UsageBlockBase>();
         for(int usageBlockId: usageBlockIds) {
         	
         	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
@@ -120,6 +113,8 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 
         		return null;
         	}
+
+			usageBlocks.add(usageBlock);
 
         	StringBuilder errorMessage = new StringBuilder();
         	if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(usageBlock, user, errorMessage)) {
@@ -131,13 +126,19 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 
 			log.info("Deleting usage block - Researcher " + user.getIdAndName() + "; " + usageBlock.toString());
 			blockIdsToDelete.add(usageBlockId);
+			instrumentId = usageBlock.getInstrumentID();
         }
 
 		InstrumentUsageDAO.getInstance().delete(usageBlockIds);
 
+		// Email admins
+		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(instrumentId);
+		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+				usageBlocks,
+				ProjectInstrumentUsageUpdateEmailer.Action.DELETED);
+
         PrintWriter writer = response.getWriter();
         writer.write("SUCCESS");
         return null;
-		
 	}
 }

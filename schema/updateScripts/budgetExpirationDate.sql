@@ -1,0 +1,1 @@
+ALTER TABLE mainDb.paymentmethod ADD COLUMN budgetExpirationDate DATE AFTER UWBudgetNumber;

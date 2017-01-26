@@ -5,15 +5,7 @@
  */
 package org.yeastrc.www.project.payment;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
 import org.yeastrc.project.Affiliation;
 import org.yeastrc.project.BilledProject;
@@ -26,12 +18,15 @@ import org.yeastrc.utils.StatesBean;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * 
  */
-public class EditPaymentMethodAction extends Action {
+public class CopyPaymentMethodAction extends Action {
 
-	//private static final Logger log = Logger.getLogger(EditPaymentMethodAction.class);
+	//private static final Logger log = Logger.getLogger(CopyPaymentMethodAction.class);
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -113,29 +108,15 @@ public class EditPaymentMethodAction extends Action {
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
         }
-        
-        // determine if this payment is editable
-        boolean isEditable = false;
-        // If there are any usage blocks already associated with this payment method 
-        // then the only field the user will be able to change is the status of the 
-        // payment method (current or not).
-        if(InstrumentUsagePaymentDAO.getInstance().hasInstrumentUsageForPayment(paymentMethod.getId())) {
-        	isEditable = false;
-        }
-        else
-        	isEditable = true;
-        
-        
-        
+
         
         // set the projectID in the form
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
-        paymentMethodForm.setId(paymentMethod.getId());
         paymentMethodForm.setProjectId(projectId);
-        paymentMethodForm.setUwBudgetNumber(paymentMethod.getUwbudgetNumber());
-        paymentMethodForm.setPoNumber(paymentMethod.getPonumber());
-        paymentMethodForm.setPaymentMethodName(paymentMethod.getPaymentMethodName());
-        paymentMethodForm.setBudgetExpirationDate(paymentMethod.getBudgetExpirationDate());
+        paymentMethodForm.setUwBudgetNumber("");
+        paymentMethodForm.setPoNumber("");
+        paymentMethodForm.setBudgetExpirationDateStr("");
+        paymentMethodForm.setPaymentMethodName("");
         paymentMethodForm.setContactFirstName(paymentMethod.getContactFirstName());
         paymentMethodForm.setContactLastName(paymentMethod.getContactLastName());
         paymentMethodForm.setContactEmail(paymentMethod.getContactEmail());
@@ -148,8 +129,8 @@ public class EditPaymentMethodAction extends Action {
         paymentMethodForm.setZip(paymentMethod.getZip());
         paymentMethodForm.setCountry(paymentMethod.getCountry());
         paymentMethodForm.setCurrent(paymentMethod.isCurrent());
-        paymentMethodForm.setEditable(isEditable); // is the form editable
-        paymentMethodForm.setFederalFunding(paymentMethod.isFederalFunding());
+        paymentMethodForm.setEditable(true); // is the form editable
+        paymentMethodForm.setFederalFunding(false);
         paymentMethodForm.setPoBigDecimalValue(paymentMethod.getPoAmount());
         
         // Only non-UW affiliated projects are not allowed a PO number

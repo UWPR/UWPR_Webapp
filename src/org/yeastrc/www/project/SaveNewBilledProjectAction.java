@@ -297,25 +297,9 @@ public class SaveNewBilledProjectAction extends Action {
         	if (billedProject.getPI() != null)
         		text += "PI: " + billedProject.getPI().getListing() + "\n\n";
 
-        	//text += "Groups: " + project.getGroupsString() + "\n\n";
         	text += "Title: " + billedProject.getTitle() + "\n\n";
         	text += "Abstract: " + billedProject.getAbstract() + "\n\n";
         	text += "Scientific Question: " + billedProject.getScientificQuestion() + "\n\n";
-
-        	text += "MS Runs requested:\n";
-        	text += "\tLTQ:\t" + billedProject.getLtqRunsRequested() + "\n";
-        	text += "\tLTQ-ETD:\t" + billedProject.getLtq_etdRunsRequested() + "\n";
-        	text += "\tLTQ-Orbitrap:\t" + billedProject.getLtq_orbitrapRunsRequested() + "\n";
-        	text += "\tLTQ-FT:\t" + billedProject.getLtq_ftRunsRequested() + "\n";
-        	text += "\tTSQ-Access:\t" + billedProject.getTsq_accessRunsRequested() + "\n";
-        	text += "\tTSQ-Vantage:\t" + billedProject.getTsq_vantageRunsRequested() + "\n\n";
-        	
-        	text += "Fragmentation type(s) requested: ";
-        	if (billedProject.getFragmentationTypesArray() == null || billedProject.getFragmentationTypesArray().length == 0) 
-        	    text+= "\n\n";
-        	else
-        	    text += org.apache.commons.lang.StringUtils.join( billedProject.getFragmentationTypesArray(), ", " ) + "\n\n";
-
         	text += "Database searched at UWPR: " + billedProject.isDatabaseSearchRequested() + "\n\n";
         	text += "Mass Spec. analysis by UWPR personnel: " + billedProject.isMassSpecExpertiseRequested() + "\n\n";
         	

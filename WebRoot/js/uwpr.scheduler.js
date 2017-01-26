@@ -194,10 +194,11 @@
 							 for (var i = 0; i < event_blocks.length; i++) {
 								 
 								var event_blk = event_blocks[i];
+								menudiv += '<nobr>';
                                 menudiv += '<span style="font-size:8pt;';
 								if(event_blk.editable) {
                                     menudiv += 'color:black;">';
-									menudiv += '<input name="select_block_for_delete_'+event.id+'" type="checkbox" value="'+event_blk.id+'" ></input>';
+									menudiv += '<input name="select_block_for_delete_'+event.id+'" type="checkbox" checked="checked" value="'+event_blk.id+'" ></input>';
 									hasEditableBlocks = true;
 								}
                                 else
@@ -206,7 +207,7 @@
                                 }
 								// menudiv += event_blk.id+"&nbsp;";
 
-								menudiv += '<nobr>'+event_blk.label+'</nobr>';
+								menudiv += event_blk.label+'</nobr>';
 								menudiv += '</span><br>';
 								
 							 }
@@ -241,17 +242,17 @@
                          linksdiv += "<div>";
                          if(event_blocks.length > 1) {
                              linksdiv += '<span class="select_all_blks_'+event.id+'" style="font-size:8pt;color:black;text-decoration:underline;cursor:pointer">';
-                             linksdiv += '[Select All]';
+                             linksdiv += '[Deselect All]';
                              linksdiv += '</span> &nbsp;&nbsp;&nbsp;';
                          }
 
                          linksdiv += "<span id='project_detail_tooltip_delete_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Delete]</span>";
                          linksdiv += "&nbsp;&nbsp;&nbsp;";
-                         linksdiv += "<span id='project_detail_tooltip_edit_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit]</span>";
+                         linksdiv += "<span id='project_detail_tooltip_edit_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit Dates & Operator]</span>";
                          linksdiv += "</div>";
 					 }
                      linksdiv += '<div style="margin-top: 7px;">';
-                     linksdiv += "<span id='project_detail_tooltip_edit_payment_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Change Payment Methods]</span>";
+                     linksdiv += "<span id='project_detail_tooltip_edit_payment_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit Project & Payment Method]</span>";
                      linksdiv += "</div>";
 
                      linksdiv += "</div>"
@@ -385,13 +386,31 @@
 					});
 					 
 				}
+				else
+				{
+					//
+					$(element).qtip({
+						content: {
+							text: "Please select an instrument and project from the form below to edit or add instrument time."
+						},
+						style: {
+							name: 'blue'
+						},
+						position: {
+							corner: {
+								target: 'bottomLeft',
+								tooltip: 'topLeft'
+							}
+						}
+					});
+				}
 				 
 			},
 			
 			dayClick: function (date, allDay, jsEvent, view) {
 		   		
 	   			if(!options.canAddEvents) {
-	   				showErrorDialog("Cannot add events to this calendar");
+	   				showErrorDialog("This calendar cannot be used for scheduling instrument time. Please select a project and instrument in the form below to schedule time for the project.");
 	   				return;
 	   			}
 	   				

@@ -131,6 +131,7 @@
     <form-bean name="exportBillingInformationForm" type="org.uwpr.www.costcenter.ExportBillingInformationForm" />
     <form-bean name="editInstrumentTimeForm" type="org.uwpr.www.scheduler.EditProjectInstrumentTimeForm" />
     <form-bean name="editBlockPaymentForm" type="org.uwpr.www.scheduler.EditBlockPaymentMethodForm" />
+	<form-bean name="editBlockDetailsForm" type="org.uwpr.www.scheduler.EditBlockDetailsForm" />
 	<form-bean name="uploadFileForm" type="org.yeastrc.www.files.UploadFileForm"></form-bean>
 	<form-bean name="viewInstrumentRatesForm" type="org.uwpr.www.costcenter.ViewInstrumentRatesForm"></form-bean>
     <form-bean name="timeScheduledFilterForm" type="org.uwpr.www.scheduler.TimeScheduledFilterForm"></form-bean>
@@ -203,6 +204,7 @@
 	<forward name="viewAllInstrumentCalendar" path="/viewAllInstrumentCalendar.do"/>
 	<forward name="viewEditInstrumentTimeForm" path="/viewEditInstrumentTimeForm.do"/>
     <forward name="viewEditBlockPaymentForm" path="/viewEditBlockPaymentForm.do"/>
+	<forward name="viewEditBlockDetailsForm" path="/viewEditBlockDetailsForm.do"/>
     <forward name="viewTimeScheduledForInstrument" path="/viewTimeScheduledForInstrument.do"/>
     <forward name="viewTimeScheduledForOperator" path="/viewTimeScheduledForOperator.do"/>
 
@@ -725,7 +727,17 @@
       <forward name="Success" path="/pages/internal/project/payment/editPaymentMethod.jsp" redirect="false" />
       <forward name="Failure" path="/viewProject.do" redirect="false"/>
     </action>
-    
+
+	<action
+			path="/copyPaymentMethod"
+			type="org.yeastrc.www.project.payment.CopyPaymentMethodAction"
+			name="paymentMethodForm"
+			validate="false"
+			>
+		<forward name="Success" path="/pages/internal/project/payment/newPaymentMethod.jsp" redirect="false" />
+		<forward name="Failure" path="/viewProject.do" redirect="false"/>
+	</action>
+
     <action
       path="/savePaymentMethod"
       type="org.yeastrc.www.project.payment.SavePaymentMethodAction"
@@ -820,6 +832,24 @@
       validate="true"
       >
     </action>
+
+	<action
+			path="/viewEditBlockDetailsForm"
+			type="org.uwpr.www.scheduler.EditBlockDetailsFormAction"
+			name="editBlockDetailsForm"
+			validate="false"
+			>
+		<forward name="Success" path="/pages/internal/scheduler/editBlockDetailsForm.jsp" redirect="false" />
+	</action>
+
+	<action
+			path="/editBlockDetails"
+			type="org.uwpr.www.scheduler.EditBlockDetailsAction"
+			input="/pages/internal/scheduler/editBlockDetailsForm.jsp"
+			name="editBlockDetailsForm"
+			validate="true"
+			>
+	</action>
     
     <action
       path="/viewTimeScheduledForProject"

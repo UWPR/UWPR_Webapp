@@ -9,16 +9,18 @@
 
 package org.yeastrc.www.project.payment;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.www.costcenter.PaymentMethodChecker;
+import org.yeastrc.project.payment.PaymentMethod;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Date;
 
 public class PaymentMethodForm extends ActionForm {
 
@@ -26,6 +28,8 @@ public class PaymentMethodForm extends ActionForm {
 	private int projectId;
 	private int paymentMethodId; // only available when we are editing an existing payment method
 	private String uwBudgetNumber;
+	private Date budgetExpirationDate;
+	private String budgetExpirationDateStr;
 	private String poNumber;
 	private String paymentMethodName;
 	private String contactFirstName;
@@ -48,7 +52,6 @@ public class PaymentMethodForm extends ActionForm {
 	
 	private boolean ponumberAllowed = true; // Only Non-UW affiliated projects are allowed a PO number.
 	private boolean uwbudgetAllowed = false; // Only UW affiliated are allowed a UW Budget number.
-	
 
 	@Override
 	public void	reset(ActionMapping mapping, HttpServletRequest request)  {
@@ -79,6 +82,20 @@ public class PaymentMethodForm extends ActionForm {
 		if(!StringUtils.isBlank(uwBudgetNumber)) {
 			if(!PaymentMethodChecker.getInstance().checkUwbudgetNumber(uwBudgetNumber)) {
 				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid UW budget number."));
+			}
+			if(StringUtils.isBlank(budgetExpirationDateStr))
+			{
+				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Budget expiration date is required."));
+			}
+			else
+			{
+				try
+				{
+					budgetExpirationDate = PaymentMethod.dateFormat.parse(budgetExpirationDateStr);
+				} catch (ParseException e)
+				{
+					errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid expiration date. Accepted date format is MM/dd/yyyy"));
+				}
 			}
 		}
 		if(!StringUtils.isBlank(poNumber)) {
@@ -176,6 +193,27 @@ public class PaymentMethodForm extends ActionForm {
 
 	public void setUwBudgetNumber(String uwBudgetNumber) {
 		this.uwBudgetNumber = uwBudgetNumber;
+	}
+
+	public String getBudgetExpirationDateStr()
+	{
+		return budgetExpirationDateStr;
+	}
+
+	public void setBudgetExpirationDateStr(String budgetExpirationDateStr)
+	{
+		this.budgetExpirationDateStr = budgetExpirationDateStr;
+	}
+
+	public Date getBudgetExpirationDate()
+	{
+		return budgetExpirationDate;
+	}
+
+	public void setBudgetExpirationDate(Date budgetExpirationDate)
+	{
+		this.budgetExpirationDate = budgetExpirationDate;
+		budgetExpirationDateStr = budgetExpirationDate == null ? "" : PaymentMethod.dateFormat.format(budgetExpirationDate);
 	}
 
 	public String getPoNumber() {

@@ -204,7 +204,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         	StringBuilder errorMessage = new StringBuilder();
         	if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(block, user, errorMessage)) {
         		ActionErrors errors = new ActionErrors();
-                errors.add("scheduler", new ActionMessage("error.costcenter.delete", 
+                errors.add("scheduler", new ActionMessage("error.costcenter.edit",
                 		"Block ID "+block.getID()+": "+block.getStartDateFormated()+" - "+block.getEndDateFormated()+
                 		". "+errorMessage.toString()));
                 saveErrors( request, errors );
