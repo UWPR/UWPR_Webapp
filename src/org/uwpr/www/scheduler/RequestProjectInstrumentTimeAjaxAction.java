@@ -340,29 +340,36 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         	log.error("Error getting approval for instrument time.", e);
         	return sendError(response,"Error getting approval for instrument time."+e.getMessage());
         }
-        
-        
-    	// Save the blocks
-    	if(project instanceof BilledProject) {
-			String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rangeEndDate);
-			if(errorMessage != null)
-				return sendError(response, errorMessage);
-		}
-		else {
-			String errorMessage = saveUsageBlocksForSubsidizedProject(allBlocks);
-			if(errorMessage != null)
-				return sendError(response, errorMessage);
-		}
-    	
-		// Email admins
-		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
-				allBlocks,
-				ProjectInstrumentUsageUpdateEmailer.Action.ADDED);
 
-    	// Write the response
-        PrintWriter writer = response.getWriter();
-        writer.write(getJSONSuccess(allBlocks));
-        return null;
+		boolean requiresConfirmation = Boolean.parseBoolean(request.getParameter("requiresConfirmation"));
+
+        if(!requiresConfirmation)
+		{
+			// Save the blocks
+			if (project instanceof BilledProject)
+			{
+				String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rangeEndDate);
+				if (errorMessage != null)
+					return sendError(response, errorMessage);
+			} else
+			{
+				String errorMessage = saveUsageBlocksForSubsidizedProject(allBlocks);
+				if (errorMessage != null)
+					return sendError(response, errorMessage);
+			}
+
+			// Email admins
+			ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+					allBlocks,
+					ProjectInstrumentUsageUpdateEmailer.Action.ADDED);
+		}
+
+		// Write the response
+		PrintWriter writer = response.getWriter();
+		writer.write(getJSONSuccess(allBlocks, requiresConfirmation));
+
+
+		return null;
 	}
 
 	
@@ -521,13 +528,14 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		return json.toJSONString();
 	}
 	
-	private String getJSONSuccess(List<UsageBlockBaseWithRate> usageBlocks) {
+	private String getJSONSuccess(List<UsageBlockBaseWithRate> usageBlocks, boolean requiresConfirmation) {
 		
 		JSONObject json = new JSONObject();
 		json.put("response_type", "SUCCESS");
 		
 		JSONArray array = new JSONArray();
 		json.put("blocks", array);
+		double cost = 0.0;
 		for(UsageBlockBaseWithRate block: usageBlocks) {
 			JSONObject obj = new JSONObject();
 			obj.put("id", String.valueOf(block.getID()));
@@ -535,7 +543,12 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			obj.put("start_date", block.getStartDateFormated());
 			obj.put("end_date", block.getEndDateFormated());
 			array.add(obj);
+
+			cost += block.getRate().getRate().doubleValue();
 		}
+		json.put("total_cost", cost);
+		json.put("requires_confirmation", requiresConfirmation);
+
 		// log.info(json.toJSONString());
 		return json.toJSONString();
 	}

@@ -1,1 +1,1 @@
-ALTER TABLE mainDb.paymentmethod ADD COLUMN budgetExpirationDate DATE AFTER UWBudgetNumber;
+ALTER TABLE mainDb.paymentMethod ADD COLUMN budgetExpirationDate DATE AFTER UWBudgetNumber;
