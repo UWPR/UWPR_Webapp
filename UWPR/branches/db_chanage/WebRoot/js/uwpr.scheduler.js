@@ -91,9 +91,18 @@
 		div.after(confirm_div);
 		
 		// create a placeholder div for blocking dialog while data loads
-		var block_div = '<div id="dialog-block-interaction" title="Sending Request" style="display:none;">';
+		var block_div = '<div id="dialog-block-interaction" title="Sending Request..." style="display:none;">';
 		block_div += '<p>Please wait while your request is being processed</p></div>';
 		div.after(block_div);
+
+		// create a placeholder div for confirming scheduled instrument time
+		var save_time_confirm_div = '<div id="dialog-confirm-cost" title="Confirm Instrument Time" style="display:none;">';
+		// save_time_confirm_div += '<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span></p>';
+		save_time_confirm_div += '<div>The requested time will incur the following cost:</div>';
+		save_time_confirm_div += ' <div id="requested_total_cost" style="color:red;font-weight:bold;padding:10px;"></div>';
+		save_time_confirm_div += '<div>Are you sure you want to continue?</div>';
+		save_time_confirm_div += ' </div>';
+		div.after(save_time_confirm_div);
 	}
 	
 	function initCalendar (calendar_div, options) {
@@ -310,7 +319,6 @@
 									}
 									
 									$(element).qtip("hide");
-									$("input[name='select_block_for_delete_"+event.id+"']").attr("checked", "");
 									
 								});
 								
@@ -336,7 +344,6 @@
 									}
 									
 									$(element).qtip("hide");
-									$("input[name='select_block_for_delete_"+event.id+"']").attr("checked", "");
 									
 								});
 
@@ -362,7 +369,6 @@
                                     }
 
                                     $(element).qtip("hide");
-                                    $("input[name='select_block_for_delete_"+event.id+"']").attr("checked", "");
 
                                 });
 								
@@ -386,7 +392,7 @@
 					});
 					 
 				}
-				else
+				else if(!options.canAddEvents)
 				{
 					//
 					$(element).qtip({
@@ -525,108 +531,21 @@
 	       			var information = getRequestInformation();
 	       			
 	       			if(information.errorMessage) {
-	       				$('#eventBubble').remove();
-	       				showErrorDialog(information.errorMessage);
-	       				return;
-	       			}
-	       			
-	       			
-	       			// get the selected start date and time
-	       			var selectedStartDate = $("#uwpr_datepicker_start").val();
-	       			var selectedStartTime = $("#startTimeSelectorList option:selected").val();
-	       			// get the selected end date and time
-	       			var selectedEndDate = $("#uwpr_datepicker_end").val();
-	       			var selectedEndTime = $("#endTimeSelectorList option:selected").val();
-	       			
-	       			
-	       			var repeat = $("#repeat_checkbox").is(":checked") ? "true" : "false";
-	       			//alert("repeat is "+repeat+"; date "+$("#uwpr_datepicker_repeat").val());
-	       			
-	       			
-	       			$.ajax({
-	       				url:information.requestUrl,
-	       				cache: false,
-	       				dataType: "json",
-	       				data: {"projectId":options.projectId,
-	       				       "instrumentId": options.instrumentId,
-							   "instrumentOperatorId": information.instrumentOperatorId,
-	       				       "paymentMethodId1": information.paymentMethodId1,
-	       				       "paymentMethod1Percent": information.paymentMethod1Perc,
-	       				       "paymentMethodId2": information.paymentMethodId2,
-	       				       "paymentMethod2Percent": information.paymentMethod2Perc,
-	       				       "startDate": selectedStartDate,
-	       				       "startTime": selectedStartTime,
-	       				       "endDate": selectedEndDate,
-	       				       "endTime": selectedEndTime,
-	       				       "repeatdaily": repeat,
-	       				       "repeatenddate":$("#uwpr_datepicker_repeat").val()
-	       				       },
-	       				       
-	       				beforeSend: function(jqXHR, settings) {
-	       				
-	       					
-	       					$( "#dialog-block-interaction" ).dialog({
-								modal: true,
-								draggable:false,
-								resizable:false,
-								closeOnEscape: false,
-								open: function(event, ui) { 
-									$(".ui-dialog-titlebar-close", ui.dialog).hide()
-	 							} // hide the title bar with the "close" icon
-								
-							});
-	       					
-							$('#eventBubble').remove();
-							
-	       				},
-	       				success: function(data, textStatus, jqXHR){
-	       					
-	       					// alert("success: "+textStatus+"; data: "+data);
-	       					
-	       					var obj;
-	       					try {
-	       						obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
-	       					}
-	       					catch(e) {
-	       						showErrorDialog("There was an error processing the server's response. Please contact us.");
-	       					}
-	       					
-	       					// alert(obj);
-	       					
-	       					refreshCalendar(calendar_div);
-	       					
-	       					$( "#dialog-block-interaction" ).dialog( "close" );
-	       					
-	       					if(options.onAddEventSuccessFn && obj != undefined) {
-	       						options.onAddEventSuccessFn(obj);
-	       					}
-	       					
-	       				},
-	       				error: function(jqXHR, textStatus, errorThrown) {
-	       					var obj;
-	       					try { 
-	       						obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
-	       					}
-	       					catch(e){
-	       						showErrorDialog("There was an error processing the server's response. Please contact us.");
-	       					}
-	       					
-	       					
-	       					$( "#dialog-block-interaction" ).dialog( "close" );
-	       					
-	       					refreshCalendar(calendar_div);
-	       					
-	       					if(obj != undefined)
-	       						showErrorDialog(obj.message);
-	       						
-	       					
-	       					
-	       				},
-						complete: function(jqXHR, textStatus) {
+						$('#eventBubble').remove();
+						showErrorDialog(information.errorMessage);
+						return;
+					}
 
-						}
-	       			});
-					
+					var selectedOptions = {};
+					// get the selected start date and time
+					selectedOptions.startDate = $("#uwpr_datepicker_start").val();
+					selectedOptions.startTime = $("#startTimeSelectorList option:selected").val();
+					// get the selected end date and time
+					selectedOptions.endDate = $("#uwpr_datepicker_end").val();
+					selectedOptions.endTime = $("#endTimeSelectorList option:selected").val();
+					selectedOptions.repeat = $("#repeat_checkbox").is(":checked") ? "true" : "false";
+
+	       			sendUsageRequest(options, information, selectedOptions, calendar_div, true);
 				});
 				
 				$('#cancel').click(function() {
@@ -740,6 +659,142 @@
 					$( this ).dialog( "close" );
 					}
 				}
+		});
+	}
+
+	function sendUsageRequest(options, information, selectedOptions, calendar_div, requiresConfirmation)
+	{
+		// console.log(information.requestUrl);
+		$.ajax({
+			url:information.requestUrl,
+			cache: false,
+			dataType: "json",
+			data: {"projectId":options.projectId,
+				"instrumentId": options.instrumentId,
+				"instrumentOperatorId": information.instrumentOperatorId,
+				"paymentMethodId1": information.paymentMethodId1,
+				"paymentMethod1Percent": information.paymentMethod1Perc,
+				"paymentMethodId2": information.paymentMethodId2,
+				"paymentMethod2Percent": information.paymentMethod2Perc,
+				"startDate": selectedOptions.startDate,
+				"startTime": selectedOptions.startTime,
+				"endDate": selectedOptions.endDate,
+				"endTime": selectedOptions.endTime,
+				"repeatdaily": selectedOptions.repeat,
+				"repeatenddate":$("#uwpr_datepicker_repeat").val(),
+				"requiresConfirmation":requiresConfirmation
+			},
+
+			beforeSend: function(jqXHR, settings) {
+
+
+				$( "#dialog-block-interaction" ).dialog({
+					modal: true,
+					draggable:false,
+					resizable:false,
+					closeOnEscape: false,
+					open: function(event, ui) {
+						$(".ui-dialog-titlebar-close", ui.dialog).hide()
+					} // hide the title bar with the "close" icon
+
+				});
+
+				$('#eventBubble').remove();
+
+			},
+			success: function(data, textStatus, jqXHR){
+
+				console.log("success: "+textStatus);
+
+				var obj;
+				try {
+					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
+				}
+				catch(e) {
+					showErrorDialog("There was an error processing the server's response. Please contact us.");
+				}
+
+				// console.log(obj);
+				if(obj.requires_confirmation === true)
+				{
+					$("#dialog-block-interaction" ).dialog("close" );
+
+					var totalCost = obj.total_cost
+					totalCost = totalCost.toFixed(2);
+					$("#requested_total_cost").text("$" + totalCost);
+					$("#dialog-confirm-cost").dialog({
+						modal: true,
+						draggable:true,
+						resizable:true,
+						closeOnEscape: false,
+						open: function(event, ui)
+						{
+							// hide the title bar with the "close" icon
+							$(".ui-dialog-titlebar-close", ui.dialog).hide()
+						},
+						buttons: {
+							"Yes": function() {
+								refreshCalendar(calendar_div);
+								$( this ).dialog( "close" );
+								sendUsageRequest(options, information, selectedOptions, calendar_div, false);
+								return;
+							},
+							Cancel: function() {
+								$( this ).dialog( "close" );
+							}
+						}
+					});
+				}
+				else {
+
+					refreshCalendar(calendar_div);
+
+					$("#dialog-block-interaction").dialog("close");
+
+					if (options.onAddEventSuccessFn && obj != undefined) {
+						options.onAddEventSuccessFn(obj);
+					}
+				}
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				var obj;
+				try {
+					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
+				}
+				catch(e){
+					showErrorDialog("There was an error processing the server's response. Please contact us.");
+				}
+
+
+				$( "#dialog-block-interaction" ).dialog( "close" );
+
+				refreshCalendar(calendar_div);
+
+				if(obj != undefined)
+					showErrorDialog(obj.message);
+
+
+
+			},
+			complete: function(jqXHR, textStatus) {
+
+			}
+		});
+	}
+	function showConfirmCostDialog(message)
+	{
+		$("#request-total-cost" ).text(message);
+		( "#dialog-confirm-cost" ).dialog({
+			modal: true,
+			draggable:false,
+			resizable:false,
+			title:title,
+			buttons: {
+				Ok: function() {
+					$( this ).dialog( "close" );
+				}
+			}
 		});
 	}
 	
