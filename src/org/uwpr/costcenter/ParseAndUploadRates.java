@@ -40,7 +40,7 @@ public class ParseAndUploadRates
             System.out.println("Running in test mode");
         }
 
-        java.sql.Date effectiveDate =  new java.sql.Date(UsageBlockBaseDAO.dateFormat.parse("2016-02-01 00-00-00").getTime());
+        java.sql.Date effectiveDate =  new java.sql.Date(UsageBlockBaseDAO.dateFormat.parse("2017-02-01 00-00-00").getTime());
 
         ParseAndUploadRates parser = new ParseAndUploadRates();
         Map<String, MsInstrument> instrumentNameMap = parser.getInstruments();
