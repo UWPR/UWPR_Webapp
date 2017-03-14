@@ -99,7 +99,9 @@
 		var save_time_confirm_div = '<div id="dialog-confirm-cost" title="Confirm Instrument Time" style="display:none;">';
 		// save_time_confirm_div += '<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span></p>';
 		save_time_confirm_div += '<div>The requested time will incur the following cost:</div>';
-		save_time_confirm_div += ' <div id="requested_total_cost" style="color:red;font-weight:bold;padding:10px;"></div>';
+		save_time_confirm_div += ' <div style="color:red;font-weight:bold;margin-top:10px;">Sign-up fee: <span id="signup_fee"></span> (non-refundable)</div>';
+		save_time_confirm_div += ' <div style="color:darkblue;font-weight:bold;">Instrument fee: <span id="instrument_cost" ></span></div>';
+		save_time_confirm_div += ' <div style="color:darkblue;font-weight:bold;margin-bottom:10px;">Total: <span id="requested_total_cost"></span></div>';
 		save_time_confirm_div += '<div>Are you sure you want to continue?</div>';
 		save_time_confirm_div += ' </div>';
 		div.after(save_time_confirm_div);
@@ -719,9 +721,14 @@
 				{
 					$("#dialog-block-interaction" ).dialog("close" );
 
-					var totalCost = obj.total_cost
-					totalCost = totalCost.toFixed(2);
-					$("#requested_total_cost").text("$" + totalCost);
+					var totalCost = obj.total_cost;
+					var signupFee = obj.signup_cost;
+					var instrumentCost = obj.instrument_cost;
+
+					$("#requested_total_cost").text("$" + totalCost.toFixed(2));
+					$("#signup_fee").text("$" + signupFee.toFixed(2));
+					$("#instrument_cost").text("$" + instrumentCost.toFixed(2));
+
 					$("#dialog-confirm-cost").dialog({
 						modal: true,
 						draggable:true,

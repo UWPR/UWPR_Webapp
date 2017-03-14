@@ -160,16 +160,39 @@ public class ViewTimeScheduledForProject extends Action {
 
         List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocks(filter);
         // sort the blocks by instrument and then by start date, descending
-        Collections.sort(usageBlocks, new Comparator<UsageBlock>() {
-			@Override
-			public int compare(UsageBlock o1, UsageBlock o2) {
-				int val = Integer.valueOf(o1.getInstrumentID()).compareTo(o2.getInstrumentID());
-				if(val == 0)
-					return o1.getStartDate().compareTo(o2.getStartDate());
-				else
-					return val;
-			}
-		});
+        Collections.sort(usageBlocks, new Comparator<UsageBlock>()
+        {
+            @Override
+            public int compare(UsageBlock o1, UsageBlock o2)
+            {
+                int val = Integer.valueOf(o1.getInstrumentID()).compareTo(o2.getInstrumentID());
+                if (val == 0)
+                    return o1.getStartDate().compareTo(o2.getStartDate());
+                else
+                    return val;
+            }
+        });
+
+        // Get the sign up blocks
+        SignupFilter sFilter = new SignupFilter();
+        sFilter.setProjectId(projectId);
+        sFilter.setInstrumentId(instrumentId);
+        sFilter.setPaymentMethodId(paymentMethodId);
+        sFilter.setContainedInRange(false);
+        sFilter.setStartDate(startDate);
+        sFilter.setEndDate(endDate);
+        List<InstrumentSignupWithRate> signupBlocks = InstrumentSignupDAO.getInstance().getSignup(sFilter);
+        Collections.sort(signupBlocks, new Comparator<InstrumentSignupWithRate>(){
+            @Override
+            public int compare(InstrumentSignupWithRate o1, InstrumentSignupWithRate o2)
+            {
+                int val = Integer.valueOf(o1.getInstrumentID()).compareTo(o2.getInstrumentID());
+                if (val == 0)
+                    return o1.getStartDate().compareTo(o2.getStartDate());
+                else
+                    return val;
+            }
+        });
         
         request.setAttribute("project", project);
         request.setAttribute("usageBlocks", usageBlocks);

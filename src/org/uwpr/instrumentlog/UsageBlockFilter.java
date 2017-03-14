@@ -1,7 +1,5 @@
 package org.uwpr.instrumentlog;
 
-import java.util.Date;
-
 /**
  * Created by vsharma on 1/29/2016.
  */

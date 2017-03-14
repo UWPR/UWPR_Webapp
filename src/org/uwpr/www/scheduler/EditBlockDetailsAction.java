@@ -180,20 +180,6 @@ public class EditBlockDetailsAction extends Action {
             rangeEndDate = rangeEndDate == null ? blkEndDate : (blkEndDate.after(rangeEndDate) ? blkEndDate : rangeEndDate);
         }
 
-        // If the project or instrument operator associated with the blocks have changed, update the blocks in the database
-        List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
-        for(UsageBlockBase blk: blocksToUpdate)
-        {
-            if(blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentID() != instrumentOperatorId))
-            {
-                blk.setProjectID(projectId);
-                blk.setInstrumentOperatorId(instrumentOperatorId);
-                changedBlocks.add(blk);
-            }
-        }
-        InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
-        instrumentUsageDAO.updateBlocksProjectAndOperator(changedBlocks);
-
         // Get the selected payment methods
         InstrumentUsagePaymentDAO paymentDao = InstrumentUsagePaymentDAO.getInstance();
         PaymentMethodDAO paymentMethodDao = PaymentMethodDAO.getInstance();
@@ -225,6 +211,7 @@ public class EditBlockDetailsAction extends Action {
             }
         }
 
+        // TODO: This has to be in a transaction
         // Delete the old payment methods and add new ones
         for(UsageBlockBase block: blocksToUpdate)
         {
@@ -243,6 +230,25 @@ public class EditBlockDetailsAction extends Action {
                 paymentDao.savePayment(iup);
             }
         }
+
+        // If the project or instrument operator associated with the blocks have changed, update the blocks in the database
+        List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
+        for(UsageBlockBase blk: blocksToUpdate)
+        {
+            if(blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentID() != instrumentOperatorId))
+            {
+                blk.setProjectID(projectId);
+                blk.setInstrumentOperatorId(instrumentOperatorId);
+                changedBlocks.add(blk);
+            }
+        }
+        InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
+        instrumentUsageDAO.updateBlocksProjectAndOperator(changedBlocks);
+
+        // TODO: Update the instrument signup
+        List<InstrumentSignupGeneric> signupList = InstrumentSignupDAO.getInstance().getExistingSignup(blocksToUpdate.get(0).getStartDate(),
+                                                                                                       blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate());
+
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);

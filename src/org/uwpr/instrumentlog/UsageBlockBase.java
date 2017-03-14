@@ -10,7 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 
-public class UsageBlockBase {
+public class UsageBlockBase implements Block
+{
 
 	private int id;
 	private int instrumentID;

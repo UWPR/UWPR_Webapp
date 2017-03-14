@@ -82,25 +82,35 @@ public class InstrumentUsagePaymentDAO {
             }
             return null;
     	}
-	
-	public void savePayment(InstrumentUsagePayment payment) throws SQLException {
-		
+
+	public void savePayment(Connection conn, InstrumentUsagePayment payment) throws SQLException {
+
 		String sql = "INSERT INTO instrumentUsagePayment (instrumentUsageID, paymentMethodID, percentPayment) VALUES (?,?,?)";
-		Connection conn = null;
 		PreparedStatement stmt = null;
-		
+
 		try {
-			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, payment.getInstrumentUsageId());
 			stmt.setInt(2, payment.getPaymentMethod().getId());
 			stmt.setBigDecimal(3, payment.getPercent());
-			
+
 			stmt.executeUpdate();
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
+
+	public void savePayment(InstrumentUsagePayment payment) throws SQLException {
+		
+		Connection conn = null;
+
+		try {
+			conn = getConnection();
+			savePayment(conn, payment);
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
 		}
 	}
 

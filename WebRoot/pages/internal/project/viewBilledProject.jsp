@@ -134,8 +134,8 @@
 	</logic:notEmpty>
 
 	<tr>
-		<td width="25%" valign="top">PaymentMethods:</td>
-		<td width="75%" valign="top">
+		<td colspan="2" valign="top">
+		<div style="text-decoration:underline; margin-bottom:10px;">PaymentMethods:</div>
 			<logic:notEmpty name="project" property="paymentMethods">
 				<table cellspacing="0" cellpadding="0" border="1">
                 <thead>
@@ -144,7 +144,9 @@
 					<th>Name</th>
                     <th>Current</th>
 					<th>Expires</th>
-                    <th>Total Used</th>
+					<th>Signup</th>
+					<th>Instrument</th>
+                    <th>Total Cost</th>
                     <th>Invoiced</th>
                     <th>&nbsp;</th>
                 </thead>
@@ -179,6 +181,12 @@
 					</td>
 					<td style="padding:3px">
 						<nobr><bean:write name="paymentMethod" property="budgetExpirationDate" /></nobr>
+					</td>
+					<td style="padding:3px">
+						$<bean:write name="paymentMethod" property="signupFee" />
+					</td>
+					<td style="padding:3px">
+						$<bean:write name="paymentMethod" property="instrumentCost" />
 					</td>
                     <td style="padding:3px">
                         $<bean:write name="paymentMethod" property="totalCost" />
@@ -220,9 +228,8 @@
 				
 				<div style="margin:5px 0px 15px 0px">
 					<html:link action="viewTimeScheduledForProject" paramId="projectId" paramName="project" paramProperty="ID">
-					<b>[View]</b>
+					<b>[Instrument time scheduled for project]</b>
 					</html:link>
-					instrument time scheduled for the project
 				</div>
 				
 			</logic:notEmpty>
@@ -236,21 +243,12 @@
 					to add a payment method for this project.
 				</div>
 			</logic:empty>
-			
-			<div style="margin:10px 0px 10px 0px;">
-				Click <b><a href="/pr/costcenter_resources/UWPR_FAQ_Instrument_scheduling.pdf">here</a></b> for a billing FAQ and instructions for scheduling instrument time.
-			</div>
-			
-			<div style="margin:10px 0px 10px 0px;">
-				<a href="/pr/costcenter_resources/UWPR_Current_Rates.xlsx"><b>View</b></a> the current rates for instruments.
-			</div>
-			
-			<div style="margin:5px 0px 15px 0px">
-				View
-				<span style="font-weight:bold;">
-    				 <html:link href="pages/admin/costcenter/paymentInformation.jsp">payment information</html:link>
-    			</span>.
-			</div>
+
+			<ul>
+				<li style="padding:3px;"><a href="/pr/costcenter_resources/UWPR_FAQ_Instrument_scheduling.pdf">Billing FAQ and instructions for scheduling instrument time</a></li>
+				<li style="padding:3px;"><a href="/pr/costcenter_resources/UWPR_Current_Rates.xlsx">Download current instrument rates</a></li>
+				<li style="padding:3px;"><html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment information</html:link></li>
+			</ul>
 			
 		</td>
 	</tr>

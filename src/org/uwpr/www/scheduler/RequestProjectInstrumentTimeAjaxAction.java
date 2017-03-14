@@ -8,6 +8,7 @@ package org.uwpr.www.scheduler;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -35,12 +36,7 @@ import org.uwpr.costcenter.RateType;
 import org.uwpr.costcenter.RateTypeDAO;
 import org.uwpr.costcenter.TimeBlock;
 import org.uwpr.costcenter.TimeBlockDAO;
-import org.uwpr.instrumentlog.InstrumentUsageDAO;
-import org.uwpr.instrumentlog.InstrumentUsagePayment;
-import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.InstrumentAvailabilityChecker;
 import org.uwpr.scheduler.PatternToDateConverter;
 import org.uwpr.scheduler.ProjectInstrumentTimeApprover;
@@ -50,6 +46,7 @@ import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.scheduler.UsageBlockRepeatBuilder;
 import org.uwpr.www.costcenter.UwprSupportedProjectPaymentMethodGetter;
+import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.www.user.User;
@@ -343,6 +340,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 
 		boolean requiresConfirmation = Boolean.parseBoolean(request.getParameter("requiresConfirmation"));
 
+
         if(!requiresConfirmation)
 		{
 			// Save the blocks
@@ -467,52 +465,136 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 	public static String saveUsageBlocksForBilledProject(
 			List<? extends UsageBlockBase> usageBlocks,
 			UsageBlockPaymentInformation paymentInfo) {
-		
-		List<Integer> savedBlockIds = new ArrayList<Integer>();
-        
+
         InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-        
-        for(UsageBlockBase block: usageBlocks) {
 
-        	log.info("Saving usage block: "+block.toString());
-        	
-        	try {
+		Connection conn = null;
+		try
+		{
+			conn = DBConnectionManager.getMainDbConnection();
+			conn.setAutoCommit(false);
 
-        		// save to the instrumentUsage table
-            	InstrumentUsageDAO.getInstance().save(block);
-            	savedBlockIds.add(block.getID());
-            	
-        		for(int i = 0; i < paymentInfo.getCount(); i++) {
 
-        			PaymentMethod pm = paymentInfo.getPaymentMethod(i);
-        			BigDecimal perc = paymentInfo.getPercent(i);
+			// Blocks are in order
+			for (UsageBlockBase block : usageBlocks)
+			{
+				log.info("Saving usage block: " + block.toString());
 
-        			InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
-        			usagePayment.setInstrumentUsageId(block.getID());
-        			usagePayment.setPaymentMethod(pm);
-        			usagePayment.setPercent(perc);
-        			iupDao.savePayment(usagePayment);
-        		}
-        	}
-        	catch(Exception e) {
-        		
-        		// delete the usage blocks saved thus far and throw an error
-        		for(Integer blockId: savedBlockIds) {
-        			try {
-        				InstrumentUsageDAO.getInstance().delete(blockId);
-        			}
-        			catch(Exception ex) {
-            			log.error("There was an error deleting block ID: "+blockId);
-            		}
-        		}
-        		
-        		log.error("Error saving payment information for usage", e);
-        		return "There was an error saving payment information for the scheduled time. Error was: "+e.getMessage();
-        	}
-        }
+				// save to the instrumentUsage table
+				InstrumentUsageDAO.getInstance().save(conn, block);
+
+				for (int i = 0; i < paymentInfo.getCount(); i++)
+				{
+
+					PaymentMethod pm = paymentInfo.getPaymentMethod(i);
+					BigDecimal perc = paymentInfo.getPercent(i);
+
+					InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
+					usagePayment.setInstrumentUsageId(block.getID());
+					usagePayment.setPaymentMethod(pm);
+					usagePayment.setPercent(perc);
+					iupDao.savePayment(conn, usagePayment);
+				}
+			}
+
+			updateSignup(conn, usageBlocks, paymentInfo);
+
+			conn.commit();
+		}
+		catch(Exception e)
+		{
+			log.error("Error saving payment information for usage", e);
+			return "There was an error saving usage block. Error was: " + e.getMessage();
+		}
+		finally
+		{
+			if(conn != null) try {conn.close();} catch(Exception ignored){}
+		}
 		return null;
 	}
-	
+
+	private static void updateSignup(Connection conn, List<? extends UsageBlockBase> usageBlocks, UsageBlockPaymentInformation paymentInfo) throws Exception
+	{
+		InstrumentSignupDAO signupDao = InstrumentSignupDAO.getInstance();
+
+		// Log to instrumentSignupLog
+		signupDao.logInstrumentSignUp(conn, usageBlocks);
+
+		Date startDate = usageBlocks.get(0).getStartDate();
+		Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
+
+		InstrumentSignup newSignup = new InstrumentSignup();
+		UsageBlockBase firstBlock = usageBlocks.get(0);
+		newSignup.setProjectId(firstBlock.getProjectID());
+		newSignup.setInstrumentID(firstBlock.getInstrumentID());
+		newSignup.setStartDate(startDate);
+		newSignup.setEndDate(endDate);
+		newSignup.setCreatedBy(firstBlock.getResearcherID());
+
+		List<SignupPayment> payments = new ArrayList<SignupPayment>();
+		newSignup.setPayments(payments);
+		for (int i = 0; i < paymentInfo.getCount(); i++)
+        {
+            PaymentMethod pm = paymentInfo.getPaymentMethod(i);
+            BigDecimal perc = paymentInfo.getPercent(i);
+
+            SignupPayment payment = new SignupPayment();
+            payment.setPaymentMethod(pm);
+            payment.setPercent(perc);
+            payments.add(payment);
+        }
+
+		List<InstrumentSignupGeneric> existingSignUps = signupDao.getExistingSignup(newSignup);
+
+		if(existingSignUps.size() != 0)
+        {
+            InstrumentSignupGeneric first = existingSignUps.get(0);
+            InstrumentSignupGeneric last = existingSignUps.get(existingSignUps.size() - 1);
+            startDate = startDate.before(first.getStartDate()) ? startDate : first.getStartDate();
+            endDate = endDate.after(last.getEndDate()) ? endDate : last.getEndDate();
+
+            // Delete all existing signups before we create a new one
+            signupDao.deleteSignup(conn, existingSignUps);
+
+            newSignup.setStartDate(startDate);
+            newSignup.setEndDate(endDate);
+        }
+
+		// Split the given range into time blocks
+		List<TimeBlock> timeBlocks = TimeBlockDAO.getInstance().getAllTimeBlocks();
+		List<TimeBlock> rangeTimeBlocks = TimeRangeSplitter.getInstance().split(startDate, endDate, timeBlocks);
+
+		List<SignupBlock> allBlocks = new ArrayList<SignupBlock>();
+		newSignup.setBlocks(allBlocks);
+
+		Calendar startCal = Calendar.getInstance();
+		startCal.setTime(startDate);
+
+		int rateTypeId = ((UsageBlockBaseWithRate)usageBlocks.get(0)).getRate().getRateType().getId();
+		int instrumentId = newSignup.getInstrumentID();
+
+		for(TimeBlock timeBlock: rangeTimeBlocks) {
+
+			// get the instrumentRateID
+			InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateTypeId);
+			if(rate == null) {
+				throw new Exception("No rate information found for instrumentId: "+instrumentId+
+						" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateTypeId+" in request");
+			}
+
+			SignupBlock block = new SignupBlock();
+			block.setInstrumentSignupId(newSignup.getId());
+			block.setInstrumentRateId(rate.getId());
+			block.setStartDate(startCal.getTime());
+			startCal.add(Calendar.HOUR_OF_DAY, timeBlock.getNumHours());
+			block.setEndDate(startCal.getTime());
+
+			allBlocks.add(block);
+		}
+
+		signupDao.save(conn, newSignup, usageBlocks.get(0).getResearcherID());
+	}
+
 	private ActionForward sendError(HttpServletResponse response, String errorMessage) throws IOException {
 		PrintWriter responseWriter = response.getWriter();
 		responseWriter.write(getJSONError(errorMessage));
@@ -535,7 +617,10 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		
 		JSONArray array = new JSONArray();
 		json.put("blocks", array);
-		double cost = 0.0;
+		BigDecimal cost = BigDecimal.ZERO;
+		BigDecimal instrumentCost = BigDecimal.ZERO;
+		BigDecimal signupCost = BigDecimal.ZERO;
+
 		for(UsageBlockBaseWithRate block: usageBlocks) {
 			JSONObject obj = new JSONObject();
 			obj.put("id", String.valueOf(block.getID()));
@@ -544,9 +629,15 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			obj.put("end_date", block.getEndDateFormated());
 			array.add(obj);
 
-			cost += block.getRate().getRate().doubleValue();
+			InstrumentRate rate = block.getRate();
+			cost = cost.add(rate.getRate());
+			instrumentCost = instrumentCost.add(rate.getInstrumentFee());
+			signupCost = signupCost.add(rate.getSignupFee());
 		}
-		json.put("total_cost", cost);
+		json.put("total_cost", cost.doubleValue());
+		json.put("signup_cost", signupCost.doubleValue());
+		json.put("instrument_cost", instrumentCost.doubleValue());
+
 		json.put("requires_confirmation", requiresConfirmation);
 
 		// log.info(json.toJSONString());

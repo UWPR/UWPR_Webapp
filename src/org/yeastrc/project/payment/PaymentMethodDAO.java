@@ -6,6 +6,7 @@
 package org.yeastrc.project.payment;
 
 import org.apache.log4j.Logger;
+import org.uwpr.costcenter.InstrumentRate;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.math.BigDecimal;
@@ -83,7 +84,8 @@ public class PaymentMethodDAO {
         paymentMethod.setFederalFunding(rs.getBoolean("federalFunding"));
         paymentMethod.setPoAmount(rs.getBigDecimal("POAmount"));
 
-        paymentMethod.setTotalCost(getCost(paymentMethod.getId()));
+        paymentMethod.setInstrumentCost(getInstrumentCost(paymentMethod.getId()));
+		paymentMethod.setSignupFee(getSignupFee(paymentMethod.getId()));
         paymentMethod.setInvoicedCost(getInvoicedCost(paymentMethod.getId()));
 
         return paymentMethod;
@@ -284,7 +286,7 @@ public class PaymentMethodDAO {
 		}
 	}
 
-    public BigDecimal getCost(int paymentMethodId) throws SQLException
+    private BigDecimal getInstrumentCost(int paymentMethodId) throws SQLException
     {
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
@@ -306,6 +308,7 @@ public class PaymentMethodDAO {
             if(rs.next()) {
 
                 BigDecimal cost = rs.getBigDecimal("cost");
+				cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
                 return cost.setScale(2, RoundingMode.CEILING);
             }
 
@@ -318,22 +321,65 @@ public class PaymentMethodDAO {
         }
     }
 
-    public BigDecimal getInvoicedCost(int paymentMethodId) throws SQLException
+	private BigDecimal getSignupFee(int paymentMethodId) throws SQLException
+	{
+		StringBuilder sql = new StringBuilder();
+		sql.append(" SELECT isp.paymentMethodId, SUM((isp.percentPayment * ir.fee)/ 100.0) AS cost");
+		sql.append(" FROM (instrumentSignupPayment isp, instrumentSignup s, instrumentSignupBlock sb, instrumentRate ir)");
+		sql.append(" WHERE isp.instrumentSignupId = s.id");
+		sql.append(" AND sb.instrumentSignupId = s.id");
+		sql.append(" AND sb.instrumentRateId = ir.id");
+		sql.append(" AND paymentMethodId=").append(paymentMethodId);
+		sql.append(" GROUP BY paymentMethodId");
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			conn = getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql.toString());
+
+			if(rs.next()) {
+
+				BigDecimal cost = rs.getBigDecimal("cost");
+				cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
+				return cost.setScale(2, RoundingMode.CEILING);
+			}
+
+			return new BigDecimal("0");
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException ignored){}
+			if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
+			if(rs != null) try {rs.close();} catch(SQLException ignored){}
+		}
+	}
+
+	public BigDecimal getInvoicedCost(int paymentMethodId) throws SQLException
     {
-        StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
-        sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir, invoiceInstrumentUsage invoice)");
-        sql.append(" WHERE iup.instrumentUsageID = iu.id");
-        sql.append(" AND iu.instrumentRateID = ir.id");
-        sql.append(" AND invoice.instrumentUsageID = iu.id");
-        sql.append(" AND paymentMethodID=").append(paymentMethodId);
-        sql.append(" GROUP BY paymentMethodID");
+		BigDecimal instrumentCost = getInvoicedInstrumentCost(paymentMethodId);
+		BigDecimal signupFee = getInvoicedSignupFee(paymentMethodId);
+		return instrumentCost.add(signupFee);
+    }
 
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
+	private BigDecimal getInvoicedInstrumentCost(int paymentMethodId) throws SQLException
+	{
+		StringBuilder sql = new StringBuilder();
+		sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
+		sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir, invoiceInstrumentUsage invoice)");
+		sql.append(" WHERE iup.instrumentUsageID = iu.id");
+		sql.append(" AND iu.instrumentRateID = ir.id");
+		sql.append(" AND invoice.instrumentUsageID = iu.id");
+		sql.append(" AND paymentMethodID=").append(paymentMethodId);
+		sql.append(" GROUP BY paymentMethodID");
 
-        try {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
             conn = getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql.toString());
@@ -341,6 +387,7 @@ public class PaymentMethodDAO {
             if(rs.next()) {
 
                 BigDecimal cost = rs.getBigDecimal("cost");
+				cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
                 return cost.setScale(2, RoundingMode.CEILING);
             }
 
@@ -351,5 +398,42 @@ public class PaymentMethodDAO {
             if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
             if(rs != null) try {rs.close();} catch(SQLException ignored){}
         }
-    }
+	}
+
+	private BigDecimal getInvoicedSignupFee(int paymentMethodId) throws SQLException
+	{
+		StringBuilder sql = new StringBuilder();
+		sql.append(" SELECT isp.paymentMethodId, SUM((isp.percentPayment * ir.fee)/ 100.0) AS cost");
+		sql.append(" FROM (instrumentSignupPayment isp, instrumentSignup s, instrumentSignupBlock sb, instrumentRate ir, invoiceSignupBlock invoice)");
+		sql.append(" WHERE isp.instrumentSignupId = s.id");
+		sql.append(" AND sb.instrumentSignupId = s.id");
+		sql.append(" AND sb.instrumentRateId = ir.id");
+		sql.append(" AND invoice.instrumentSignupBlockId = sb.id");
+		sql.append(" AND paymentMethodId=").append(paymentMethodId);
+		sql.append(" GROUP BY paymentMethodId");
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			conn = getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql.toString());
+
+			if(rs.next()) {
+
+				BigDecimal cost = rs.getBigDecimal("cost");
+				cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
+				return cost.setScale(2, RoundingMode.CEILING);
+			}
+
+			return new BigDecimal("0");
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException ignored){}
+			if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
+			if(rs != null) try {rs.close();} catch(SQLException ignored){}
+		}
+	}
 }

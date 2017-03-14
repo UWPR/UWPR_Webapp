@@ -25,74 +25,76 @@ public class InstrumentUsageDAO {
 	public static InstrumentUsageDAO getInstance() {
 		return instance;
 	}
-	
-	public void save(UsageBlockBase block) throws Exception {
 
-		if (block == null)
-			return;
+    public void save(Connection conn, UsageBlockBase block) throws Exception
+    {
+        if (block == null)
+            return;
 
-		log.info("Saving usage block on instrument: "+block.getInstrumentID());
-		
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		
-		try {
+        log.info("Saving usage block on instrument: "+block.getInstrumentID());
 
-			boolean newBlock = false;
-			if (block.getID() == 0) newBlock = true;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
-			String sql = "SELECT * FROM instrumentUsage WHERE id = " + block.getID();
+        String sql = "INSERT INTO " +
+                "instrumentUsage (projectID, instrumentID, instrumentOperatorId, instrumentRateID, startDate, endDate,enteredBy, dateEntered, updatedBy, notes) " +
+                "VALUES(?,?,?,?,?,?,?,?,?,?)";
 
-			conn = getConnection();
-			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-			rs = stmt.executeQuery( sql );
+        try
+        {
+            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			if (!newBlock) {
-				if (!rs.next())
-					throw new Exception( "InstrumentUsageBlock had id, but was not in database.  Aborting save." );
-			} else {
-				rs.moveToInsertRow();
-			}
+            stmt.setInt(1, block.getProjectID());
+            stmt.setInt(2, block.getInstrumentID());
+            stmt.setInt(3, block.getInstrumentOperatorId());
+            stmt.setInt(4, block.getInstrumentRateID());
+            stmt.setTimestamp(5, new Timestamp(block.getStartDate().getTime()));
+            stmt.setTimestamp(6, new Timestamp(block.getEndDate().getTime()));
+            stmt.setInt(7, block.getResearcherID());
 
-			rs.updateInt("projectID", block.getProjectID());
-			rs.updateInt("enteredBy", block.getResearcherID());
-			if(block.getUpdaterResearcherID() != 0) {
-				rs.updateInt("updatedBy", block.getUpdaterResearcherID());
-			}
-			
-			rs.updateInt("instrumentID", block.getInstrumentID());
-			rs.updateInt("instrumentOperatorId", block.getInstrumentOperatorId());
-			rs.updateInt("instrumentRateID", block.getInstrumentRateID());
-			rs.updateTimestamp("startDate", new Timestamp(block.getStartDate().getTime()));
-			rs.updateTimestamp("endDate", new Timestamp(block.getEndDate().getTime()));
-//			rs.updateTimestamp("lastChanged", new Timestamp(new java.util.Date().getTime()));
-			rs.updateString("notes", block.getNotes());
-			if (newBlock) {
-				if(block.getDateCreated() == null)
-					rs.updateTimestamp("dateEntered", new Timestamp(System.currentTimeMillis()));
-				else
-					rs.updateTimestamp("dateEntered", new Timestamp(block.getDateCreated().getTime()));
-			}
-			
-			if (!newBlock) {
-				rs.updateRow();
-			} else {
-				rs.insertRow();
-				rs.last();
-				block.setID( rs.getInt("id") );
-			}
+            block.setDateCreated(new java.util.Date(System.currentTimeMillis()));
+            stmt.setTimestamp(8, new Timestamp(block.getDateCreated().getTime()));
 
-			rs.close(); rs = null;
-			stmt.close(); stmt = null;
-			conn.close(); conn = null;
+            if(block.getUpdaterResearcherID() != 0)
+            {
+                stmt.setInt(9, block.getUpdaterResearcherID());
+            }
+            else
+            {
+                stmt.setNull(9, Types.INTEGER);
+            }
 
-		} finally {
+            stmt.setString(10, block.getNotes());
 
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
-		}
+            stmt.executeUpdate();
+            rs = stmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                block.setID(rs.getInt(1));
+            }
+            else
+            {
+                throw new SQLException("Error inserting row in instrumentBlock table. No auto-generated ID returned.");
+            }
+
+        } finally {
+
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(rs != null) try {rs.close();} catch(SQLException e){}
+        }
+    }
+	public void save(UsageBlockBase block) throws Exception
+    {
+        Connection conn = null;
+        try
+        {
+            conn = getConnection();
+            save(conn, block);
+        }
+        finally {
+
+            if(conn != null) try {conn.close();} catch(SQLException e){}
+        }
 	}
 
 	public void updateBlocksDates(List<? extends UsageBlockBase> blocks) throws Exception {

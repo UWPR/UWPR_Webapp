@@ -13,33 +13,15 @@ import org.yeastrc.project.payment.PaymentMethod;
  * Jun 2, 2011
  * 
  */
-public class InstrumentUsagePayment {
+public class InstrumentUsagePayment extends Payment{
 
 	private int instrumentUsageId;
-	private PaymentMethod paymentMethod;
-	private BigDecimal percent;
-	
+
 	public int getInstrumentUsageId() {
 		return instrumentUsageId;
 	}
 	
 	public void setInstrumentUsageId(int instrumentUsageId) {
 		this.instrumentUsageId = instrumentUsageId;
-	}
-	
-	public PaymentMethod getPaymentMethod() {
-		return paymentMethod;
-	}
-
-	public void setPaymentMethod(PaymentMethod paymentMethod) {
-		this.paymentMethod = paymentMethod;
-	}
-
-	public BigDecimal getPercent() {
-		return percent;
-	}
-	
-	public void setPercent(BigDecimal percent) {
-		this.percent = percent;
 	}
 }

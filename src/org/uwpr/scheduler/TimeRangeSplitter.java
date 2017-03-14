@@ -35,7 +35,7 @@ public class TimeRangeSplitter {
 		if(blocks == null || blocks.size() == 0) {
 			throw new SchedulerException("Cannot split date range into time blocks. No time blocks were given");
 		}
-		// sort the blocks by time (ascending) and then length (descending)
+		// sort the blocks by length (descending)
 		Collections.sort(blocks, Collections.reverseOrder(new TimeBlockComparatorByLength()));
 		
 		List<TimeBlock> rangeBlocks = new ArrayList<TimeBlock>();

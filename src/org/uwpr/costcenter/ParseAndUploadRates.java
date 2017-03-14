@@ -398,6 +398,8 @@ public class ParseAndUploadRates
         dataSource.setUrl("jdbc:mysql://localhost/mainDb");
         dataSource.setUsername("root");
         dataSource.setPassword("earendil");
+        //dataSource.setUsername("uwpr_user");
+        //dataSource.setPassword("Am9btpFd");
         dataSource.setMaxActive(10);
     }
 

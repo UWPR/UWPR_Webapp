@@ -25,7 +25,9 @@ public class InstrumentRate {
 	private Date createDate;
 	private boolean isCurrent = false;
 	
-	
+	public static BigDecimal SIGNUP_PERC = new BigDecimal("0.10");
+	public static BigDecimal INSTRUMENT_PERC = new BigDecimal("0.90");
+
 	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 	
 	public int getId() {
@@ -52,6 +54,17 @@ public class InstrumentRate {
 	public void setRate(BigDecimal rate) {
 		this.rate = rate;
 	}
+
+	public BigDecimal getSignupFee()
+	{
+		return rate.multiply(SIGNUP_PERC);
+	}
+
+	public BigDecimal getInstrumentFee()
+	{
+		return rate.multiply(INSTRUMENT_PERC);
+	}
+
 	public TimeBlock getTimeBlock() {
 		return timeBlock;
 	}

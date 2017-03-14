@@ -41,10 +41,14 @@ public class PaymentMethod {
 	private boolean isCurrent;
 	private boolean federalFunding;
     private BigDecimal poAmount;
-    private BigDecimal totalCost;
+
     private BigDecimal invoicedCost;
 	
 	private static final BigDecimal ZERO = new BigDecimal("0").setScale(1);
+
+	private BigDecimal signupFee = ZERO;
+	private BigDecimal instrumentCost = ZERO;
+	// private BigDecimal totalCost;
 
 	public static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
@@ -195,12 +199,26 @@ public class PaymentMethod {
     }
 
     public BigDecimal getTotalCost() {
-        return totalCost != null ? totalCost : ZERO;
+        return signupFee.add(instrumentCost);
     }
 
-    public void setTotalCost(BigDecimal totalCost) {
-        this.totalCost = totalCost;
+	public BigDecimal getInstrumentCost()
+	{
+		return instrumentCost;
+	}
+	public BigDecimal getSignupFee()
+	{
+		return signupFee;
+	}
+
+    public void setInstrumentCost(BigDecimal instrumentCost) {
+        this.instrumentCost = instrumentCost;
     }
+
+	public void setSignupFee(BigDecimal signupFee)
+	{
+		this.signupFee = signupFee;
+	}
 
     public BigDecimal getInvoicedCost() {
         return invoicedCost != null ? invoicedCost : ZERO;
