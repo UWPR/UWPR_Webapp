@@ -12,7 +12,12 @@ import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,9 @@ public class InstrumentSignupDAO
 
 	private static final Logger log = Logger.getLogger(InstrumentSignupDAO.class);
 
+	private static final String BLOCK_SQL = "INSERT INTO instrumentSignupBlock (instrumentSignupId, instrumentRateId, startDate, endDate) VALUES (?,?,?,?)";
+	private static final String PAYMENT_SQL = "INSERT INTO instrumentSignupPayment (instrumentSignupId, paymentMethodId, percentPayment) VALUES (?,?,?)";
+
 	private InstrumentSignupDAO() {}
 	
 	public static InstrumentSignupDAO getInstance() {
@@ -38,7 +46,7 @@ public class InstrumentSignupDAO
 		return DBConnectionManager.getMainDbConnection();
 	}
 
-    public void save(Connection conn, InstrumentSignup signup, int researcherId) throws Exception
+    public void save(Connection conn, InstrumentSignup signup) throws Exception
     {
         if (signup == null)
             return;
@@ -51,17 +59,15 @@ public class InstrumentSignupDAO
 		ResultSet rs = null;
 
 		String signupSql = "INSERT INTO instrumentSignup (projectId, instrumentId, startDate, endDate, createdBy) VALUES (?,?,?,?,?)";
-		String blockSql = "INSERT INTO instrumentSignupBlock (instrumentSignupId, instrumentRateId, startDate, endDate) VALUES (?,?,?,?)";
-		String paymentSql = "INSERT INTO instrumentSignupPayment (instrumentSignupId, paymentMethodId, percentPayment) VALUES (?,?,?)";
 
         try {
 
 			signupStmt = conn.prepareStatement(signupSql, Statement.RETURN_GENERATED_KEYS);
 			signupStmt.setInt(1, signup.getProjectID());
 			signupStmt.setInt(2, signup.getInstrumentID());
-			signupStmt.setTimestamp(3, new java.sql.Timestamp(signup.getStartDate().getTime()));
-			signupStmt.setTimestamp(4, new java.sql.Timestamp(signup.getEndDate().getTime()));
-			signupStmt.setInt(5, researcherId);
+			signupStmt.setTimestamp(3, makeTimestamp(signup.getStartDate()));
+			signupStmt.setTimestamp(4, makeTimestamp(signup.getEndDate()));
+			signupStmt.setInt(5, signup.getCreatedBy());
 			int insertCount = signupStmt.executeUpdate();
 			if(insertCount == 0)
 			{
@@ -78,26 +84,9 @@ public class InstrumentSignupDAO
 				throw new SQLException("Error inserting row in instrumentSignup table. No auto-generated ID returned.");
 			}
 
-			blockStmt = conn.prepareStatement(blockSql);
-			for(SignupBlock blk: signup.getBlocks())
-			{
-				blk.setInstrumentSignupId(signup.getId());
-				blockStmt.setInt(1, blk.getInstrumentSignupId());
-				blockStmt.setInt(2, blk.getInstrumentRateId());
-				blockStmt.setTimestamp(3, new java.sql.Timestamp(blk.getStartDate().getTime()));
-				blockStmt.setTimestamp(4, new java.sql.Timestamp(blk.getEndDate().getTime()));
-				blockStmt.executeUpdate();
-			}
+			blockStmt = insertBlocks(conn, signup);
 
-			paymentStmt = conn.prepareStatement(paymentSql);
-			for(SignupPayment payment: signup.getPayments())
-			{
-				payment.setInstrumentSignupId(signup.getId());
-				paymentStmt.setInt(1, payment.getInstrumentSignupId());
-				paymentStmt.setInt(2, payment.getPaymentMethod().getId());
-				paymentStmt.setBigDecimal(3, payment.getPercent());
-				paymentStmt.executeUpdate();
-			}
+			paymentStmt = insertPayments(conn, signup);
 
         } finally {
 
@@ -108,7 +97,94 @@ public class InstrumentSignupDAO
         }
     }
 
-	public void deleteSignup(Connection conn, List<InstrumentSignupGeneric> signupList) throws Exception {
+	private PreparedStatement insertPayments(Connection conn, InstrumentSignup signup) throws SQLException
+	{
+		PreparedStatement paymentStmt;
+		paymentStmt = conn.prepareStatement(PAYMENT_SQL);
+		for(SignupPayment payment: signup.getPayments())
+        {
+            payment.setInstrumentSignupId(signup.getId());
+            paymentStmt.setInt(1, payment.getInstrumentSignupId());
+            paymentStmt.setInt(2, payment.getPaymentMethod().getId());
+            paymentStmt.setBigDecimal(3, payment.getPercent());
+            paymentStmt.executeUpdate();
+        }
+		return paymentStmt;
+	}
+
+	private PreparedStatement insertBlocks(Connection conn, InstrumentSignup signup) throws SQLException
+	{
+		PreparedStatement blockStmt;
+		blockStmt = conn.prepareStatement(BLOCK_SQL);
+		for(SignupBlock blk: signup.getBlocks())
+        {
+            blk.setInstrumentSignupId(signup.getId());
+            blockStmt.setInt(1, blk.getInstrumentSignupId());
+            blockStmt.setInt(2, blk.getInstrumentRateId());
+            blockStmt.setTimestamp(3, makeTimestamp(blk.getStartDate()));
+            blockStmt.setTimestamp(4, makeTimestamp(blk.getEndDate()));
+            blockStmt.executeUpdate();
+        }
+		return blockStmt;
+	}
+
+	public void updateSignup(Connection conn, InstrumentSignup signup, boolean updateBlocks, boolean updatePayments) throws Exception
+	{
+		if (signup == null)
+			return;
+
+		log.info(String.format("Updating signup block for project: %d, instrument: %d", signup.getProjectID(), signup.getInstrumentID()));
+
+
+		if(updateBlocks)
+		{
+			// Delete all blocks
+			deleteSignupBlocks(conn, signup);
+		}
+		if(updatePayments)
+		{
+			deletePayments(conn, signup);
+		}
+
+		PreparedStatement signupStmt = null;
+		PreparedStatement blockStmt = null;
+		PreparedStatement paymentStmt = null;
+
+		String signupSql = "UPDATE instrumentSignup SET projectId = ?, instrumentId = ?, startDate = ?, endDate = ? WHERE id=?";
+
+		try {
+
+			signupStmt = conn.prepareStatement(signupSql);
+			signupStmt.setInt(1, signup.getProjectID());
+			signupStmt.setInt(2, signup.getInstrumentID());
+			signupStmt.setTimestamp(3, makeTimestamp(signup.getStartDate()));
+			signupStmt.setTimestamp(4, makeTimestamp(signup.getEndDate()));
+			signupStmt.setInt(5, signup.getId());
+			int updateCount = signupStmt.executeUpdate();
+			if(updateCount == 0)
+			{
+				throw new SQLException("Failed to update row in instrumentSignup table for id " + signup.getBlocks());
+			}
+
+			if(updateBlocks)
+			{
+				blockStmt = insertBlocks(conn, signup);
+			}
+
+			if(updatePayments)
+			{
+				paymentStmt = insertPayments(conn, signup);
+			}
+
+		} finally {
+
+			if(signupStmt != null) try {signupStmt.close();} catch(SQLException ognored){}
+			if(blockStmt != null) try {blockStmt.close();} catch(SQLException ognored){}
+			if(paymentStmt != null) try {paymentStmt.close();} catch(SQLException ognored){}
+		}
+	}
+
+	public <T extends InstrumentSignupGeneric> void deleteSignup(Connection conn, List<T> signupList) throws Exception {
 
 		if (signupList == null || signupList.size() == 0)
 			return;
@@ -120,10 +196,13 @@ public class InstrumentSignupDAO
 		{
 			for(InstrumentSignupGeneric signup: signupList)
 			{
+				checkIsSignupInvoiced(conn, signup);
+
+				log.info("Deleting signup: " + signup.toString());
+
 				// NOTE: There is a trigger on instrumentSignup that will delete all rows in the
 				//       instrumentSignupBlock and  instrumentSignupPayment tables where instrumentSignupId is equal to
 				//       the given signup id
-				log.info("Deleting signup: " + signup.toString());
 				stmt = conn.prepareStatement(deleteSql);
 				stmt.setInt(1, signup.getId());
 				stmt.executeUpdate();
@@ -135,19 +214,87 @@ public class InstrumentSignupDAO
 		}
 	}
 
-    public List<InstrumentSignupGeneric> getExistingSignup(InstrumentSignupGeneric signup) throws SQLException
+	private void deleteSignupBlocks(Connection conn, InstrumentSignupGeneric signup) throws Exception
 	{
-		return getExistingSignup(signup.getStartDate(), signup.getEndDate());
+		PreparedStatement stmt = null;
+
+		String deleteSql = "DELETE FROM instrumentSignupBlock WHERE instrumentSignupId=?";
+
+		log.info("Deleting signup blocks for signupId: " + signup.toString());
+
+		try
+		{
+			checkIsSignupInvoiced(conn, signup);
+
+			stmt = conn.prepareStatement(deleteSql);
+			stmt.setInt(1, signup.getId());
+			stmt.executeUpdate();
+
+		}
+		finally
+		{
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
 	}
 
-	public List<InstrumentSignupGeneric> getExistingSignup(java.util.Date startDate, java.util.Date endDate) throws SQLException
+	private void checkIsSignupInvoiced(Connection conn, InstrumentSignupGeneric signup) throws Exception
+	{
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		String getInvoicedBlocksSql = "SELECT count(*) FROM invoiceSignupBlock iv INNER JOIN instrumentSignupBlock isb ON (isb.id = iv.instrumentSignupBlockId) "
+				+ " INNER JOIN instrumentSignup i ON (isb.instrumentSignupId = i.id) WHERE i.id=?";
+
+		log.info("Looking for invoiced signup blocks for signup: " + signup.getId());
+
+		try {
+			// If any of the existing blocks have already been invoiced throw an error
+			stmt = conn.prepareStatement(getInvoicedBlocksSql);
+			stmt.setInt(1, signup.getId());
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				int count = rs.getInt(1);
+				if (count > 0) {
+					throw new Exception(count + " signup blocks have already been invoiced for signup " + signup.toString());
+				}
+			}
+		}
+		finally
+		{
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
+	}
+
+	private void deletePayments(Connection conn, InstrumentSignupGeneric signup) throws Exception
+	{
+		PreparedStatement stmt = null;
+
+		String deleteSql = "DELETE FROM instrumentSignupPayment WHERE instrumentSignupId=?";
+
+		log.info("Deleting payment methods for signupId: " + signup.toString());
+
+		try
+		{
+			stmt = conn.prepareStatement(deleteSql);
+			stmt.setInt(1, signup.getId());
+			stmt.executeUpdate();
+
+		}
+		finally
+		{
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
+
+	public List<InstrumentSignup> getExistingSignup(java.util.Date startDate, java.util.Date endDate) throws SQLException
 	{
 		String sql = "SELECT * FROM instrumentSignup WHERE startDate < ? AND endDate > ? ORDER BY startDate ASC";
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
-		List<InstrumentSignupGeneric> existingSignup = new ArrayList<InstrumentSignupGeneric>();
+		List<InstrumentSignup> existingSignup = new ArrayList<InstrumentSignup>();
 
 		try
 		{
@@ -159,13 +306,13 @@ public class InstrumentSignupDAO
 
 			while(rs.next())
 			{
-				InstrumentSignupGeneric su = new InstrumentSignupGeneric();
+				InstrumentSignup su = new InstrumentSignup();
 				su.setId(rs.getInt("Id"));
 				su.setInstrumentID(rs.getInt("instrumentId"));
 				su.setProjectId(rs.getInt("projectId"));
-				su.setStartDate(rs.getTimestamp("startDate"));
-				su.setEndDate(rs.getTimestamp("endDate"));
-				su.setDateCreated(rs.getTimestamp("created"));
+				su.setStartDate(makeDate(rs.getTimestamp("startDate")));
+				su.setEndDate(makeDate(rs.getTimestamp("endDate")));
+				su.setDateCreated(makeDate(rs.getTimestamp("created")));
 				su.setCreatedBy(rs.getInt("createdBy"));
 				existingSignup.add(su);
 			}
@@ -180,7 +327,7 @@ public class InstrumentSignupDAO
 		return existingSignup;
 	}
 
-	private List<InstrumentSignupWithRate> getSignup(int projectId, int instrumentId, Date startDate, Date endDate, boolean complete) throws SQLException {
+	private List<InstrumentSignupWithRate> getSignup(int projectId, int instrumentId, java.util.Date startDate, java.util.Date endDate, boolean complete) throws SQLException {
 
 		List<InstrumentSignupWithRate> signupList = new ArrayList<InstrumentSignupWithRate>();
 
@@ -218,11 +365,11 @@ public class InstrumentSignupDAO
 			}
 			if(startDate != null)
 			{
-				stmt.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
+				stmt.setTimestamp(1, makeTimestamp(startDate));
 			}
 			if(endDate != null)
 			{
-				stmt.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
+				stmt.setTimestamp(2, makeTimestamp(endDate));
 			}
 
 			rs = stmt.executeQuery();
@@ -233,9 +380,9 @@ public class InstrumentSignupDAO
 				su.setId(rs.getInt("Id"));
 				su.setInstrumentID(rs.getInt("instrumentId"));
 				su.setProjectId(rs.getInt("projectId"));
-				su.setStartDate(rs.getTimestamp("startDate"));
-				su.setEndDate(rs.getTimestamp("endDate"));
-				su.setDateCreated(rs.getTimestamp("created"));
+				su.setStartDate(makeDate(rs.getTimestamp("startDate")));
+				su.setEndDate(makeDate(rs.getTimestamp("endDate")));
+				su.setDateCreated(makeDate(rs.getTimestamp("created")));
 				su.setCreatedBy(rs.getInt("createdBy"));
 				signupList.add(su);
 			}
@@ -259,18 +406,7 @@ public class InstrumentSignupDAO
 
 	public List<InstrumentSignupWithRate> getSignup(SignupFilter filter) throws SQLException
 	{
-		java.sql.Date startDate = null;
-		if(filter.getStartDate() != null)
-		{
-			startDate = new java.sql.Date(filter.getStartDate().getTime());
-		}
-
-		java.sql.Date endDate = null;
-		if(filter.getEndDate() != null)
-		{
-			endDate = new java.sql.Date(filter.getEndDate().getTime());
-		}
-		return getSignup(filter.getProjectId(), filter.getInstrumentId(), startDate, endDate, true);
+		return getSignup(filter.getProjectId(), filter.getInstrumentId(), filter.getStartDate(), filter.getEndDate(), true);
 	}
 
 	private <T extends SignupBlock> List<T> getSignupBlocks(Connection conn, int instrumentSignupId, SignupBlockFactory<T> blockCreator) throws SQLException {
@@ -292,8 +428,8 @@ public class InstrumentSignupDAO
 				block.setId(rs.getInt("Id"));
 				block.setInstrumentSignupId(rs.getInt("instrumentSignupId"));
 				block.setInstrumentRateId(rs.getInt("instrumentRateId"));
-				block.setStartDate(rs.getTimestamp("startDate"));
-				block.setEndDate(rs.getTimestamp("endDate"));
+				block.setStartDate(makeDate(rs.getTimestamp("startDate")));
+				block.setEndDate(makeDate(rs.getTimestamp("endDate")));
 				blocks.add(block);
 
 				// block.setPayments(getPaymentMethods(conn, block.getId()));
@@ -380,8 +516,8 @@ public class InstrumentSignupDAO
 			{
 				stmt.setInt(1, block.getProjectID());
 				stmt.setInt(2, block.getInstrumentID());
-				stmt.setTimestamp(3, new java.sql.Timestamp(block.getStartDate().getTime()));
-				stmt.setTimestamp(4, new java.sql.Timestamp(block.getEndDate().getTime()));
+				stmt.setTimestamp(3, makeTimestamp(block.getStartDate()));
+				stmt.setTimestamp(4, makeTimestamp(block.getEndDate()));
 				stmt.setInt(5, block.getResearcherID());
 			}
 			stmt.executeUpdate();
@@ -390,5 +526,15 @@ public class InstrumentSignupDAO
 		{
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
+	}
+
+	private java.util.Date makeDate(Timestamp timestamp)
+	{
+		return new java.util.Date(timestamp.getTime());
+	}
+
+	private java.sql.Timestamp makeTimestamp(java.util.Date date)
+	{
+		return new Timestamp(date.getTime());
 	}
 }

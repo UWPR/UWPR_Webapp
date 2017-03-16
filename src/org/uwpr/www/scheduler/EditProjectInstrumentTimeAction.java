@@ -9,6 +9,7 @@ import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
+import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
@@ -16,6 +17,8 @@ import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -380,12 +383,46 @@ public class EditProjectInstrumentTimeAction extends Action {
 							"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+usageBlockIdString);
 				}
     		}
-    		
-			String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForBilledProject(allBlocks, paymentInfo);
-			if(errorMessage != null)
-				return returnError(mapping, request, "scheduler", 
-						new ActionMessage("error.costcenter.invaliddata", errorMessage),
-						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+
+			Connection conn = null;
+			try {
+				conn = DBConnectionManager.getMainDbConnection();
+				conn.setAutoCommit(false);
+
+				// Note: this will update signup tables as well.
+				String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForBilledProject(conn, allBlocks, paymentInfo);
+				if (errorMessage != null)
+					return returnError(mapping, request, "scheduler",
+							new ActionMessage("error.costcenter.invaliddata", errorMessage),
+							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+
+				// Delete the old blocks
+				List<Integer> blockIds = new ArrayList<>(blocksToDelete.size());
+				for (UsageBlockBase usageBlock : blocksToDelete) {
+					blockIds.add(usageBlock.getID());
+				}
+				try {
+					InstrumentUsageDAO.getInstance().delete(conn, blockIds);
+				}
+
+				catch (Exception e) {
+					return returnError(mapping, request, "scheduler",
+							new ActionMessage("error.costcenter.delete", e.getMessage()),
+							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+				}
+
+				conn.commit();
+			}
+			catch(Exception e)
+			{
+				return returnError(mapping, request, "scheduler",
+						new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks"),
+						"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+			}
+			finally
+			{
+				if(conn != null) try {conn.close();} catch(SQLException ignored){}
+			}
 		}
 		else {
 			String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForSubsidizedProject(allBlocks);
@@ -393,21 +430,19 @@ public class EditProjectInstrumentTimeAction extends Action {
 				return returnError(mapping, request, "scheduler", 
 						new ActionMessage("error.costcenter.invaliddata", errorMessage),
 						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+
+			// Delete the old blocks
+			for (UsageBlockBase usageBlock : blocksToDelete) {
+
+				try {
+					InstrumentUsageDAO.getInstance().delete(usageBlock.getID());
+				} catch (Exception e) {
+					return returnError(mapping, request, "scheduler",
+							new ActionMessage("error.costcenter.delete", e.getMessage()),
+							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+				}
+			}
 		}
-    	
-    	// Delete the old blocks
-        for(UsageBlockBase usageBlock: blocksToDelete) {
-        	
-        	try {
-        		InstrumentUsageDAO.getInstance().delete(usageBlock.getID());
-        	}
-        	catch(Exception e) {
-        		return returnError(mapping, request, "scheduler", 
-						new ActionMessage("error.costcenter.delete", e.getMessage()),
-						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-        	}
-        }
-        
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);

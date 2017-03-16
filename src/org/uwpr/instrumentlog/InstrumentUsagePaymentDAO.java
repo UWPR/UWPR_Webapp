@@ -146,17 +146,26 @@ public class InstrumentUsagePaymentDAO {
 
 	public void deletePaymentsForUsage (int instrumentUsageId) throws SQLException {
 
-		String sql = "DELETE FROM instrumentUsagePayment where instrumentUsageID="+instrumentUsageId;
 		Connection conn = null;
+
+		try {
+			deletePaymentsForUsage(conn, instrumentUsageId);
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+	public void deletePaymentsForUsage (Connection conn, int instrumentUsageId) throws SQLException {
+
+		String sql = "DELETE FROM instrumentUsagePayment where instrumentUsageID="+instrumentUsageId;
 		PreparedStatement stmt = null;
 
 		try {
-			conn = getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmt.executeUpdate();
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
 	}

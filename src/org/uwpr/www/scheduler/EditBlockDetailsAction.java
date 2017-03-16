@@ -12,6 +12,7 @@ import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.PatternToDateConverter;
 import org.uwpr.scheduler.SchedulerException;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
+import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.Researcher;
@@ -24,6 +25,8 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -211,44 +214,56 @@ public class EditBlockDetailsAction extends Action {
             }
         }
 
-        // TODO: This has to be in a transaction
-        // Delete the old payment methods and add new ones
-        for(UsageBlockBase block: blocksToUpdate)
-        {
-            paymentDao.deletePaymentsForUsage(block.getID());
+        Connection conn = null;
+        try {
+            conn = DBConnectionManager.getMainDbConnection();
+            conn.setAutoCommit(false);
 
-            for(EditBlockDetailsForm.PaymentPercent paymentPercent: paymentPercentList)
-            {
-                if(paymentPercent.getPaymentPercentInteger() == 0.0)
-                    continue;
+            // Delete the old payment methods and add new ones
+            for (UsageBlockBase block : blocksToUpdate) {
+                paymentDao.deletePaymentsForUsage(conn, block.getID());
 
-                InstrumentUsagePayment iup = new InstrumentUsagePayment();
-                iup.setInstrumentUsageId(block.getID());
-                PaymentMethod paymentMethod = paymentMethodMap.get(paymentPercent.getPaymentMethodId());
-                iup.setPaymentMethod(paymentMethod);
-                iup.setPercent(BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()));
-                paymentDao.savePayment(iup);
+                for (EditBlockDetailsForm.PaymentPercent paymentPercent : paymentPercentList) {
+                    if (paymentPercent.getPaymentPercentInteger() == 0.0)
+                        continue;
+
+                    InstrumentUsagePayment iup = new InstrumentUsagePayment();
+                    iup.setInstrumentUsageId(block.getID());
+                    PaymentMethod paymentMethod = paymentMethodMap.get(paymentPercent.getPaymentMethodId());
+                    iup.setPaymentMethod(paymentMethod);
+                    iup.setPercent(BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()));
+                    paymentDao.savePayment(conn, iup);
+                }
             }
-        }
 
-        // If the project or instrument operator associated with the blocks have changed, update the blocks in the database
-        List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
-        for(UsageBlockBase blk: blocksToUpdate)
-        {
-            if(blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentID() != instrumentOperatorId))
-            {
-                blk.setProjectID(projectId);
-                blk.setInstrumentOperatorId(instrumentOperatorId);
-                changedBlocks.add(blk);
+            // If the project associated with the blocks have changed, update the blocks in the database
+            List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
+            for (UsageBlockBase blk : blocksToUpdate) {
+                if (blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentID() != instrumentOperatorId)) {
+                    blk.setProjectID(projectId);
+                    blk.setInstrumentOperatorId(instrumentOperatorId);
+                    changedBlocks.add(blk);
+                }
             }
+            InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
+            instrumentUsageDAO.updateBlocksProjectAndOperator(conn, changedBlocks);
+
+            // TODO: Update the instrument signup
+            List<InstrumentSignup> signupList = InstrumentSignupDAO.getInstance().getExistingSignup(blocksToUpdate.get(0).getStartDate(),
+                    blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate());
+
+            conn.commit();
         }
-        InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
-        instrumentUsageDAO.updateBlocksProjectAndOperator(changedBlocks);
-
-        // TODO: Update the instrument signup
-        List<InstrumentSignupGeneric> signupList = InstrumentSignupDAO.getInstance().getExistingSignup(blocksToUpdate.get(0).getStartDate(),
-                                                                                                       blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate());
-
+        catch(Exception e)
+        {
+            return returnError(mapping, request, "scheduler",
+                    new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks"),
+                    "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+        }
+        finally
+        {
+            if(conn != null) {try {conn.close();} catch(SQLException ignored){}};
+        }
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);

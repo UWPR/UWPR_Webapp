@@ -76,11 +76,3 @@ FOR EACH ROW
 |
 DELIMITER ;
 
-DELIMITER |
-CREATE TRIGGER instrumentSignupBlock_bdelete BEFORE DELETE ON instrumentSignupBlock
-FOR EACH ROW
-  BEGIN
-    DELETE FROM invoiceSignupBlock WHERE instrumentSignupBlockId = OLD.id;
-  END;
-|
-DELIMITER ;

@@ -138,16 +138,14 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-    public void updateBlocksProjectAndOperator(List<? extends UsageBlockBase> blocks) throws Exception {
+    public void updateBlocksProjectAndOperator(Connection conn, List<? extends UsageBlockBase> blocks) throws Exception {
 
         if (blocks == null || blocks.size() == 0)
             return;
 
         log.info("Updating usage blocks (project and instrument operator) on instrument: " + blocks.get(0).getInstrumentID());
 
-
-        Connection conn = null;
-        PreparedStatement stmt = null;
+		PreparedStatement stmt = null;
         ResultSet rs = null;
 
         StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
@@ -157,8 +155,6 @@ public class InstrumentUsageDAO {
         sql.append(" WHERE id = ?");
         try {
 
-            conn = getConnection();
-            conn.setAutoCommit(false);
             stmt = conn.prepareStatement(sql.toString());
 
             for(UsageBlockBase block: blocks)
@@ -169,11 +165,9 @@ public class InstrumentUsageDAO {
                 stmt.setInt(4, block.getID());
                 stmt.executeUpdate();
             }
-            conn.commit();
 
         } finally {
 
-            if(conn != null) try {conn.close();} catch(SQLException e){}
             if(stmt != null) try {stmt.close();} catch(SQLException e){}
             if(rs != null) try {rs.close();} catch(SQLException e){}
         }
@@ -283,12 +277,33 @@ public class InstrumentUsageDAO {
 		//       the given usageId
 
 		Connection conn = null;
+
+		try
+		{
+			conn = getConnection();
+			conn.setAutoCommit(false);
+			delete(conn, usageIds);
+			conn.commit();
+
+		} finally
+		{
+
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException ignored) { ; }
+			}
+		}
+	}
+
+	public void delete(Connection conn, List<Integer> usageIds) throws SQLException {
+
+		// NOTE: There is a trigger on instrumentUsage table that will
+		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to
+		//       the given usageId
+
 		PreparedStatement stmt = null;
 		String sql = "DELETE FROM instrumentUsage WHERE id=?";
 
 		try {
-			conn = getConnection();
-			conn.setAutoCommit(false);
 			stmt = conn.prepareStatement( sql );
 
 			for(Integer usageId: usageIds)
@@ -296,7 +311,6 @@ public class InstrumentUsageDAO {
 				stmt.setInt(1, usageId);
 				stmt.executeUpdate();
 			}
-			conn.commit();
 
 		} finally {
 
@@ -304,9 +318,6 @@ public class InstrumentUsageDAO {
 			// and the connection is returned to the pool
 			if (stmt != null) {
 				try { stmt.close(); } catch (SQLException ignored) { ; }
-			}
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException ignored) { ; }
 			}
 		}
 	}
