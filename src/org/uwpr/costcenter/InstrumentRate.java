@@ -6,11 +6,13 @@
 package org.uwpr.costcenter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import org.uwpr.instrumentlog.MsInstrument;
+import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 
 /**
  * 
@@ -57,12 +59,30 @@ public class InstrumentRate {
 
 	public BigDecimal getSignupFee()
 	{
-		return rate.multiply(SIGNUP_PERC);
+		return getSignupCost(this.rate);
 	}
 
 	public BigDecimal getInstrumentFee()
 	{
-		return rate.multiply(INSTRUMENT_PERC);
+		return getInstrumentCost(this.rate);
+	}
+
+	public BigDecimal getCost(UsageBlockBaseFilter.BlockType blockType)
+	{
+		if(blockType == UsageBlockBaseFilter.BlockType.ALL)
+		{
+			return this.rate;
+		}
+		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
+		{
+			return getSignupFee();
+		}
+		else if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
+		{
+			return getInstrumentFee();
+		}
+		else
+			return BigDecimal.ZERO;
 	}
 
 	public TimeBlock getTimeBlock() {
@@ -85,5 +105,15 @@ public class InstrumentRate {
 	}
 	public void setCurrent(boolean isCurrent) {
 		this.isCurrent = isCurrent;
+	}
+
+	public static BigDecimal getSignupCost(BigDecimal rate)
+	{
+		return rate.multiply(SIGNUP_PERC).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	public static BigDecimal getInstrumentCost(BigDecimal rate)
+	{
+		return rate.multiply(INSTRUMENT_PERC).setScale(2, RoundingMode.HALF_UP);
 	}
 }

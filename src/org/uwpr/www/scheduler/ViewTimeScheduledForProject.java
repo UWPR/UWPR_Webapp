@@ -18,6 +18,8 @@ import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -155,6 +157,7 @@ public class ViewTimeScheduledForProject extends Action {
         filter.setEndDate(endDate);
         filter.setContainedInRange(false);
         filter.setTrimToFit(false);
+        filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL); // We want both types of blocks (sign-up only AND sign-up + instrument usage)
 
         ((TimeScheduledFilterForm)form).setFilterCriteria(filter);
 
@@ -172,40 +175,35 @@ public class ViewTimeScheduledForProject extends Action {
                     return val;
             }
         });
-
-        // Get the sign up blocks
-        SignupFilter sFilter = new SignupFilter();
-        sFilter.setProjectId(projectId);
-        sFilter.setInstrumentId(instrumentId);
-        sFilter.setPaymentMethodId(paymentMethodId);
-        sFilter.setContainedInRange(false);
-        sFilter.setStartDate(startDate);
-        sFilter.setEndDate(endDate);
-        List<InstrumentSignupWithRate> signupBlocks = InstrumentSignupDAO.getInstance().getSignup(sFilter);
-        Collections.sort(signupBlocks, new Comparator<InstrumentSignupWithRate>(){
-            @Override
-            public int compare(InstrumentSignupWithRate o1, InstrumentSignupWithRate o2)
-            {
-                int val = Integer.valueOf(o1.getInstrumentID()).compareTo(o2.getInstrumentID());
-                if (val == 0)
-                    return o1.getStartDate().compareTo(o2.getStartDate());
-                else
-                    return val;
-            }
-        });
         
         request.setAttribute("project", project);
         request.setAttribute("usageBlocks", usageBlocks);
 
-        int totalHours = 0;
-        double totalCost = 0;
+        int totalSignupHours = 0;
+        int totalInstrumentHours = 0;
+        BigDecimal signupCost = BigDecimal.ZERO;
+        BigDecimal instrumentCost = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
+
         for(UsageBlock block: usageBlocks)
         {
-            totalCost += block.getRate().doubleValue();
-            totalHours += block.getHours();
+            int hours = block.getHours();
+            totalCost = totalCost.add(block.getTotalCost());
+            signupCost = signupCost.add(block.getSignupCost());
+            instrumentCost = instrumentCost.add(block.getInstrumentCost());
+
+            totalSignupHours += hours;
+
+            if(!block.isDeleted())
+            {
+                totalInstrumentHours += hours;
+            }
         }
-        request.setAttribute("totalCost", totalCost);
-        request.setAttribute("totalHours", totalHours);
+        request.setAttribute("totalCost", totalCost.setScale(2, RoundingMode.HALF_UP));
+        request.setAttribute("signupCost", signupCost.setScale(2, RoundingMode.HALF_UP));
+        request.setAttribute("instrumentCost", instrumentCost.setScale(2, RoundingMode.HALF_UP));
+        request.setAttribute("signupHours", totalSignupHours);
+        request.setAttribute("instrumentHours", totalInstrumentHours);
 
         List<MsInstrument> instrumentList = MsInstrumentUtils.instance().getMsInstruments();
         List<PaymentMethod> paymentMethods;

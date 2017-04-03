@@ -23,12 +23,4 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 	public void setRate(InstrumentRate rate) {
 		this.rate = rate;
 	}
-	
-	public UsageBlockBaseWithRate copy() {
-        
-		UsageBlockBaseWithRate blk = new UsageBlockBaseWithRate();
-        super.copy(blk);
-        blk.setRate(this.rate);
-        return blk;
-    }
 }

@@ -7,10 +7,13 @@ package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
+import org.uwpr.costcenter.InvoiceInstrumentUsage;
+import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -129,7 +132,11 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 			instrumentId = usageBlock.getInstrumentID();
         }
 
-		InstrumentUsageDAO.getInstance().delete(usageBlockIds);
+		// This action is called via the calendar.  The requested blocks will be marked as deleted, but will not be actually deleted.
+		// Complete deletion of a block is only possible via DeleteProjectInstrumentTimeAction, and only by admins
+
+		// Mark the usage as deleted but don't delete the rows so that this can be billed as signup
+		InstrumentUsageDAO.getInstance().markDeleted(usageBlockIds, user.getResearcher());
 
 		// Email admins
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(instrumentId);

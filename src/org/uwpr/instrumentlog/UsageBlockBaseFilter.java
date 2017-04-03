@@ -17,6 +17,10 @@ public class UsageBlockBaseFilter
     private boolean trimToFit;
     private String sortColumn;
 
+    private BlockType blockType = BlockType.INSTRUMENT_USAGE; // Default is to only get instrument usage blocks
+
+    public enum BlockType {ALL, SIGNUP_ONLY, INSTRUMENT_USAGE};
+
     public Date getEndDate()
     {
         return endDate;
@@ -105,5 +109,15 @@ public class UsageBlockBaseFilter
     public void setSortColumn(String sortColumn)
     {
         this.sortColumn = sortColumn;
+    }
+
+    public void setBlockType(BlockType type)
+    {
+        this.blockType = type;
+    }
+    
+    public BlockType getBlockType()
+    {
+        return this.blockType;
     }
 }

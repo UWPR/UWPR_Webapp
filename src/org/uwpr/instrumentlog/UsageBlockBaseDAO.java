@@ -112,6 +112,7 @@ public class UsageBlockBaseDAO
         blk.setDateCreated(rs.getTimestamp("dateEntered"));
         blk.setDateChanged(rs.getTimestamp("lastChanged"));
         blk.setNotes(rs.getString("notes"));
+        blk.setDeleted(rs.getBoolean("deleted"));
         return blk;
     }
 
@@ -157,6 +158,22 @@ public class UsageBlockBaseDAO
         return getUsageBlocks(filter);
     }
 
+    public static List<UsageBlockBase> getUsageBlocksForBilling(int projectId, Date startDate, Date endDate,
+                                                                boolean containedInRange) throws SQLException
+    {
+        if(projectId <= 0)
+        {
+            throw new SQLException("Invalid projectId: " + projectId);
+        }
+        UsageBlockBaseFilter filter = new UsageBlockBaseFilter();
+        filter.setProjectId(projectId);
+        filter.setStartDate(startDate);
+        filter.setEndDate(endDate);
+        filter.setContainedInRange(containedInRange);
+        filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL); // Get sign-up only blocks also
+        return getUsageBlocks(filter);
+    }
+
     /**
      * Returns a list of usage blocks for the given instrument operator.
      * If containedInRange is true, only blocks that start AND end in the given time range are returned.
@@ -178,9 +195,40 @@ public class UsageBlockBaseDAO
         return getUsageBlocks(filter);
     }
 
+    public static List<UsageBlockBase> getSignupBlocks(Connection conn, int projectId, int instrumentId, Date startDate, Date endDate) throws SQLException
+    {
+        UsageBlockBaseFilter filter = getSignupBlockFilter(projectId, instrumentId, startDate, endDate);
+        return getUsageBlocks(conn, filter);
+    }
+
+    private static UsageBlockBaseFilter getSignupBlockFilter(int projectId, int instrumentId, Date startDate, Date endDate)
+    {
+        UsageBlockBaseFilter filter = new UsageBlockBaseFilter();
+        filter.setProjectId(projectId);
+        filter.setInstrumentId(instrumentId);
+        filter.setStartDate(startDate);
+        filter.setEndDate(endDate);
+        filter.setContainedInRange(false);
+        filter.setBlockType(UsageBlockBaseFilter.BlockType.SIGNUP_ONLY);
+        return filter;
+    }
+
     private static List<UsageBlockBase> getUsageBlocks(UsageBlockBaseFilter filter) throws SQLException
     {
         Connection conn = null;
+
+        try {
+            conn = InstrumentUsageDAO.getConnection();
+            return getUsageBlocks(conn, filter);
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+        }
+    }
+
+    private static List<UsageBlockBase> getUsageBlocks(Connection conn, UsageBlockBaseFilter filter) throws SQLException
+    {
         Statement stmt = null;
         ResultSet rs = null;
 
@@ -189,7 +237,6 @@ public class UsageBlockBaseDAO
         List <UsageBlockBase> usageBlks = new ArrayList<UsageBlockBase>();
 
         try {
-            conn = InstrumentUsageDAO.getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -199,12 +246,10 @@ public class UsageBlockBaseDAO
 
             }
             return usageBlks;
-
         }
 
         finally {
             // Always make sure result sets and statements are closed,
-            if(conn != null) try {conn.close();} catch(SQLException ignored){}
             if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
             if(rs != null) try {rs.close();} catch(SQLException ignored){}
         }
@@ -215,6 +260,13 @@ public class UsageBlockBaseDAO
         StringBuilder buf = new StringBuilder();
         buf.append("SELECT * FROM instrumentUsage");
         String joiner = " WHERE ";
+
+        if(filter.getBlockType() != UsageBlockBaseFilter.BlockType.ALL)
+        {
+            buf.append(joiner);
+            buf.append(" deleted = ").append((filter.getBlockType() == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY) ? 1 : 0);
+            joiner = " AND ";
+        }
         if(filter.getProjectId() != 0)
         {
             buf.append(joiner);

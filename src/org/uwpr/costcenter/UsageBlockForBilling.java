@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -22,30 +22,26 @@ import org.yeastrc.project.payment.PaymentMethod;
  */
 public class UsageBlockForBilling {
 
-	private List<UsageBlockBase> blocks = null;
+	private List<UsageBlockBaseWithRate> blocks = null;
 	private Project project;
-	private Researcher user;
+	private Researcher user; // This is the person that signed up for instrument time
 	private MsInstrument instrument;
-	private PaymentMethod paymentMethod;
+	private PaymentMethod paymentMethod; // payment method and percent will be the same for all the blocks.
 	private BigDecimal percent;
-	private int totalHours;
-	private BigDecimal cost;
+	private int totalHours = -1;
+	private BigDecimal signupCost = null;
+	private BigDecimal instrumentCost = null;
+	private BigDecimal totalCost = null;
 	
 	public UsageBlockForBilling() {
-		blocks = new ArrayList<UsageBlockBase>();
-		cost = BigDecimal.ZERO;
+		blocks = new ArrayList<UsageBlockBaseWithRate>();
 	}
 	
-	public void add(UsageBlockBase block, TimeBlock timeBlock, InstrumentRate rate) {
-		
+	public void add(UsageBlockBaseWithRate block) {
 		this.blocks.add(block);
-		
-		this.cost = cost.add(rate.getRate());
-		this.totalHours += timeBlock.getNumHours();
-		
 	}
 	
-	public List<UsageBlockBase> getBlocks() {
+	public List<UsageBlockBaseWithRate> getBlocks() {
 		return blocks;
 	}
 
@@ -80,12 +76,59 @@ public class UsageBlockForBilling {
 		this.instrument = instrument;
 	}
 
-	public int getTotalHours() {
+	public int getTotalHours()
+	{
+		if(totalHours == -1)
+		{
+			totalHours = 0;
+			for(UsageBlockBaseWithRate blk: blocks)
+			{
+				this.totalHours += blk.getRate().getTimeBlock().getNumHours();
+			}
+		}
 		return totalHours;
 	}
 
-	public BigDecimal getCost() {
-		return cost;
+	public BigDecimal getTotalCost()
+	{
+		if(totalCost == null)
+		{
+			totalCost = BigDecimal.ZERO;
+			for(UsageBlockBaseWithRate blk: blocks)
+			{
+				this.totalCost = totalCost.add(blk.getRate().getRate());
+			}
+		}
+		return totalCost;
+	}
+
+	public BigDecimal getSignupCost()
+	{
+		if(signupCost == null)
+		{
+			signupCost = BigDecimal.ZERO;
+			for(UsageBlockBaseWithRate blk: blocks)
+			{
+				this.signupCost = signupCost.add(blk.getRate().getSignupFee());
+			}
+		}
+		return signupCost;
+	}
+
+	public BigDecimal getInstrumentCost()
+	{
+		if(instrumentCost == null)
+		{
+			instrumentCost = BigDecimal.ZERO;
+			for(UsageBlockBaseWithRate blk: blocks)
+			{
+				if(!blk.isDeleted())
+				{
+					instrumentCost = instrumentCost.add(blk.getRate().getInstrumentFee());
+				}
+			}
+		}
+		return instrumentCost;
 	}
 
 	public PaymentMethod getPaymentMethod() {

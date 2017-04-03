@@ -44,7 +44,6 @@ import org.uwpr.scheduler.SchedulerException;
 import org.uwpr.scheduler.TimeRangeSplitter;
 import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
-import org.uwpr.scheduler.UsageBlockRepeatBuilder;
 import org.uwpr.www.costcenter.UwprSupportedProjectPaymentMethodGetter;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
@@ -219,18 +218,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         		return sendError(response,"Could not convert given time range into blocks.");
         	}
         }
-        
-        
-        // Has the user checked the "Repeat Daily" checkbox?
-    	boolean repeatDaily = Boolean.parseBoolean(request.getParameter("repeatdaily"));
-    	if(repeatDaily && rangeTimeBlocks.size() > 1) {
-    		return sendError(response,"Selected time range cannot be repeated daily.");
-    	}
-    	if(repeatDaily && rangeTimeBlocks.get(0).getNumHours() > 24) {
-    		return sendError(response,"Selected time range exceeds 24 hours and cannot be repeated daily.");
-    	}
-        
-        
     	
     	List<UsageBlockBaseWithRate> allBlocks = new ArrayList<UsageBlockBaseWithRate>();
     	
@@ -271,33 +258,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
             allBlocks.add(usageBlock);
             	
     	}
-       
-        
-        
-        // Is this block being repeated on a daily basis?
-    	if(repeatDaily) {
-        	
-        	String repeatEndDateString = request.getParameter("repeatenddate");
-    		if(repeatEndDateString == null || repeatEndDateString.trim().length() == 0) {
-    			return sendError(response, "Repeat was checked but no end date was specified");
-    		}
-    		Date repeatEndDate = null;
-    		try {
-    			repeatEndDate = PatternToDateConverter.parseDate(repeatEndDateString);
-    		}
-    		catch(ParseException e) {
-    			return sendError(response, "Error parsing repeat end date: "+repeatEndDate);
-    		}
-    		
-    		UsageBlockBaseWithRate block = allBlocks.get(0);
-    		try {
-    			allBlocks = UsageBlockRepeatBuilder.getInstance().repeatDaily(block, repeatEndDate, rangeTimeBlocks.get(0));
-    		}
-    		catch(SchedulerException e) {
-    			return sendError(response, "Could not create repeating events. Error was:: "+e.getMessage());
-    		}
-        }
-    	
     	
 		// Check if the instrument is available
     	for(UsageBlockBase block: allBlocks) {
@@ -346,7 +306,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			// Save the blocks
 			if (project instanceof BilledProject)
 			{
-				String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rangeEndDate);
+				String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rateType, user.getResearcher());
 				if (errorMessage != null)
 					return sendError(response, errorMessage);
 			} else
@@ -421,8 +381,14 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 	}
 	
 	private static String saveUsageBlocksForBilledProject(HttpServletRequest request, HttpServletResponse response, 
-			List<? extends UsageBlockBase> usageBlocks, Date endDate) throws Exception
+			List<? extends UsageBlockBase> usageBlocks, RateType rateType, Researcher user) throws Exception
 	{
+		if(usageBlocks == null || usageBlocks.size() == 0)
+		{
+			return "No usage blocks found.";
+		}
+		Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
+
 		// Get the payment method(s)
 		UsageBlockPaymentInformation paymentInfo = new UsageBlockPaymentInformation(usageBlocks.get(0).getProjectID());
 		
@@ -454,15 +420,13 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
     		}
         }
 
-        return saveUsageBlocksForBilledProject(usageBlocks, paymentInfo);
+        return saveUsageBlocksForBilledProject(usageBlocks, paymentInfo, rateType, user);
         
 	}
 
 	private static String saveUsageBlocksForBilledProject(
 			List<? extends UsageBlockBase> usageBlocks,
-			UsageBlockPaymentInformation paymentInfo) {
-
-        InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
+			UsageBlockPaymentInformation paymentInfo, RateType rateType, Researcher user) {
 
 		Connection conn = null;
 		try
@@ -470,7 +434,22 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
-			saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo);
+			String errorMessage = saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo);
+			if (errorMessage != null)
+			{
+				return errorMessage;
+			}
+
+			// Update signup
+			InstrumentSignupDAO signupDao = InstrumentSignupDAO.getInstance();
+			// Log to instrumentSignupLog
+			signupDao.logInstrumentSignUp(conn, usageBlocks);
+
+			UsageBlockBase firstBlock = usageBlocks.get(0);
+			Date startDate = firstBlock.getStartDate();
+			Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
+
+			InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user, firstBlock.getProjectID(), firstBlock.getInstrumentID(), rateType, startDate, endDate);
 
 			conn.commit();
 		}
@@ -492,6 +471,11 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			UsageBlockPaymentInformation paymentInfo) {
 
 		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
+
+		if(usageBlocks == null || usageBlocks.size() == 0)
+		{
+			return null;
+		}
 
 		try
 		{
@@ -516,8 +500,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 					iupDao.savePayment(conn, usagePayment);
 				}
 			}
-
-			updateSignup(conn, usageBlocks, paymentInfo);
 		}
 		catch(Exception e)
 		{
@@ -526,127 +508,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		}
 
 		return null;
-	}
-
-	private static void updateSignup(Connection conn, List<? extends UsageBlockBase> usageBlocks, UsageBlockPaymentInformation paymentInfo) throws Exception
-	{
-		InstrumentSignupDAO signupDao = InstrumentSignupDAO.getInstance();
-
-		// Log to instrumentSignupLog
-		signupDao.logInstrumentSignUp(conn, usageBlocks);
-
-		Date startDate = usageBlocks.get(0).getStartDate();
-		Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
-
-		InstrumentSignup newSignup = new InstrumentSignup();
-		UsageBlockBase firstBlock = usageBlocks.get(0);
-		newSignup.setProjectId(firstBlock.getProjectID());
-		newSignup.setInstrumentID(firstBlock.getInstrumentID());
-		newSignup.setStartDate(startDate);
-		newSignup.setEndDate(endDate);
-		newSignup.setCreatedBy(firstBlock.getResearcherID());
-
-		List<SignupPayment> payments = new ArrayList<SignupPayment>();
-		newSignup.setPayments(payments);
-		for (int i = 0; i < paymentInfo.getCount(); i++)
-        {
-            PaymentMethod pm = paymentInfo.getPaymentMethod(i);
-            BigDecimal perc = paymentInfo.getPercent(i);
-
-            SignupPayment payment = new SignupPayment();
-            payment.setPaymentMethod(pm);
-            payment.setPercent(perc);
-            payments.add(payment);
-        }
-
-		RateType rateType = ((UsageBlockBaseWithRate)usageBlocks.get(0)).getRate().getRateType();
-		// Split the given range into time blocks
-		// TODO: do we need to do this twice?? We have already done this for the instrument usage blocks
-		makeSignupBlocks(newSignup, rateType);
-		signupDao.save(conn, newSignup);
-
-		// Check if there is existing overlapping signup (ordered by startDate)
-		List<InstrumentSignup> existingSignUps = signupDao.getExistingSignup(startDate, endDate);
-
-		for(InstrumentSignup signup: existingSignUps)
-        {
-			Date sStartDate = signup.getStartDate();
-			Date sEndDate = signup.getEndDate();
-			if((sStartDate.equals(startDate) || sStartDate.after(startDate)) &&
-			   (sEndDate.equals(endDate) || sEndDate.before(endDate)))
-			{
-				// delete this signup (it is contained in the new signup request)
-				signupDao.deleteSignup(conn, Collections.singletonList(signup));
-			}
-
-			else if(sStartDate.before(startDate))
-			{
-				signup.setEndDate(startDate);
-				makeSignupBlocks(signup, rateType);
-				signupDao.updateSignup(conn, signup, true, false);
-				if(sEndDate.after(endDate))
-				{
-					// The new signup is contained in the old signup.  Split the old signup into two blocks
-					InstrumentSignup signupRight = new InstrumentSignup();
-					signupRight.setStartDate(endDate);
-					signupRight.setEndDate(signup.getEndDate());
-					signupRight.setCreatedBy(signup.getCreatedBy());
-					signupRight.setDateCreated(signup.getDateCreated());
-					signupRight.setInstrumentID(signup.getInstrumentID());
-					signupRight.setProjectId(signup.getProjectID());
-					signupRight.setPayments(signup.getPayments());
-					makeSignupBlocks(signupRight, rateType);
-					signupDao.save(conn, signupRight);
-				}
-			}
-
-			else if(sEndDate.after(endDate))
-			{
-				signup.setStartDate(endDate);
-				makeSignupBlocks(signup, rateType);
-				signupDao.updateSignup(conn, signup, true, false);
-			}
-			else
-			{
-				// We should not be here!!
-				throw new Exception("Cannot handle existing overlapping signup: " + sStartDate + " to " + sEndDate
-				+ ". Requested signup was from " + startDate + " to " + endDate);
-			}
-        }
-	}
-
-	private static void makeSignupBlocks(InstrumentSignupGeneric signup, RateType rateType) throws Exception
-	{
-
-		List<TimeBlock> timeBlocks = TimeBlockDAO.getInstance().getAllTimeBlocks();
-		List<TimeBlock> rangeTimeBlocks = TimeRangeSplitter.getInstance().split(signup.getStartDate(), signup.getEndDate(), timeBlocks);
-
-		List<SignupBlock> allBlocks = new ArrayList<SignupBlock>();
-
-		Calendar startCal = Calendar.getInstance();
-		startCal.setTime(signup.getStartDate());
-
-		int instrumentId = signup.getInstrumentID();
-
-		for(TimeBlock timeBlock: rangeTimeBlocks)
-		{
-			// get the instrumentRateID
-			InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateType.getId());
-			if(rate == null) {
-				throw new Exception("No rate information found for instrumentId: "+instrumentId+
-						" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateType.getId()+" in request");
-			}
-
-			SignupBlock block = new SignupBlock();
-			block.setInstrumentSignupId(signup.getId());
-			block.setInstrumentRateId(rate.getId());
-			block.setStartDate(startCal.getTime());
-			startCal.add(Calendar.HOUR_OF_DAY, timeBlock.getNumHours());
-			block.setEndDate(startCal.getTime());
-
-			allBlocks.add(block);
-		}
-		signup.setBlocks(allBlocks);
 	}
 
 	private ActionForward sendError(HttpServletResponse response, String errorMessage) throws IOException {

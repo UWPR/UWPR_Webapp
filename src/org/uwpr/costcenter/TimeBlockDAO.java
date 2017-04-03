@@ -51,13 +51,7 @@ public class TimeBlockDAO {
             rs = stmt.executeQuery(sql);
 
             if(rs.next()) {
-                TimeBlock timeBlock = new TimeBlock();
-                timeBlock.setId(timeBlockId);
-                timeBlock.setNumHours(rs.getInt("numHours"));
-                timeBlock.setName(rs.getString("name"));
-                timeBlock.setStartTime(rs.getTime("startTime"));
-                timeBlock.setCreateDate(rs.getDate("createDate"));
-
+                TimeBlock timeBlock = makeTimeBlock(rs);
                 return timeBlock;
             }
             else {
@@ -98,12 +92,7 @@ public class TimeBlockDAO {
     			List<TimeBlock> timeBlocks = new ArrayList<TimeBlock>();
 
     			while(rs.next()) {
-    				TimeBlock timeBlock = new TimeBlock();
-    				timeBlock.setId(rs.getInt("id"));
-    				timeBlock.setNumHours(rs.getInt("numHours"));
-    				timeBlock.setName(rs.getString("name"));
-    				timeBlock.setStartTime(rs.getTime("startTime"));
-    				timeBlock.setCreateDate(rs.getDate("createDate"));
+					TimeBlock timeBlock = makeTimeBlock(rs);
     				timeBlocks.add(timeBlock);
     			}
 
@@ -116,7 +105,18 @@ public class TimeBlockDAO {
     			if(rs != null) try {rs.close();} catch(SQLException e){}
     		}
     	}
-	
+
+	private TimeBlock makeTimeBlock(ResultSet rs) throws SQLException
+	{
+		TimeBlock timeBlock = new TimeBlock();
+		timeBlock.setId(rs.getInt("id"));
+		timeBlock.setNumHours(rs.getInt("numHours"));
+		timeBlock.setName(rs.getString("name"));
+		timeBlock.setStartTime(rs.getTime("startTime"));
+		timeBlock.setCreateDate(rs.getDate("createDate"));
+		return timeBlock;
+	}
+
 	public void saveTimeBlock(TimeBlock block) throws SQLException {
 		
 		String sql = "INSERT INTO timeBlock (numHours, startTime, endTime, name, createDate) VALUES (?,?,?,?,?)";
@@ -164,6 +164,32 @@ public class TimeBlockDAO {
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
+
+	public TimeBlock getTimeBlock(Connection conn, int numHours) throws SQLException
+	{
+		String sql = "SELECT * FROM timeBlock where numHours = " + numHours;
+
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+
+			if(rs.next()) {
+				TimeBlock timeBlock = makeTimeBlock(rs);
+				return timeBlock;
+			}
+			else {
+				log.error("No entry found in table timeBlock for numHours: "+numHours);
+				return null;
+			}
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
 

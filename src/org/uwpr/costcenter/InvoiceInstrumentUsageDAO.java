@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.*;
+import java.util.List;
 
 /**
  * 
@@ -23,18 +24,20 @@ public class InvoiceInstrumentUsageDAO {
 		return instance;
 	}
 	
-	public void save(InvoiceInstrumentUsage invoiceBlock) throws SQLException {
+	public void saveBlocks(Connection conn, List<InvoiceInstrumentUsage> invoiceBlocks) throws SQLException {
 		
 		String sql = "INSERT INTO invoiceInstrumentUsage (invoiceID, instrumentUsageID) VALUES (?,?)";
-		Connection conn = null;
 		PreparedStatement stmt = null;
 		
 		try {
-			conn = DBConnectionManager.getMainDbConnection();
+
 			stmt = conn.prepareStatement(sql);
-			stmt.setInt(1, invoiceBlock.getInvoiceId());
-			stmt.setInt(2, invoiceBlock.getInstrumentUsageId());
-			stmt.executeUpdate();
+			for(InvoiceInstrumentUsage invoiceBlock: invoiceBlocks) {
+
+				stmt.setInt(1, invoiceBlock.getInvoiceId());
+				stmt.setInt(2, invoiceBlock.getInstrumentUsageId());
+				stmt.executeUpdate();
+			}
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}

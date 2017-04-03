@@ -178,7 +178,24 @@ public class EditProjectInstrumentTimeAction extends Action {
         	}
         	blocksToDelete.add(usageBlock);
         }
-        
+
+		// Sort the blocks by date and make sure they are contiguous
+		Collections.sort(blocksToDelete, new Comparator<UsageBlockBase>() {
+			@Override
+			public int compare(UsageBlockBase o1, UsageBlockBase o2) {
+				return o1.getStartDate().compareTo(o2.getStartDate());
+			}
+		});
+		for(int i = 1; i < blocksToDelete.size(); i++)
+		{
+			if(blocksToDelete.get(i).getStartDate().after(blocksToDelete.get(i -1).getEndDate()))
+			{
+				return returnError(mapping, request, "scheduler",
+						new ActionMessage("error.costcenter.delete",
+								"Blocks selected for adjusting time are not contiguous."),
+						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+			}
+		}
         
         // Make sure the old blocks can be deleted.
         for(UsageBlockBase block: blocksToDelete) {
@@ -191,7 +208,7 @@ public class EditProjectInstrumentTimeAction extends Action {
         						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
         	}
         }
-        
+
         
         // Make sure we can create new blocks in the given time range
         Date rangeStartDate = editForm.getStartDateDate();
@@ -389,20 +406,19 @@ public class EditProjectInstrumentTimeAction extends Action {
 				conn = DBConnectionManager.getMainDbConnection();
 				conn.setAutoCommit(false);
 
-				// Note: this will update signup tables as well.
 				String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForBilledProject(conn, allBlocks, paymentInfo);
 				if (errorMessage != null)
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 
-				// Delete the old blocks
+				// Mark the old blocks as deleted
 				List<Integer> blockIds = new ArrayList<>(blocksToDelete.size());
 				for (UsageBlockBase usageBlock : blocksToDelete) {
 					blockIds.add(usageBlock.getID());
 				}
 				try {
-					InstrumentUsageDAO.getInstance().delete(conn, blockIds);
+					InstrumentUsageDAO.getInstance().markDeleted(conn, blockIds, user.getResearcher());
 				}
 
 				catch (Exception e) {
@@ -410,6 +426,9 @@ public class EditProjectInstrumentTimeAction extends Action {
 							new ActionMessage("error.costcenter.delete", e.getMessage()),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 				}
+
+				// Delete and/or adjust any sign-up only blocks that overlap with the new usage blocks
+				InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user.getResearcher(), projectId, instrumentId, rateType, rangeStartDate, rangeEndDate);
 
 				conn.commit();
 			}

@@ -1,8 +1,9 @@
 package org.uwpr.instrumentlog;
 
+import org.uwpr.costcenter.InstrumentRate;
+
 import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +17,7 @@ public class UsageBlock extends UsageBlockBase {
 	private String operatorName;
 	private String projectTitle;
 	private List<InstrumentUsagePayment> payments;
-	private BigDecimal rate;
+	private InstrumentRate rate;
 	private Date invoiceDate;
 	
 	public UsageBlock() {
@@ -58,11 +59,26 @@ public class UsageBlock extends UsageBlockBase {
 		this.payments = payments;
 	}
 	
-	public BigDecimal getRate() {
+	public InstrumentRate getRate() {
 		return rate;
 	}
 
-	public void setRate(BigDecimal rate) {
+	public BigDecimal getTotalCost()
+	{
+		return getSignupCost().add(getInstrumentCost());
+	}
+
+	public BigDecimal getSignupCost()
+	{
+		return rate.getSignupFee();
+	}
+
+	public BigDecimal getInstrumentCost()
+	{
+		return isDeleted() ? BigDecimal.ZERO : rate.getInstrumentFee();
+	}
+
+	public void setRate(InstrumentRate rate) {
 		this.rate = rate;
 	}
 
@@ -119,21 +135,6 @@ public class UsageBlock extends UsageBlockBase {
 	public void setInvoiceDate(Date invoiceDate) {
 		this.invoiceDate = invoiceDate;
 	}
-
-	public UsageBlockBase copy() {
-        
-        UsageBlock blk = new UsageBlock();
-		super.copy(blk);
-		blk.setOperatorName(getOperatorName());
-        blk.setInstrumentRateID(getInstrumentRateID());
-        blk.setPayments(getPayments());
-        blk.setInstrumentName(getInstrumentName());
-        blk.setPIID(getPIID());
-        blk.setProjectPI(getProjectPI());
-        blk.setProjectTitle(getProjectTitle());
-        blk.setInvoiceDate(getInvoiceDate());
-        return blk;
-    }
 	
 	public UsageBlock newBlock() {
         return new UsageBlock();

@@ -239,7 +239,7 @@ public class EditBlockDetailsAction extends Action {
             // If the project associated with the blocks have changed, update the blocks in the database
             List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
             for (UsageBlockBase blk : blocksToUpdate) {
-                if (blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentID() != instrumentOperatorId)) {
+                if (blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentOperatorId() != instrumentOperatorId)) {
                     blk.setProjectID(projectId);
                     blk.setInstrumentOperatorId(instrumentOperatorId);
                     changedBlocks.add(blk);
@@ -247,10 +247,6 @@ public class EditBlockDetailsAction extends Action {
             }
             InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
             instrumentUsageDAO.updateBlocksProjectAndOperator(conn, changedBlocks);
-
-            // TODO: Update the instrument signup
-            List<InstrumentSignup> signupList = InstrumentSignupDAO.getInstance().getExistingSignup(blocksToUpdate.get(0).getStartDate(),
-                    blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate());
 
             conn.commit();
         }

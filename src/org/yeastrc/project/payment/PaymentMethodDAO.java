@@ -7,6 +7,7 @@ package org.yeastrc.project.payment;
 
 import org.apache.log4j.Logger;
 import org.uwpr.costcenter.InstrumentRate;
+import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.math.BigDecimal;
@@ -288,49 +289,36 @@ public class PaymentMethodDAO {
 
     private BigDecimal getInstrumentCost(int paymentMethodId) throws SQLException
     {
-        StringBuilder sql = new StringBuilder();
-        sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
-        sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir)");
-        sql.append(" WHERE iup.instrumentUsageID = iu.id");
-        sql.append(" AND iu.instrumentRateID = ir.id");
-        sql.append(" AND paymentMethodID=").append(paymentMethodId);
-        sql.append(" GROUP BY paymentMethodID");
-
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-
-        try {
-            conn = getConnection();
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(sql.toString());
-
-            if(rs.next()) {
-
-                BigDecimal cost = rs.getBigDecimal("cost");
-				cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
-                return cost.setScale(2, RoundingMode.CEILING);
-            }
-
-            return new BigDecimal("0");
-        }
-        finally {
-            if(conn != null) try {conn.close();} catch(SQLException ignored){}
-            if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
-            if(rs != null) try {rs.close();} catch(SQLException ignored){}
-        }
+        BigDecimal cost = getCost(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
+		cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
+		return cost.setScale(2, RoundingMode.HALF_UP);
     }
 
 	private BigDecimal getSignupFee(int paymentMethodId) throws SQLException
 	{
+		BigDecimal cost = getCost(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
+		cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
+		return cost.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal getCost(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException
+	{
 		StringBuilder sql = new StringBuilder();
-		sql.append(" SELECT isp.paymentMethodId, SUM((isp.percentPayment * ir.fee)/ 100.0) AS cost");
-		sql.append(" FROM (instrumentSignupPayment isp, instrumentSignup s, instrumentSignupBlock sb, instrumentRate ir)");
-		sql.append(" WHERE isp.instrumentSignupId = s.id");
-		sql.append(" AND sb.instrumentSignupId = s.id");
-		sql.append(" AND sb.instrumentRateId = ir.id");
-		sql.append(" AND paymentMethodId=").append(paymentMethodId);
-		sql.append(" GROUP BY paymentMethodId");
+		sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
+		sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir)");
+		sql.append(" WHERE iup.instrumentUsageID = iu.id ");
+		if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
+		{
+			sql.append(" AND iu.deleted=0"); // Get ONLY instrument usage
+		}
+		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
+		{
+			sql.append(" AND iu.deleted=1"); // Get ONLY signup blocks
+		}
+
+		sql.append(" AND iu.instrumentRateID = ir.id");
+		sql.append(" AND paymentMethodID=").append(paymentMethodId);
+		sql.append(" GROUP BY paymentMethodID");
 
 		Connection conn = null;
 		Statement stmt = null;
@@ -344,8 +332,7 @@ public class PaymentMethodDAO {
 			if(rs.next()) {
 
 				BigDecimal cost = rs.getBigDecimal("cost");
-				cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
-				return cost.setScale(2, RoundingMode.CEILING);
+				return cost;
 			}
 
 			return new BigDecimal("0");
@@ -366,10 +353,32 @@ public class PaymentMethodDAO {
 
 	private BigDecimal getInvoicedInstrumentCost(int paymentMethodId) throws SQLException
 	{
+		BigDecimal cost = getInvoicedCost(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
+		cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
+		return cost.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal getInvoicedSignupFee(int paymentMethodId) throws SQLException
+	{
+		BigDecimal cost = getInvoicedCost(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
+		cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
+		return cost.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal getInvoicedCost(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException
+	{
 		StringBuilder sql = new StringBuilder();
 		sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
 		sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir, invoiceInstrumentUsage invoice)");
 		sql.append(" WHERE iup.instrumentUsageID = iu.id");
+		if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
+		{
+			sql.append(" AND iu.deleted=0"); // Get ONLY instrument usage
+		}
+		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
+		{
+			sql.append(" AND iu.deleted=1"); // Get ONLY signup blocks
+		}
 		sql.append(" AND iu.instrumentRateID = ir.id");
 		sql.append(" AND invoice.instrumentUsageID = iu.id");
 		sql.append(" AND paymentMethodID=").append(paymentMethodId);
@@ -387,8 +396,7 @@ public class PaymentMethodDAO {
             if(rs.next()) {
 
                 BigDecimal cost = rs.getBigDecimal("cost");
-				cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
-                return cost.setScale(2, RoundingMode.CEILING);
+				return cost;
             }
 
             return new BigDecimal("0");
@@ -400,40 +408,5 @@ public class PaymentMethodDAO {
         }
 	}
 
-	private BigDecimal getInvoicedSignupFee(int paymentMethodId) throws SQLException
-	{
-		StringBuilder sql = new StringBuilder();
-		sql.append(" SELECT isp.paymentMethodId, SUM((isp.percentPayment * ir.fee)/ 100.0) AS cost");
-		sql.append(" FROM (instrumentSignupPayment isp, instrumentSignup s, instrumentSignupBlock sb, instrumentRate ir, invoiceSignupBlock invoice)");
-		sql.append(" WHERE isp.instrumentSignupId = s.id");
-		sql.append(" AND sb.instrumentSignupId = s.id");
-		sql.append(" AND sb.instrumentRateId = ir.id");
-		sql.append(" AND invoice.instrumentSignupBlockId = sb.id");
-		sql.append(" AND paymentMethodId=").append(paymentMethodId);
-		sql.append(" GROUP BY paymentMethodId");
 
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-
-		try {
-			conn = getConnection();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(sql.toString());
-
-			if(rs.next()) {
-
-				BigDecimal cost = rs.getBigDecimal("cost");
-				cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
-				return cost.setScale(2, RoundingMode.CEILING);
-			}
-
-			return new BigDecimal("0");
-		}
-		finally {
-			if(conn != null) try {conn.close();} catch(SQLException ignored){}
-			if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
-			if(rs != null) try {rs.close();} catch(SQLException ignored){}
-		}
-	}
 }

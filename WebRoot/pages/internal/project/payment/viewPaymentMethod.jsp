@@ -59,7 +59,7 @@ function backToProject(projectId) {
                             BigDecimal used = payment.getTotalCost() != null ? payment.getTotalCost() : new BigDecimal("0");
                             BigDecimal balance = available.subtract(used);
                             if(balance.doubleValue() < 0.0) balance = new BigDecimal("0");
-                            balance = balance.setScale(2, RoundingMode.CEILING);
+                            balance = balance.setScale(2, RoundingMode.HALF_UP);
                         %>
                         <td>$<%=balance.toString()%></td>
                     </tr>

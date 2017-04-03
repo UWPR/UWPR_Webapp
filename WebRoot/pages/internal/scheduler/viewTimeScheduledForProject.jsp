@@ -32,7 +32,7 @@ $(document).ready(function() {
                 sorter: false 
             }, 
             // assign the seventh column (we start counting zero) 
-            8: {
+            10: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             } 
@@ -60,11 +60,19 @@ function submitForm()
     window.location.href = url;
 }
 
-function deleteTimeBlock(usageBlockId, projectId) {
+function markBlockDeleted(usageBlockId, projectId) {
 
 	if(confirm("Are you sure you want to delete this time block?")) {
           document.location.href="/pr/deleteInstrumentTime.do?usageBlockId=" + usageBlockId+"&projectId="+projectId;
           return true;
+    }
+}
+
+function deleteTimeBlock(usageBlockId, projectId) {
+
+    if(confirm("Are you sure you want to delete this time block and the sign-up?")) {
+        document.location.href="/pr/deleteInstrumentTime.do?deleteSignup=true&usageBlockId=" + usageBlockId+"&projectId="+projectId;
+        return true;
     }
 }
 
@@ -168,7 +176,13 @@ function deleteTimeBlock(usageBlockId, projectId) {
 <div style="font-weight:bold; text-alignment:center;margin:10px;">
 	Total cost: $<span style="color:red;"><bean:write name="totalCost"/></span>
     &nbsp;
-    Total hours: <span style="color:red;"><bean:write name="totalHours"/></span>
+    Sign-up cost: $<span style="color:red;"><bean:write name="signupCost"/></span>
+    &nbsp;
+    Instrument cost: $<span style="color:red;"><bean:write name="instrumentCost"/></span>
+    <br>
+    Instrument hours: <span style="color:red;"><bean:write name="instrumentHours"/></span>
+    &nbsp;
+    sign-up hours: <span style="color:red;"><bean:write name="signupHours"/></span>
 </div>
 <div style="font-weight:bold; text-alignment:center; font-size:8pt">
 	<html:link action="viewScheduler.do" paramName="project" paramProperty="ID" paramId="projectId">
@@ -185,7 +199,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
-			<th class="scheduler">Cost</th>
+            <th class="scheduler">SignUp</th>
+            <th class="scheduler">Instrument</th>
+			<th class="scheduler">Total</th>
 			<th class="scheduler">Billed</th>
 			<th class="scheduler"></th>
 		</tr>
@@ -205,7 +221,8 @@ function deleteTimeBlock(usageBlockId, projectId) {
 						<logic:iterate name="usageBlock" property="payments" id="payment">
 							<li>
 								<nobr>
-								<bean:write name="payment" property="paymentMethod.displayString" />
+								<a href="/pr/viewPaymentMethod.do?paymentMethodId=<bean:write name='payment' property='paymentMethod.id'/>&projectId=<bean:write name='project' property='ID'/>">
+								<bean:write name="payment" property="paymentMethod.shortDisplayString" /></a>
 								&nbsp;
 								<bean:write name="payment" property="percent" />%
 								</nobr>
@@ -214,9 +231,11 @@ function deleteTimeBlock(usageBlockId, projectId) {
 						</ul>
 					</logic:notEmpty>
 				</td>
-				<td><bean:write name="usageBlock" property="startDateFormated"/></td>
-				<td><bean:write name="usageBlock" property="endDateFormated"/></td>
-				<td align="right"><span class="costColumn"><bean:write name="usageBlock" property="rate"/></span></td>
+				<td><nobr><bean:write name="usageBlock" property="startDateFormated"/></nobr></td>
+				<td><nobr><bean:write name="usageBlock" property="endDateFormated"/></nobr></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="signupCost"/></span></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="instrumentCost"/></span></td>
+				<td align="right"><span class="costColumn"><bean:write name="usageBlock" property="totalCost"/></span></td>
 				<td>
 					<logic:empty name="usageBlock" property="invoiceDate">
 					-
@@ -226,7 +245,13 @@ function deleteTimeBlock(usageBlockId, projectId) {
 					</logic:notEmpty>
 				</td>
 				<td style="font-size:10pt;color:red">
-					<a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
+                    <logic:equal name="usageBlock" property="deleted" value="false">
+					  <a href="#" onclick='markBlockDeleted(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
+                    </logic:equal>
+                    <yrcwww:member group="administrator">
+                        <br>
+                        <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Purge]</a>
+                    </yrcwww:member>
 				</td>
 				
 			</tr>

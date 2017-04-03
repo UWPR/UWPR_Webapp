@@ -16,6 +16,7 @@ import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -174,10 +175,10 @@ public class ViewTimeScheduledForOperator extends Action {
         request.setAttribute("usageBlocks", usageBlocks);
 
         int totalHours = 0;
-        double totalCost = 0;
+        BigDecimal totalCost = BigDecimal.ZERO;
         for(UsageBlock block: usageBlocks)
         {
-            totalCost += block.getRate().doubleValue();
+            totalCost = totalCost.add(block.getTotalCost());
             totalHours += block.getHours();
         }
         request.setAttribute("totalCost", totalCost);

@@ -131,5 +131,14 @@ public class TimeBlock {
 	public boolean getHasNoStartEndTime() {
 		return (getStartTime() == null);
 	}
+
+	public String toString() {
+		StringBuilder buf = new StringBuilder();
+		buf.append("TimeBlock: ");
+		buf.append("id: "+ getId());
+		buf.append("; numHours: " + getNumHours());
+		buf.append("; startTime: " + getStartTimeString());
+		return buf.toString();
+	}
 	
 }

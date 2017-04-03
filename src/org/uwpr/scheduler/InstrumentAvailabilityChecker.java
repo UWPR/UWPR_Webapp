@@ -41,7 +41,9 @@ public class InstrumentAvailabilityChecker {
 		
 		String sql = "SELECT * from instrumentUsage WHERE instrumentID="+instrumentId+
 		             " AND startDate < '"+(dateFormat.format(endDate))+"'"+
-		             " AND endDate > '"+(dateFormat.format(startDate))+"'";
+		             " AND endDate > '"+(dateFormat.format(startDate))+"'" +
+				     " AND deleted = 0";
+
 		
 		if(excludeUsageIds != null && excludeUsageIds.size() > 0) {
 			sql += " AND id NOT IN ("+StringUtils.join(excludeUsageIds, ',')+")";

@@ -25,6 +25,7 @@ public class UsageBlockBase implements Block
 	private Date dateCreated;
 	private Date dateChanged;
 	private String notes;
+	private boolean deleted = false;
 	
 	private static DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
@@ -115,14 +116,16 @@ public class UsageBlockBase implements Block
 	/**
      * @param startDate the startDate to set
      */
-	public void setStartDate(Date startDate) {
-		this.startDate = startDate;
+	public void setStartDate(Date startDate)
+	{
+		this.startDate = startDate != null ? new Date(startDate.getTime()) : null;
 	}
 
 	/**
      * @return the endDate
      */
-	public Date getEndDate() {
+	public Date getEndDate()
+	{
 		return endDate;
 	}
 	
@@ -133,24 +136,27 @@ public class UsageBlockBase implements Block
 	/**
      * @param endDate the endDate to set
      */
-	public void setEndDate(Date endDate) {
-		this.endDate = endDate;
+	public void setEndDate(Date endDate)
+	{
+		this.endDate = endDate != null ? new Date(endDate.getTime()) : null;
 	}
 
 	public Date getDateCreated() {
 		return dateCreated;
 	}
 
-	public void setDateCreated(Date dateCreated) {
-		this.dateCreated = dateCreated;
+	public void setDateCreated(Date dateCreated)
+	{
+		this.dateCreated = dateCreated != null ? new Date(dateCreated.getTime()) : null;
 	}
 
 	public Date getDateChanged() {
 		return dateChanged;
 	}
 
-	public void setDateChanged(Date dateChanged) {
-		this.dateChanged = dateChanged;
+	public void setDateChanged(Date dateChanged)
+	{
+		this.dateChanged = dateChanged != null ? new Date(dateChanged.getTime()) : null;
 	}
 
 	/**
@@ -163,6 +169,14 @@ public class UsageBlockBase implements Block
 
 	public void setNotes(String notes) {
 		this.notes = notes;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 
 	public int getHours()
@@ -180,24 +194,7 @@ public class UsageBlockBase implements Block
         return buf.toString();
     }
     
-    public UsageBlockBase copy() {
-        
-        UsageBlockBase blk = new UsageBlockBase();
-        blk.setID(id);
-        blk.setInstrumentID(instrumentID);
-		blk.setInstrumentOperatorId(instrumentOperatorId);
-        blk.setInstrumentRateID(instrumentRateID);
-        blk.setProjectID(projectID);
-        blk.setResearcherID(researcherID);
-        blk.setStartDate(startDate);
-        blk.setEndDate(endDate);
-        blk.setDateCreated(dateCreated);
-        blk.setDateChanged(dateChanged);
-        blk.setNotes(notes);
-        return blk;
-    }
-    
-    public void copy(UsageBlockBase blk) {
+    public <T extends UsageBlockBase> void copyTo(T blk) {
         
         blk.setID(id);
         blk.setInstrumentID(instrumentID);
@@ -210,6 +207,7 @@ public class UsageBlockBase implements Block
         blk.setDateCreated(dateCreated);
         blk.setDateChanged(dateChanged);
         blk.setNotes(notes);
+		blk.setDeleted(deleted);
     }
     
     public UsageBlockBase newBlock() {

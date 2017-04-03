@@ -13,6 +13,7 @@ import org.uwpr.instrumentlog.InstrumentUsagePayment;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
@@ -34,7 +35,7 @@ public class ProjectUsageBlockSummarizer {
 		summarizedBlocks = new HashMap<String, UsageBlockForBilling>();
 	}
 	
-	public void add(UsageBlockBase block, TimeBlock timeBlock, InstrumentRate rate) throws SQLException, BillingInformationExporterException {
+	public void add(UsageBlockBase block, InstrumentRate rate) throws SQLException, BillingInformationExporterException {
 		
 		List<InstrumentUsagePayment> usagePayments = InstrumentUsagePaymentGetter.get(project, block);
 		
@@ -48,9 +49,8 @@ public class ProjectUsageBlockSummarizer {
 		}
 		
 		// get the instrument
-		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(block.getInstrumentID());
-		
-		
+		MsInstrument instrument = rate.getInstrument();
+
 		for(InstrumentUsagePayment usagePayment: usagePayments) {
 			
 			String key = getKey(block, usagePayment);
@@ -65,11 +65,14 @@ public class ProjectUsageBlockSummarizer {
 				blockForKey.setInstrument(instrument);
 				blockForKey.setPaymentMethod(usagePayment.getPaymentMethod());
 				blockForKey.setBillingPercent(usagePayment.getPercent());
+
 				summarizedBlocks.put(key, blockForKey);
 				
 			}
-			
-			blockForKey.add(block, timeBlock, rate);
+			UsageBlockBaseWithRate blkWithRate = new UsageBlockBaseWithRate();
+			block.copyTo(blkWithRate);
+			blkWithRate.setRate(rate);
+			blockForKey.add(blkWithRate);
 		}
 	}
 	

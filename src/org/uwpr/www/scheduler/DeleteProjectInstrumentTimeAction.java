@@ -11,6 +11,7 @@ import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -126,10 +127,29 @@ public class DeleteProjectInstrumentTimeAction extends Action {
         	return newFwd;
         }
 
-		log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
 
-		// delete
-		InstrumentUsageDAO.getInstance().delete(usageBlockId);
+		boolean deleteUsageAndSignup = false;
+		Groups groupsMan = Groups.getInstance();
+		if (groupsMan.isMember(user.getResearcher().getID(), "administrators"))
+		{
+			// Delete the block if the user is an admin and 'deleteSignup' attribute is present in the request
+			if(request.getParameter("deleteSignup") != null)
+			{
+				deleteUsageAndSignup = true;
+			}
+		}
+
+		if(deleteUsageAndSignup)
+		{
+			log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
+			InstrumentUsageDAO.getInstance().delete(usageBlockId);
+		}
+		else
+		{
+			// Mark the usage as deleted but don't delete the rows so that this can be billed as signup
+			log.info("Marking block as deleted: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
+			InstrumentUsageDAO.getInstance().markDeleted(Collections.singletonList(usageBlockId), user.getResearcher());
+		}
 
 		// Email admins
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(usageBlock.getInstrumentID());

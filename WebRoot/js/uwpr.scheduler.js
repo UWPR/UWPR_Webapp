@@ -483,13 +483,6 @@
 				div += '</select> ';
 	   			div += '</div>';
 	   			
-	   			// REPEAT checkbox
-	   			div += '<div id="repeat_checkbox_datepicker" style="margin: 10px;">';
-	   			div += 'Repeat Daily <input type="checkbox" id="repeat_checkbox"/>';
-	   			div += '&nbsp; &nbsp; &nbsp; End Date: ';
-	   			div += '<input type="text" class="uwpr_datepicker" id="uwpr_datepicker_repeat"/>'
-	   			div += '</div>';
-	   			
 	   			// Add and Cancel buttons
 	   			div += '<div style="text-align: center; font-size:12px; margin-top:20px;">';
 	   			// Add button

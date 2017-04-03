@@ -85,6 +85,7 @@ public class UsageBlockDAO
         blk.setDateChanged(rs.getTimestamp("lastChanged"));
         blk.setNotes(rs.getString("notes"));
         blk.setInvoiceDate(rs.getTimestamp("invoiceDate"));
+        blk.setDeleted(rs.getBoolean("deleted"));
 
         return blk;
     }
@@ -113,6 +114,14 @@ public class UsageBlockDAO
         buf.append(" ON ( invBlk.instrumentUsageID = insUsg.id AND invoice.id=invBlk.invoiceID )");
 
         String joiner = " WHERE ";
+
+        if(filter.getBlockType() != UsageBlockBaseFilter.BlockType.ALL)
+        {
+            buf.append(joiner);
+            buf.append(" deleted = ").append((filter.getBlockType() == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY) ? 1 : 0);
+            joiner = " AND ";
+        }
+
         if(filter.getProjectId() != 0)
         {
             buf.append(joiner);
@@ -191,7 +200,7 @@ public class UsageBlockDAO
                 InstrumentRate rate = rateDao.getInstrumentRate(newBlk.getInstrumentRateID());
                 if(rate == null)
                     throw new SQLException("No instrument rate found for ID: "+newBlk.getInstrumentRateID());
-                newBlk.setRate(rate.getRate());
+                newBlk.setRate(rate);
 
                 // Trim blocks if required
                 if(filter.isTrimToFit())
