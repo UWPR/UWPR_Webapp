@@ -815,24 +815,6 @@
       >
     </action>
 
-    <action
-      path="/viewEditBlockPaymentForm"
-      type="org.uwpr.www.scheduler.EditBlockPaymentMethodFormAction"
-      name="editBlockPaymentForm"
-      validate="false"
-      >
-      <forward name="Success" path="/pages/internal/scheduler/editBlockPaymentMethodForm.jsp" redirect="false" />
-    </action>
-
-    <action
-      path="/editBlockPaymentMethod"
-      type="org.uwpr.www.scheduler.EditBlockPaymentMethodAction"
-      input="/pages/internal/scheduler/editBlockPaymentMethodForm.jsp"
-      name="editBlockPaymentForm"
-      validate="true"
-      >
-    </action>
-
 	<action
 			path="/viewEditBlockDetailsForm"
 			type="org.uwpr.www.scheduler.EditBlockDetailsFormAction"
@@ -1077,14 +1059,6 @@
 	  <forward name="Success" path="/pages/admin/instrumentlog/instrumentUsageSummary.jsp" redirect="false"/>
 	  <forward name="Failure" path="/allInstrumentUsageSummary.do" redirect="false"  />
 	</action>
-    
-    <action
-      path="/deleteInstrumentUsage"
-      type="org.uwpr.www.instrumentlog.DeleteInstrumentUsageAction"
-      >
-      <forward name="Success" path="/instrumentUsageSummary.do" redirect="true"/>
-      <forward name="Failure" path="/instrumentUsageSummary.do" redirect="false"/>
-    </action>
 	
 	<action
 		path="/viewProjectUsage"

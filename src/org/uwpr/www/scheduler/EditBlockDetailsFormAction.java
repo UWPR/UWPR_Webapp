@@ -248,24 +248,6 @@ public class EditBlockDetailsFormAction extends Action {
         List<Researcher> instrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
         List<Researcher> projectInstrumentOperators = project.getInstrumentOperators(instrumentOperators);
 
-        int instrumentOperatorId = firstBlock.getInstrumentOperatorId();
-        boolean notInProject = true;
-        for(Researcher operator: projectInstrumentOperators)
-        {
-            if(operator.getID() == instrumentOperatorId)
-            {
-                notInProject = false;
-                break;
-            }
-        }
-        if(notInProject && projectInstrumentOperators.size() > 0)
-        {
-            instrumentOperatorId = projectInstrumentOperators.get(0).getID();
-            // The instrument operator will be changed only if the selected project is different from the project
-            // associated with the blocks.
-            request.setAttribute("instrumentOperators", project.getInstrumentOperators(instrumentOperators));
-        }
-
         EditBlockDetailsForm editForm = new EditBlockDetailsForm();
         SimpleDateFormat dateFmt = new SimpleDateFormat("MM/dd/yyyy");
         SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a");
@@ -275,10 +257,6 @@ public class EditBlockDetailsFormAction extends Action {
         editForm.setEndTime(timeFmt.format(blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate()));
         editForm.setProjectId(projectId);
         editForm.setInstrumentId(instrumentId);
-        if(notInProject)
-        {
-            editForm.setInstrumentOperatorId(instrumentOperatorId);
-        }
         editForm.setInstrumentName(instrument.getName());
         editForm.setUsageBlockIdsToEdit(usageBlockIdString);
         editForm.setPaymentPercentList(paymentPercentList);

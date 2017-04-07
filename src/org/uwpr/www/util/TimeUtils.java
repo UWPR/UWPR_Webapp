@@ -1,5 +1,6 @@
 package org.uwpr.www.util;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -10,6 +11,8 @@ public class TimeUtils
 {
     public static int MILLIS_IN_HOUR = 60 * 60 * 1000;
     public static int MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
+
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd, hh:mm a");
 
     private TimeUtils(){}
 
@@ -42,5 +45,10 @@ public class TimeUtils
         endCal.set(Calendar.MINUTE, 0);
         endCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
         return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY - 1);
+    }
+
+    public static String format(Date date)
+    {
+        return dateFormat.format(date);
     }
 }

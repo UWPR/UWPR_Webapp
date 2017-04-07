@@ -8,10 +8,16 @@ package org.uwpr.instrumentlog;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.uwpr.costcenter.*;
+import org.uwpr.scheduler.UsageBlockPaymentInformation;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Researcher;
+import org.yeastrc.project.payment.PaymentMethod;
 
+import java.math.BigDecimal;
 import java.sql.*;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -25,43 +31,26 @@ public class InstrumentUsageDAO {
 	private static final InstrumentUsageDAO instance = new InstrumentUsageDAO();
 	
 	private static final Logger log = Logger.getLogger(InstrumentUsageDAO.class);
-	
+
+	private static final String dateUpdateMsg = "Date changed from {0} - {1} TO  {2} - {3}";
+	private static final String adjustingSignup = "Adjusting Signup";
+	private static final String deletedByEditAction = "Deleted by edit action";
+	private static final String addedByEditAction = "Added by edit action";
+
 	private InstrumentUsageDAO () {}
 	
 	public static InstrumentUsageDAO getInstance() {
 		return instance;
 	}
 
-    public void save(Connection conn, UsageBlockBase block) throws Exception
-    {
-        if (block == null)
-            return;
-
-        log.info("Saving usage block on instrument: "+block.getInstrumentID());
-
-        save(conn, Collections.singletonList(block));
-    }
-
-	public void save(UsageBlockBase block) throws Exception
-    {
-        Connection conn = null;
-        try
-        {
-            conn = getConnection();
-            save(conn, block);
-        }
-        finally {
-
-            if(conn != null) try {conn.close();} catch(SQLException e){}
-        }
-	}
-
-	private void save(Connection conn, List<UsageBlockBase> blocks) throws Exception
+	private void save(Connection conn, List<? extends UsageBlockBase> blocks, String message) throws Exception
 	{
 		if (blocks == null || blocks.size() == 0)
 			return;
 
 		log.info("Saving usage blocks");
+
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -103,6 +92,8 @@ public class InstrumentUsageDAO {
 				} else {
 					throw new SQLException("Error inserting row in instrumentBlock table. No auto-generated ID returned.");
 				}
+
+				logDao.logSignupAdded(conn, Collections.singletonList(block), block.getResearcherID(), message);
 			}
 
 		} finally {
@@ -112,15 +103,40 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	private void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks) throws Exception {
+	public void updateBlocksDates(List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
+
+		Connection conn = null;
+
+		try {
+
+			conn = getConnection();
+			conn.setAutoCommit(false);
+			updateBlocksDates(conn, blocks, logMessages);
+			conn.commit();
+
+		} finally {
+
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+	private void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
 
 		if (blocks == null || blocks.size() == 0)
 			return;
 
 		log.info("Updating usage blocks on instrument: " + blocks.get(0).getInstrumentID());
 
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
+		boolean queryBlock = false;
+		if(logMessages == null)
+		{
+			queryBlock = true;
+		}
 		PreparedStatement stmt = null;
+		PreparedStatement selectStmt = null;
+
 		ResultSet rs = null;
 
 		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
@@ -129,12 +145,38 @@ public class InstrumentUsageDAO {
 		sql.append(", instrumentRateID = ?");
 		sql.append(", updatedBy = ?");
 		sql.append(" WHERE id = ?");
+
+		String selectSql = "SELECT * FROM instrumentUsage WHERE id=?";
 		try {
 
 			stmt = conn.prepareStatement(sql.toString());
+			if(queryBlock)
+			{
+				selectStmt = conn.prepareStatement(selectSql);
+			}
 
+			int i = 0;
 			for(UsageBlockBase block: blocks)
 			{
+				String message = null;
+				if(queryBlock) {
+					// Get the existing database block
+					selectStmt.setInt(1, block.getID());
+					rs = selectStmt.executeQuery();
+					if (!rs.next()) {
+						throw new SQLException("Could not find existing block with id " + block.getID());
+					}
+					Date originalStartDate = rs.getTimestamp("startDate");
+					Date originalEndDate = rs.getTimestamp("endDate");
+
+					message = getUpdateMessage(originalStartDate, originalEndDate, block);
+				}
+				else
+				{
+					message = logMessages.get(i++);
+				}
+				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(), message);
+
 				stmt.setTimestamp(1, makeTimestamp(block.getStartDate()));
 				stmt.setTimestamp(2, makeTimestamp(block.getEndDate()));
 				stmt.setInt(3, block.getInstrumentRateID());
@@ -146,40 +188,25 @@ public class InstrumentUsageDAO {
 		} finally {
 
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(selectStmt != null) try {selectStmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
 
-	public void updateBlocksDates(List<? extends UsageBlockBase> blocks) throws Exception {
-
-		Connection conn = null;
-
-		try {
-
-			conn = getConnection();
-			conn.setAutoCommit(false);
-			updateBlocksDates(conn, blocks);
-			conn.commit();
-
-		} finally {
-
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
-    public void updateBlocksProjectAndOperator(Connection conn, List<? extends UsageBlockBase> blocks) throws Exception {
+    public void updateBlocksProject(Connection conn, List<? extends UsageBlockBase> blocks, int newProjectId) throws Exception {
 
         if (blocks == null || blocks.size() == 0)
             return;
 
-        log.info("Updating usage blocks (project and instrument operator) on instrument: " + blocks.get(0).getInstrumentID());
+        log.info("Updating usage blocks (project) on instrument: " + blocks.get(0).getInstrumentID());
+
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
 		PreparedStatement stmt = null;
         ResultSet rs = null;
 
         StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
         sql.append(" projectID = ?");
-        sql.append(", instrumentOperatorId = ?");
         sql.append(", updatedBy = ?");
         sql.append(" WHERE id = ?");
         try {
@@ -188,11 +215,13 @@ public class InstrumentUsageDAO {
 
             for(UsageBlockBase block: blocks)
             {
-                stmt.setInt(1, block.getProjectID());
-                stmt.setInt(2, block.getInstrumentOperatorId());
+                stmt.setInt(1, newProjectId);
                 stmt.setInt(3, block.getUpdaterResearcherID());
                 stmt.setInt(4, block.getID());
                 stmt.executeUpdate();
+
+				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(),
+						"Changed project from " + block.getProjectID() + " to " + newProjectId);
             }
 
         } finally {
@@ -202,20 +231,19 @@ public class InstrumentUsageDAO {
         }
     }
 
-	public void markDeleted(List<Integer> usageBlockIds, Researcher user) throws Exception {
+	public void markDeleted(List<UsageBlockBase> usageBlocks, Researcher user) throws Exception {
 
-		if (usageBlockIds == null || usageBlockIds.size() == 0)
+		if (usageBlocks == null || usageBlocks.size() == 0)
 			return;
 
 		log.info("Marking blocks as deleted.");
 
 		Connection conn = null;
-
 		try
 		{
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			markDeleted(conn, usageBlockIds, user);
+			markDeleted(conn, usageBlocks, user);
 			conn.commit();
 
 		} finally {
@@ -224,13 +252,30 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public int markDeleted(Connection conn, List<Integer> usageBlockIds, Researcher researcher) throws SQLException {
+	public int markDeleted(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
+	{
+		return markDeleted(conn, usageBlocks, researcher, null);
+	}
 
-		if (usageBlockIds == null || usageBlockIds.size() == 0)
+	public int markDeletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
+	{
+		return markDeleted(conn, usageBlocks, researcher, deletedByEditAction);
+	}
+
+	private int markDeleted(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher, String message) throws SQLException {
+
+		if (usageBlocks == null || usageBlocks.size() == 0)
 			return 0;
+
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
 		log.info("Marking blocks as deleted.");
 
+		List<Integer> usageBlockIds = new ArrayList<>(usageBlocks.size());
+		for(UsageBlockBase block: usageBlocks)
+		{
+			usageBlockIds.add(block.getID());
+		}
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
@@ -245,6 +290,9 @@ public class InstrumentUsageDAO {
 			stmt.setInt(2, researcher.getID());
 
 			int numUpdated = stmt.executeUpdate();
+
+			logDao.logSignupDeleted(conn, usageBlocks, researcher.getID());
+
 			return numUpdated;
 
 		} finally {
@@ -316,81 +364,52 @@ public class InstrumentUsageDAO {
 		}
 	}
 	
-	public void delete(int usageId) throws SQLException {
-		
-		
+	public void purge(UsageBlockBase block, Researcher researcher) throws SQLException {
+
 		// NOTE: There is a trigger on instrumentUsage table that will 
 		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to 
 		//       the given usageId
-		
-		log.info("Deleting usage block ID "+usageId);
 		Connection conn = null;
-		Statement stmt = null;
-		
+
 		try {
-			
-			String sql = "DELETE FROM instrumentUsage WHERE id="+usageId;
-			// System.out.println(sql);
+
 			conn = getConnection();
-			stmt = conn.createStatement();
-			stmt.execute(sql);
-			
-			//InstrumentUsagePaymentDAO.getInstance().deletePaymentsForUsage(usageId);
+			conn.setAutoCommit(false);
+			delete(conn, Collections.singletonList(block), researcher, null);
+			conn.commit();;
 			
 		} finally {
-
-				// Always make sure result sets and statements are closed,
-				// and the connection is returned to the pool
-				if (stmt != null) {
-					try { stmt.close(); } catch (SQLException ignored) { ; }
-				}
 				if (conn != null) {
 					try { conn.close(); } catch (SQLException ignored) { ; }
 				}
 		}
 	}
 
-	public void delete(List<Integer> usageIds) throws SQLException {
+	private void delete(Connection conn, List<UsageBlockBase> blocks, Researcher researcher, String message) throws SQLException {
 
-		// NOTE: There is a trigger on instrumentUsage table that will
-		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to
-		//       the given usageId
-
-		Connection conn = null;
-
-		try
+		if(blocks == null || blocks.size() == 0)
 		{
-			conn = getConnection();
-			conn.setAutoCommit(false);
-			delete(conn, usageIds);
-			conn.commit();
-
-		} finally
-		{
-
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException ignored) { ; }
-			}
+			return;
 		}
-	}
-
-	public void delete(Connection conn, List<Integer> usageIds) throws SQLException {
-
 		// NOTE: There is a trigger on instrumentUsage table that will
 		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to
 		//       the given usageId
-
 		PreparedStatement stmt = null;
 		String sql = "DELETE FROM instrumentUsage WHERE id=?";
+
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
 		try {
 			stmt = conn.prepareStatement( sql );
 
-			for(Integer usageId: usageIds)
+			for(UsageBlockBase block: blocks)
 			{
-				stmt.setInt(1, usageId);
+				log.info("Deleting usage block ID "+block.getID());
+				stmt.setInt(1, block.getID());
 				stmt.executeUpdate();
 			}
+
+			logDao.logSignupPurged(conn, blocks, researcher.getID(), message);
 
 		} finally {
 
@@ -406,8 +425,12 @@ public class InstrumentUsageDAO {
 	{
 		List<UsageBlockBase> signupBlocks = UsageBlockBaseDAO.getSignupBlocks(conn, projectId, instrumentId, startDate, endDate);
 
-		List<Integer> toDelete = new ArrayList<>();
-		List<UsageBlockBase> toUpdate = new ArrayList<UsageBlockBase>();
+		if(signupBlocks.size() == 0)
+			return;
+
+		List<UsageBlockBase> toDelete = new ArrayList<>();
+		List<UsageBlockBase> toUpdate = new ArrayList<>();
+		List<String> updateMsgs = new ArrayList<>();
 		List<UsageBlock> newBlocks = new ArrayList<>();
 
 		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
@@ -421,7 +444,7 @@ public class InstrumentUsageDAO {
 					(sEndDate.equals(endDate) || sEndDate.before(endDate)))
 			{
 				// delete this signup (it is contained in the new signup request)
-				toDelete.add(block.getID());
+				toDelete.add(block);
 			}
 
 			else if(sStartDate.before(startDate))
@@ -442,19 +465,23 @@ public class InstrumentUsageDAO {
 					newBlock.setPayments(iupDao.getPaymentsForUsage(block.getID()));
 				}
 
+				String updateMsg = getUpdateMessage(block, block.getStartDate(), startDate);
 				block.setEndDate(startDate);
 				block.setUpdaterResearcherID(researcher.getID());
 				// Get the new rateId
 				updateRateId(conn, rateType, block);
 				toUpdate.add(block);
+				updateMsgs.add(adjustingSignup + ": " + updateMsg);
 			}
 
 			else if(sEndDate.after(endDate))
 			{
+				String updateMsg = getUpdateMessage(block, endDate, block.getEndDate());
 				block.setStartDate(endDate);
 				// Get the new rateId
 				updateRateId(conn, rateType, block);
 				toUpdate.add(block);
+				updateMsgs.add(adjustingSignup + ": " + updateMsg);
 			}
 			else
 			{
@@ -464,11 +491,11 @@ public class InstrumentUsageDAO {
 			}
 		}
 
-		delete(conn, toDelete);
-		updateBlocksDates(conn, toUpdate);
+		delete(conn, toDelete, researcher, adjustingSignup);
+		updateBlocksDates(conn, toUpdate, updateMsgs);
+		save(conn, newBlocks, adjustingSignup);
 		for(UsageBlock block: newBlocks)
 		{
-			save(conn, block);
 			for(InstrumentUsagePayment payment: block.getPayments())
 			{
 				payment.setInstrumentUsageId(block.getID());
@@ -476,7 +503,6 @@ public class InstrumentUsageDAO {
 			}
 
 		}
-
 	}
 
 	private void updateRateId(Connection conn, RateType rateType, UsageBlockBase block) throws Exception
@@ -492,6 +518,85 @@ public class InstrumentUsageDAO {
 			throw new Exception("Could not find a rate for timeBlock: " + timeBlock.toString() + ". Attempting to adjust signup block: " + block.toString());
 		}
 		block.setInstrumentRateID(rate.getId());
+	}
+
+	public String saveUsageBlocks(
+			Connection conn,
+			List<? extends UsageBlockBase> usageBlocks,
+			UsageBlockPaymentInformation paymentInfo)
+	{
+		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, null);
+	}
+
+	public String saveUsageBlocksByEditAction(
+			Connection conn,
+			List<? extends UsageBlockBase> usageBlocks,
+			UsageBlockPaymentInformation paymentInfo)
+	{
+		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, addedByEditAction);
+	}
+
+	private String saveUsageBlocksForBilledProject(
+			Connection conn,
+			List<? extends UsageBlockBase> usageBlocks,
+			UsageBlockPaymentInformation paymentInfo, String logMessage) {
+
+		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
+
+		if(usageBlocks == null || usageBlocks.size() == 0)
+		{
+			return null;
+		}
+
+		try
+		{
+			// Blocks are in order
+			for (UsageBlockBase block : usageBlocks)
+			{
+				log.info("Saving usage block: " + block.toString());
+
+				// save to the instrumentUsage table
+				InstrumentUsageDAO.getInstance().save(conn, Collections.singletonList(block), logMessage);
+
+				for (int i = 0; i < paymentInfo.getCount(); i++)
+				{
+
+					PaymentMethod pm = paymentInfo.getPaymentMethod(i);
+					BigDecimal perc = paymentInfo.getPercent(i);
+
+					InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
+					usagePayment.setInstrumentUsageId(block.getID());
+					usagePayment.setPaymentMethod(pm);
+					usagePayment.setPercent(perc);
+					iupDao.savePayment(conn, usagePayment);
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			log.error("Error saving usage blocks", e);
+			return "There was an error saving usage block. Error was: " + e.getMessage();
+		}
+
+		return null;
+	}
+
+	private String getUpdateMessage(UsageBlockBase block, Date newStartDate, Date newEndDate)
+	{
+		return MessageFormat.format(dateUpdateMsg,
+				TimeUtils.format(block.getStartDate()),
+				TimeUtils.format(block.getEndDate()),
+				TimeUtils.format(newStartDate),
+				TimeUtils.format(newEndDate));
+	}
+
+	private String getUpdateMessage(Date startDate, Date endDate, UsageBlockBase newBlock)
+	{
+		return MessageFormat.format(dateUpdateMsg,
+				TimeUtils.format(startDate),
+				TimeUtils.format(endDate),
+				TimeUtils.format(newBlock.getStartDate()),
+				TimeUtils.format(newBlock.getEndDate()));
 	}
 
 	private java.sql.Timestamp makeTimestamp(java.util.Date date)

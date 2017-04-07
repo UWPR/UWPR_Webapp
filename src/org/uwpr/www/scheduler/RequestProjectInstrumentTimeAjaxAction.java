@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -311,9 +310,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 					return sendError(response, errorMessage);
 			} else
 			{
-				String errorMessage = saveUsageBlocksForSubsidizedProject(allBlocks);
-				if (errorMessage != null)
-					return sendError(response, errorMessage);
+				return sendError(response, "Subsidized projects are not supported.");
 			}
 
 			// Email admins
@@ -330,56 +327,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		return null;
 	}
 
-	
-
-	public static String saveUsageBlocksForSubsidizedProject(List<? extends UsageBlockBase> usageBlocks) {
-		
-		List<Integer> savedBlockIds = new ArrayList<Integer>();
-		
-		PaymentMethod pm = UwprSupportedProjectPaymentMethodGetter.get(usageBlocks.get(0).getProjectID());
-		
-		if(pm == null) {
-			log.error("No payment method was found for UWPR supported projects");
-			return "No payment method was found for UWPR supported projects";
-		}
-		
-		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-		
-		for(UsageBlockBase block: usageBlocks) {
-			
-			log.info("Saving usage block: "+block.toString());
-			
-			try {
-				InstrumentUsageDAO.getInstance().save(block);
-				savedBlockIds.add(block.getID());
-				
-				
-				InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
-    			usagePayment.setInstrumentUsageId(block.getID());
-    			usagePayment.setPaymentMethod(pm);
-    			usagePayment.setPercent(new BigDecimal("100.0"));
-    			iupDao.savePayment(usagePayment);
-			}
-			catch(Exception e) {
-        		
-        		// delete the usage blocks saved thus far and throw an error
-        		for(Integer blockId: savedBlockIds) {
-        			try {
-        				InstrumentUsageDAO.getInstance().delete(blockId);
-        			}
-        			catch(Exception ex) {
-            			log.error("There was an error deleting block ID: "+blockId);
-            		}
-        		}
-        		
-        		log.error("Error saving usage block", e);
-        		return "There was an error saving time block. Error was: "+e.getMessage();
-        	}
-    	}
-		
-		return null;
-	}
-	
 	private static String saveUsageBlocksForBilledProject(HttpServletRequest request, HttpServletResponse response, 
 			List<? extends UsageBlockBase> usageBlocks, RateType rateType, Researcher user) throws Exception
 	{
@@ -429,27 +376,24 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			UsageBlockPaymentInformation paymentInfo, RateType rateType, Researcher user) {
 
 		Connection conn = null;
+		InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
 		try
 		{
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
-			String errorMessage = saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo);
+			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo);
 			if (errorMessage != null)
 			{
 				return errorMessage;
 			}
 
 			// Update signup
-			InstrumentSignupDAO signupDao = InstrumentSignupDAO.getInstance();
-			// Log to instrumentSignupLog
-			signupDao.logInstrumentSignUp(conn, usageBlocks);
-
 			UsageBlockBase firstBlock = usageBlocks.get(0);
 			Date startDate = firstBlock.getStartDate();
 			Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
 
-			InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user, firstBlock.getProjectID(), firstBlock.getInstrumentID(), rateType, startDate, endDate);
+			instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user, firstBlock.getProjectID(), firstBlock.getInstrumentID(), rateType, startDate, endDate);
 
 			conn.commit();
 		}
@@ -462,51 +406,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		{
 			if(conn != null) try {conn.close();} catch(Exception ignored){}
 		}
-		return null;
-	}
-
-	public static String saveUsageBlocksForBilledProject(
-			Connection conn,
-			List<? extends UsageBlockBase> usageBlocks,
-			UsageBlockPaymentInformation paymentInfo) {
-
-		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-
-		if(usageBlocks == null || usageBlocks.size() == 0)
-		{
-			return null;
-		}
-
-		try
-		{
-			// Blocks are in order
-			for (UsageBlockBase block : usageBlocks)
-			{
-				log.info("Saving usage block: " + block.toString());
-
-				// save to the instrumentUsage table
-				InstrumentUsageDAO.getInstance().save(conn, block);
-
-				for (int i = 0; i < paymentInfo.getCount(); i++)
-				{
-
-					PaymentMethod pm = paymentInfo.getPaymentMethod(i);
-					BigDecimal perc = paymentInfo.getPercent(i);
-
-					InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
-					usagePayment.setInstrumentUsageId(block.getID());
-					usagePayment.setPaymentMethod(pm);
-					usagePayment.setPercent(perc);
-					iupDao.savePayment(conn, usagePayment);
-				}
-			}
-		}
-		catch(Exception e)
-		{
-			log.error("Error saving usage blocks", e);
-			return "There was an error saving usage block. Error was: " + e.getMessage();
-		}
-
 		return null;
 	}
 

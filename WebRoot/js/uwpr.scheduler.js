@@ -15,7 +15,7 @@
 				onAddEventSuccessFn: null,
 				eventDeleteUrl: null,
 				eventEditUrl: null,
-                eventEditPaymentMethodUrl: null,
+                eventEditBlockDetailsUrl: null,
 				onDeleteSuccessFn: null,
 				projectLinkUrlFn: null,
 				requestInformationFn: null,
@@ -364,7 +364,7 @@
 
                                     if(selectedBlockIds.length > 0) {
                                         // alert("Editing payment methods");
-                                        editBlockPaymentMethod(selectedBlockIds, calendar_div, options, event.projectId, event.instrumentId);
+                                        editBlockDetails(selectedBlockIds, calendar_div, options, event.projectId, event.instrumentId);
                                     }
                                     else {
                                         alert("No blocks were selected for editing")
@@ -620,7 +620,7 @@
 		window.location = url;
 	}
 
-    function editBlockPaymentMethod(selectedBlockIds, calendar_div, options, projectId, instrumentId) {
+    function editBlockDetails(selectedBlockIds, calendar_div, options, projectId, instrumentId) {
 
         var eventIdString = "";
         for(var i = 0; i < selectedBlockIds.length; i++) {
@@ -630,9 +630,9 @@
             eventIdString = eventIdString.substr(1);
         }
 
-        if(options.eventEditPaymentMethodUrl)
+        if(options.eventEditBlockDetailsUrl)
         {
-            var url = options.eventEditPaymentMethodUrl+"?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+eventIdString;
+            var url = options.eventEditBlockDetailsUrl+"?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+eventIdString;
             // alert(url);
             window.location = url;
         }

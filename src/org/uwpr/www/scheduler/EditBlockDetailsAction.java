@@ -101,34 +101,6 @@ public class EditBlockDetailsAction extends Action {
 
         int instrumentId = editForm.getInstrumentId();
 
-        // Get the instrumentOperatorId
-        int instrumentOperatorId = editForm.getInstrumentOperatorId();
-        if(instrumentOperatorId != 0)
-        {
-            Researcher instrumentOperator = new Researcher();
-            try
-            {
-                instrumentOperator.load(instrumentOperatorId);
-            }
-            catch(Exception e)
-            {
-                return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.scheduler.invalidid",
-                                " No researcher found for ID " + instrumentOperatorId),
-                        "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
-                );
-            }
-
-            if(!Groups.getInstance().isMember(instrumentOperatorId, Groups.INSTRUMENT_OPERATOR))
-            {
-                return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.scheduler.invalidid",
-                                instrumentOperator.getFullName() + " is not a verified instrument operator."),
-                        "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId
-                );
-            }
-        }
-
 
 		// get the usageBlockIds from the request
         List<Integer> usageBlockIds = new ArrayList<Integer>();
@@ -239,14 +211,12 @@ public class EditBlockDetailsAction extends Action {
             // If the project associated with the blocks have changed, update the blocks in the database
             List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
             for (UsageBlockBase blk : blocksToUpdate) {
-                if (blk.getProjectID() != projectId || (instrumentOperatorId != 0 && blk.getInstrumentOperatorId() != instrumentOperatorId)) {
-                    blk.setProjectID(projectId);
-                    blk.setInstrumentOperatorId(instrumentOperatorId);
+                if (blk.getProjectID() != projectId) {
                     changedBlocks.add(blk);
                 }
             }
             InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
-            instrumentUsageDAO.updateBlocksProjectAndOperator(conn, changedBlocks);
+            instrumentUsageDAO.updateBlocksProject(conn, changedBlocks, projectId);
 
             conn.commit();
         }

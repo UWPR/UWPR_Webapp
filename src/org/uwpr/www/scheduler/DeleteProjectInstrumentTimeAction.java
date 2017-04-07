@@ -142,13 +142,13 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 		if(deleteUsageAndSignup)
 		{
 			log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
-			InstrumentUsageDAO.getInstance().delete(usageBlockId);
+			InstrumentUsageDAO.getInstance().purge(usageBlock, user.getResearcher());
 		}
 		else
 		{
 			// Mark the usage as deleted but don't delete the rows so that this can be billed as signup
 			log.info("Marking block as deleted: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
-			InstrumentUsageDAO.getInstance().markDeleted(Collections.singletonList(usageBlockId), user.getResearcher());
+			InstrumentUsageDAO.getInstance().markDeleted(Collections.singletonList(usageBlock), user.getResearcher());
 		}
 
 		// Email admins

@@ -27,7 +27,6 @@ public class EditBlockDetailsForm extends ActionForm {
 
     private int projectId;
     private int instrumentId;
-    private int instrumentOperatorId;
     private String instrumentName;
     private String startDate;
     private String startTime;
@@ -204,16 +203,6 @@ public class EditBlockDetailsForm extends ActionForm {
 
     public void setUsageBlockIdsToEdit(String usageBlockIdsToEdit) {
         this.usageBlockIdsToEdit = usageBlockIdsToEdit;
-    }
-
-    public int getInstrumentOperatorId()
-    {
-        return instrumentOperatorId;
-    }
-
-    public void setInstrumentOperatorId(int instrumentOperatorId)
-    {
-        this.instrumentOperatorId = instrumentOperatorId;
     }
 
     public static final class PaymentPercent

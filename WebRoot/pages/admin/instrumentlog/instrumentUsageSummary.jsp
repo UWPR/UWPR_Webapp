@@ -106,9 +106,6 @@
 			<logic:iterate name="projectUsage" property="allUsageBlocks" id="usageBlock">
 				<a href="/pr/viewInstrumentUsageForm.do?usageID=<bean:write name="usageBlock" property="ID" />">
 				<font style="font-size:8pt;"><bean:write name="usageBlock" property="startDateFormated" /> - <bean:write name="usageBlock" property="endDateFormated" /></font></a>
-				&nbsp;&nbsp;
-				<a href="javascript:confirmDelete('<bean:write name="usageBlock" property="ID" />', '<bean:write name="usage" property="instrumentID" />')">
-				<font style="font-size:8pt; color: #ff0000">[delete]</font></a>
 				<br>
 			</logic:iterate>
 			</td>
@@ -199,15 +196,6 @@ function validateInt(value, min, max) {
 }
 
 </script>
-
-<SCRIPT LANGUAGE="JavaScript">
- function confirmDelete(usageID, instrumentID) {
-    if(confirm("Are you sure you want to delete this entry?")) {
-    	document.location.href="/pr/deleteInstrumentUsage.do?usageID=" + usageID + "&instrumentID="+instrumentID;
-     	return 1;
-    }
- }
-</SCRIPT>
 
 <script type="text/javascript" src="yui/build/yahoo/yahoo-min.js"></script>
 <script type="text/javascript" src="yui/build/dom/dom-min.js"></script>

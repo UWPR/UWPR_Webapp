@@ -223,7 +223,7 @@ function initCalendar() {
 			onAddEventSuccessFn: addToScheduledTimeTable,
 			eventDeleteUrl: getDeleteTimeBlockUrl(),
 			eventEditUrl: getEditTimeBlockUrl(),
-            eventEditPaymentMethodUrl: getEditBlockDetailsUrl(),
+            eventEditBlockDetailsUrl: getEditBlockDetailsUrl(),
 			onDeleteSuccessFn: deleteFromScheduledTimeTable,
 			projectLinkUrlFn: getProjectUrl,
 			requestInformationFn: getRequestInformation,

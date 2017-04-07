@@ -136,7 +136,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 		// Complete deletion of a block is only possible via DeleteProjectInstrumentTimeAction, and only by admins
 
 		// Mark the usage as deleted but don't delete the rows so that this can be billed as signup
-		InstrumentUsageDAO.getInstance().markDeleted(usageBlockIds, user.getResearcher());
+		InstrumentUsageDAO.getInstance().markDeleted(usageBlocks, user.getResearcher());
 
 		// Email admins
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(instrumentId);

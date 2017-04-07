@@ -2,6 +2,7 @@ package org.uwpr.www.scheduler;
 
 import org.apache.struts.action.*;
 import org.uwpr.instrumentlog.*;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -139,6 +140,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         List<UsageBlock> usageBlocksToShift = new ArrayList<UsageBlock>();
 
         Calendar calendar = Calendar.getInstance();
+        List<String> logMessages = new ArrayList<>();
         for(UsageBlock block: usageBlocks)
         {
             if(block.getStartDate().before(startDate))
@@ -146,6 +148,8 @@ public class ShiftTimeScheduledForInstrument extends Action
                 // Skip if this block has a start date before the selected start date.
                 continue;
             }
+            String message = "Shifting block by " + shiftByDays + " days. (" + TimeUtils.format(block.getStartDate()) + " - " + TimeUtils.format(block.getEndDate()) + ") ";
+
             calendar.setTime(block.getStartDate());
             calendar.add(Calendar.DATE, shiftByDays);
             block.setStartDate(calendar.getTime());
@@ -157,9 +161,12 @@ public class ShiftTimeScheduledForInstrument extends Action
             block.setUpdaterResearcherID(user.getResearcher().getID());
 
             usageBlocksToShift.add(block);
+            message = message + " TO (" + TimeUtils.format(block.getStartDate()) + " - " + TimeUtils.format(block.getEndDate()) + ")";
+
+            logMessages.add(message);
         }
 
-        InstrumentUsageDAO.getInstance().updateBlocksDates(usageBlocksToShift);
+        InstrumentUsageDAO.getInstance().updateBlocksDates(usageBlocksToShift, logMessages);
 
         // Get the updated usage blocks
         calendar.setTime(startDate);

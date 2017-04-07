@@ -402,23 +402,20 @@ public class EditProjectInstrumentTimeAction extends Action {
     		}
 
 			Connection conn = null;
+			InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
 			try {
 				conn = DBConnectionManager.getMainDbConnection();
 				conn.setAutoCommit(false);
 
-				String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForBilledProject(conn, allBlocks, paymentInfo);
+				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo);
 				if (errorMessage != null)
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 
 				// Mark the old blocks as deleted
-				List<Integer> blockIds = new ArrayList<>(blocksToDelete.size());
-				for (UsageBlockBase usageBlock : blocksToDelete) {
-					blockIds.add(usageBlock.getID());
-				}
 				try {
-					InstrumentUsageDAO.getInstance().markDeleted(conn, blockIds, user.getResearcher());
+					instrumentUsageDAO.markDeletedByEditAction(conn, blocksToDelete, user.getResearcher());
 				}
 
 				catch (Exception e) {
@@ -444,23 +441,11 @@ public class EditProjectInstrumentTimeAction extends Action {
 			}
 		}
 		else {
-			String errorMessage = RequestProjectInstrumentTimeAjaxAction.saveUsageBlocksForSubsidizedProject(allBlocks);
-			if(errorMessage != null)
-				return returnError(mapping, request, "scheduler", 
-						new ActionMessage("error.costcenter.invaliddata", errorMessage),
-						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+			// We no longer support subsidezed projects
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.costcenter.invaliddata", "Subsized projects are not supported."),
+					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
 
-			// Delete the old blocks
-			for (UsageBlockBase usageBlock : blocksToDelete) {
-
-				try {
-					InstrumentUsageDAO.getInstance().delete(usageBlock.getID());
-				} catch (Exception e) {
-					return returnError(mapping, request, "scheduler",
-							new ActionMessage("error.costcenter.delete", e.getMessage()),
-							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
-				}
-			}
 		}
 
         ActionForward fwd = mapping.findForward("viewScheduler");
