@@ -187,10 +187,11 @@ public class UsageBlockBase implements Block
 
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        buf.append("UsageBlockBase: ");
-        buf.append("projectId: "+getProjectID());
+        buf.append("Block ");
+		buf.append(TimeUtils.format(getStartDate()) + " - " + TimeUtils.format(getEndDate()));
+        buf.append("; projectId: "+getProjectID());
         buf.append("; instrumentId: "+getInstrumentID());
-        buf.append("; "+getStartDate().toString()+" - "+getEndDate().toString());
+
         return buf.toString();
     }
     

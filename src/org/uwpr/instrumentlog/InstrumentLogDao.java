@@ -50,9 +50,9 @@ public class InstrumentLogDao
 		logSignupAction(conn, usageBlocks, researcherId, null, ACTION.DELETED);
 	}
 
-	public void logSignupPurged(Connection conn, List<? extends UsageBlockBase> usageBlocks, int researcherId, String message) throws SQLException
+	public void logSignupPurged(Connection conn, UsageBlockBase block, int researcherId, String message) throws SQLException
 	{
-		logSignupAction(conn, usageBlocks, researcherId, message, ACTION.PURGED);
+		logSignupAction(conn, Collections.singletonList(block), researcherId, message, ACTION.PURGED);
 	}
 
 	private void logSignupAction(Connection conn, List<? extends UsageBlockBase> usageBlocks, int researcherId, String message, ACTION action) throws SQLException
@@ -77,8 +77,9 @@ public class InstrumentLogDao
 				else {
 					stmt.setString(6, message);
 				}
+				stmt.executeUpdate();
 			}
-			stmt.executeUpdate();
+
 		}
 		finally
 		{

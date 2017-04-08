@@ -32,7 +32,7 @@ public class InstrumentUsageDAO {
 	
 	private static final Logger log = Logger.getLogger(InstrumentUsageDAO.class);
 
-	private static final String dateUpdateMsg = "Date changed from {0} - {1} TO  {2} - {3}";
+	private static final String dateUpdateMsg = "Date changed from {0} - {1} to  {2} - {3}";
 	private static final String adjustingSignup = "Adjusting Signup";
 	private static final String deletedByEditAction = "Deleted by edit action";
 	private static final String addedByEditAction = "Added by edit action";
@@ -407,9 +407,9 @@ public class InstrumentUsageDAO {
 				log.info("Deleting usage block ID "+block.getID());
 				stmt.setInt(1, block.getID());
 				stmt.executeUpdate();
-			}
 
-			logDao.logSignupPurged(conn, blocks, researcher.getID(), message);
+				logDao.logSignupPurged(conn, block, researcher.getID(), message + ": " + block.toString());
+			}
 
 		} finally {
 
@@ -449,39 +449,45 @@ public class InstrumentUsageDAO {
 
 			else if(sStartDate.before(startDate))
 			{
-				if(block.getEndDate().after(endDate))
+				if(sEndDate.after(endDate))
 				{
-					Date blockEndDate = block.getEndDate();
 					// Create a new block
 					UsageBlock newBlock = new UsageBlock();
 					block.copyTo(newBlock);
 					newBlock.setID(0);
 					newBlock.setStartDate(endDate);
-					newBlock.setEndDate(blockEndDate);
+					newBlock.setEndDate(sEndDate);
 					newBlock.setDeleted(true);
 					newBlock.setUpdaterResearcherID(researcher.getID());
 					updateRateId(conn, rateType, newBlock);
 					newBlocks.add(newBlock);
 					newBlock.setPayments(iupDao.getPaymentsForUsage(block.getID()));
 				}
-
-				String updateMsg = getUpdateMessage(block, block.getStartDate(), startDate);
-				block.setEndDate(startDate);
-				block.setUpdaterResearcherID(researcher.getID());
-				// Get the new rateId
-				updateRateId(conn, rateType, block);
-				toUpdate.add(block);
-				updateMsgs.add(adjustingSignup + ": " + updateMsg);
+				if(!sEndDate.equals(startDate))
+				{
+					// Update the block end date only if it is overlapping
+					String updateMsg = getUpdateMessage(block, block.getStartDate(), startDate);
+					block.setEndDate(startDate);
+					block.setUpdaterResearcherID(researcher.getID());
+					// Get the new rateId
+					updateRateId(conn, rateType, block);
+					toUpdate.add(block);
+					updateMsgs.add(adjustingSignup + ": " + updateMsg);
+				}
 			}
 
 			else if(sEndDate.after(endDate))
 			{
-				String updateMsg = getUpdateMessage(block, endDate, block.getEndDate());
-				block.setStartDate(endDate);
-				// Get the new rateId
-				updateRateId(conn, rateType, block);
-				toUpdate.add(block);
-				updateMsgs.add(adjustingSignup + ": " + updateMsg);
+				if(!sStartDate.equals(endDate))
+				{
+					// Update the block end date only if it is overlapping
+					String updateMsg = getUpdateMessage(block, endDate, block.getEndDate());
+					block.setStartDate(endDate);
+					// Get the new rateId
+					updateRateId(conn, rateType, block);
+					toUpdate.add(block);
+					updateMsgs.add(adjustingSignup + ": " + updateMsg);
+				}
 			}
 			else
 			{
