@@ -33,7 +33,7 @@ $(document).ready(function() {
                 sorter: false 
             }, 
             // assign the seventh column (we start counting zero) 
-            8: {
+            10: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             } 
@@ -183,7 +183,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
-			<th class="scheduler">Cost</th>
+            <th class="scheduler">SignUp</th>
+            <th class="scheduler">Instrument</th>
+            <th class="scheduler">Total</th>
 			<th class="scheduler">Billed</th>
 			<th class="scheduler"></th>
 		</tr>
@@ -204,21 +206,24 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				<td>
 					<logic:notEmpty name="usageBlock" property="payments">
 						<ul>
-						<logic:iterate name="usageBlock" property="payments" id="payment">
-							<li>
-								<nobr>
-								<bean:write name="payment" property="paymentMethod.displayString" />
-								&nbsp;
-								<bean:write name="payment" property="percent" />%
-								</nobr>
-							</li>
-						</logic:iterate>
+                        <logic:iterate name="usageBlock" property="payments" id="payment">
+                            <li>
+                                <nobr>
+                                    <a href="/pr/viewPaymentMethod.do?paymentMethodId=<bean:write name='payment' property='paymentMethod.id'/>&projectId=<bean:write name='usageBlock' property='projectID'/>">
+                                        <bean:write name="payment" property="paymentMethod.shortDisplayString" /></a>
+                                    &nbsp;
+                                    <bean:write name="payment" property="percent" />%
+                                </nobr>
+                            </li>
+                        </logic:iterate>
 						</ul>
 					</logic:notEmpty>
 				</td>
 				<td><bean:write name="usageBlock" property="startDateFormated"/></td>
 				<td><bean:write name="usageBlock" property="endDateFormated"/></td>
-				<td align="right"><span class="costColumn"><bean:write name="usageBlock" property="rate"/></span></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="signupCost"/></span></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="instrumentCost"/></span></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="totalCost"/></span></td>
 				<td>
 					<logic:empty name="usageBlock" property="invoiceDate">
 					-
@@ -229,6 +234,10 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				</td>
                 <td style="font-size:10pt;color:red">
                     <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="usageBlock" property="projectID" />)'>[Delete]</a>
+                    <yrcwww:member group="administrator">
+                        <br>
+                        <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="usageBlock" property="projectID" />)'>[Purge]</a>
+                    </yrcwww:member>
                 </td>
 			</tr>
 		</logic:iterate>

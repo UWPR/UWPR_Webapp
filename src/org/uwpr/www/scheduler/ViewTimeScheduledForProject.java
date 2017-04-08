@@ -86,8 +86,7 @@ public class ViewTimeScheduledForProject extends Action {
 			saveErrors( request, errors );
 			log.error("Error checking access to project ID: "+projectId, e);
 			ActionForward fwd = mapping.findForward("Failure");
-			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
-        	return newFwd;
+            return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         }
 
         int instrumentId;
