@@ -12,7 +12,7 @@ public class TimeUtils
     public static int MILLIS_IN_HOUR = 60 * 60 * 1000;
     public static int MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
 
-    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd, hh:mm a");
+    public static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
 
     private TimeUtils(){}
 

@@ -3,6 +3,7 @@ package org.uwpr.www.scheduler;
 import org.apache.log4j.Logger;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
@@ -32,7 +33,6 @@ public class ProjectInstrumentUsageUpdateEmailer
         DELETED;
     }
 
-    private static SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
     private ProjectInstrumentUsageUpdateEmailer() {}
 
     public static ProjectInstrumentUsageUpdateEmailer getInstance() {
@@ -43,7 +43,7 @@ public class ProjectInstrumentUsageUpdateEmailer
 
         log.info("Sending project instrument update email");
 
-        List<Researcher> researchers = getAdmins();
+        List<Researcher> admins = getAdmins();
 
         try {
             // set the SMTP host property value
@@ -62,17 +62,26 @@ public class ProjectInstrumentUsageUpdateEmailer
 
             // set the to address
             String emailStr = "";
-            for(Researcher r: researchers) {
+            for(Researcher r: admins) {
                 emailStr += ","+r.getEmail();
             }
             if(emailStr.length() > 0) emailStr = emailStr.substring(1); // remove first comma
 
+            Address[] bccAddress = InternetAddress.parse(emailStr);
+            message.setRecipients(Message.RecipientType.BCC, bccAddress);
+
+            List<Researcher> projectResearchers = project.getResearchers();
+            emailStr = "";
+            emailStr += project.getPI().getEmail();
+            for(Researcher r: projectResearchers)
+            {
+                emailStr += ","+r.getEmail();
+            }
             Address[] toAddress = InternetAddress.parse(emailStr);
             message.setRecipients(Message.RecipientType.TO, toAddress);
 
-
             // set the subject
-            StringBuilder subject = new StringBuilder("UWPR - Instrument usage ");
+            StringBuilder subject = new StringBuilder("UWPR - Instrument usage added");
             subject.append(action);
             subject.append(" on ").append(instrument.getName());
 
@@ -80,18 +89,17 @@ public class ProjectInstrumentUsageUpdateEmailer
 
             // set the message body
             StringBuilder text = new StringBuilder();
-            text.append("Instrument usage ").append(action.name().toLowerCase()).append("\n");
+            text.append("UWPR Instrument usage ").append(action.name().toLowerCase()).append("\n");
             text.append("Instrument: ").append(instrument.getName()).append("\n");
             text.append("Project ID: " + project.getID() + "\n");
             text.append("Project title: " + project.getTitle() + "\n");
             text.append("User: " + user.getFullName() + "\n");
             text.append("User ID: " + user.getID() + "\n");
 
-            text.append("Calendar URL: http://proteomicsresource.washington.edu/pr/viewAllInstrumentCalendar.do \n");
             text.append("Project URL: http://proteomicsresource.washington.edu/pr/viewProject.do?ID="+project.getID()+"\n");
 
             text.append("\n");
-            text.append("Details: \n");
+            text.append("Usage details: \n");
             Map<Integer, String> userIdMap = new HashMap<Integer, String>();
             for(UsageBlockBase block: blocks)
             {
@@ -103,9 +111,9 @@ public class ProjectInstrumentUsageUpdateEmailer
                     operator = instrumentOperator.getFullName();
                     userIdMap.put(block.getInstrumentOperatorId(), operator);
                 }
-                text.append(block.getID()).append(" ")
-                        .append(format.format(block.getStartDate())).append(" - ")
-                        .append(format.format(block.getEndDate()));
+                text.append("Block ID: ").append(block.getID()).append(" ")
+                        .append(TimeUtils.format(block.getStartDate())).append(" - ")
+                        .append(TimeUtils.format(block.getEndDate()));
                 if(operator != null)
                 {
                     text.append(", operator: ").append(operator);
