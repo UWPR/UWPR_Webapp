@@ -1,14 +1,21 @@
 package org.uwpr.www.scheduler;
 
+import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
+import org.uwpr.costcenter.RateType;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.www.util.TimeUtils;
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.Project;
+import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +30,7 @@ import java.util.*;
 public class ShiftTimeScheduledForInstrument extends Action
 {
     private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    private static final Logger log = Logger.getLogger(ShiftTimeScheduledForInstrument.class);
 
     public ActionForward execute(ActionMapping mapping, ActionForm form,
                                  HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -141,10 +149,8 @@ public class ShiftTimeScheduledForInstrument extends Action
 
         Calendar calendar = Calendar.getInstance();
         List<String> logMessages = new ArrayList<>();
-        for(UsageBlock block: usageBlocks)
-        {
-            if(block.getStartDate().before(startDate))
-            {
+        for(UsageBlock block: usageBlocks) {
+            if (block.getStartDate().before(startDate)) {
                 // Skip if this block has a start date before the selected start date.
                 continue;
             }
@@ -166,7 +172,58 @@ public class ShiftTimeScheduledForInstrument extends Action
             logMessages.add(message);
         }
 
-        InstrumentUsageDAO.getInstance().updateBlocksDates(usageBlocksToShift, logMessages);
+        log.info(("Shifting blocks on instrument " + instrumentId + " by " + shiftByDays + ". Range " + startDateString + " TO " + endDateString));
+
+        Connection conn = null;
+        InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
+        try {
+            conn = DBConnectionManager.getMainDbConnection();
+            conn.setAutoCommit(false);
+            instrumentUsageDAO.updateBlocksDates(conn, usageBlocksToShift, logMessages);
+
+            // If we are going over some previously existing signup-only blocks, adjust / delete them
+            // Sort the blocks by project and then by start date
+            Collections.sort(usageBlocksToShift, new Comparator<UsageBlock>() {
+                @Override
+                public int compare(UsageBlock o1, UsageBlock o2) {
+                    if(o1.getProjectID() == o2.getProjectID())
+                    {
+                        return o1.getStartDate().compareTo(o2.getStartDate());
+                    }
+                    return o1.getProjectID() < o2.getProjectID() ? -1 : 1;
+                }
+            });
+
+            Project project = null;
+            RateType projectRateType = null;
+            for(UsageBlock block: usageBlocksToShift)
+            {
+                if(project == null || block.getProjectID() != project.getID())
+                {
+                    try {
+                        project = ProjectFactory.getProject(block.getProjectID());
+                        projectRateType = project.getRateType();
+                    }
+                    catch(Exception e)
+                    {
+                        ActionErrors errors = new ActionErrors();
+                        errors.add("scheduler", new ActionMessage("error.scheduler.general", "Error loading project " + block.getProjectID() + ". " + e.getMessage()));
+                        saveErrors(request, errors);
+                        return mapping.findForward("Failure");
+                    }
+                }
+
+                instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user.getResearcher(), project.getID(), instrumentId, projectRateType,
+                                                              block.getStartDate(), block.getEndDate());
+
+            }
+
+            conn.commit();
+        }
+        finally
+        {
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+        }
 
         // Get the updated usage blocks
         calendar.setTime(startDate);
