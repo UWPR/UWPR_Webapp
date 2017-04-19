@@ -120,20 +120,18 @@ public class PaymentMethodDAO {
 	}
 
 	
-	public int savePaymentMethod(PaymentMethod paymentMethod) throws SQLException {
+	public int savePaymentMethod(Connection conn, PaymentMethod paymentMethod) throws SQLException {
 		
 		String sql = "INSERT INTO paymentMethod (UWBudgetNumber, PONumber, budgetExpirationDate, paymentMethodName, contactNameFirst, contactLastName, contactEmail,";
 		sql += " contactPhone, organization, addressLine1, addressLine2, city, state, zip, country, ";
 		sql += " dateCreated,  createdBy, isCurrent, federalFunding, POAmount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		
-		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
 		try {
-			conn = getConnection();
 			int i = 1;
-			stmt = conn.prepareStatement(sql);
+			stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(i++, paymentMethod.getUwbudgetNumber());
 			stmt.setString(i++, paymentMethod.getPonumber());
 			java.sql.Date expDate = paymentMethod.getBudgetExpirationDate() == null ? null : new java.sql.Date(paymentMethod.getBudgetExpirationDate().getTime());
@@ -177,7 +175,6 @@ public class PaymentMethodDAO {
 			
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException ignored){}
 			if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
 			if(rs != null) try {rs.close();} catch(SQLException ignored){}
 		}

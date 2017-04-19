@@ -105,20 +105,22 @@ public class ProjectPaymentMethodDAO {
 	}
 	
 	public void savePaymentMethod(int projectId, PaymentMethod paymentMethod) throws SQLException {
-		
-		// first save the payment method
-		int paymentMethodId = PaymentMethodDAO.getInstance().savePaymentMethod(paymentMethod);
-		
-		// now create an entry in the bridge table
-		String sql = "INSERT INTO projectPaymentMethod (projectID, paymentMethodID) VALUES (?,?)";
-		
+
 		Connection conn = null;
+
+		String sql = "INSERT INTO projectPaymentMethod (projectID, paymentMethodID) VALUES (?,?)";
+
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		
 		try {
 			conn = getConnection();
-			
+			conn.setAutoCommit(false);
+
+			// First save the payment method
+			int paymentMethodId = PaymentMethodDAO.getInstance().savePaymentMethod(conn, paymentMethod);
+
+			// Now create an entry in the bridge table
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, projectId);
 			stmt.setInt(2, paymentMethodId);
@@ -127,6 +129,8 @@ public class ProjectPaymentMethodDAO {
 			if(numRowsInserted == 0) {
 				throw new SQLException("Creating project payment method failed, no rows affected.");
 			}
+
+			conn.commit();
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
