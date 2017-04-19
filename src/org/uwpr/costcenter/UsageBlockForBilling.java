@@ -96,7 +96,7 @@ public class UsageBlockForBilling {
 			totalCost = BigDecimal.ZERO;
 			for(UsageBlockBaseWithRate blk: blocks)
 			{
-				this.totalCost = totalCost.add(blk.getRate().getRate());
+				this.totalCost = totalCost.add(blk.getTotalCost());
 			}
 		}
 		return totalCost;
@@ -109,7 +109,7 @@ public class UsageBlockForBilling {
 			signupCost = BigDecimal.ZERO;
 			for(UsageBlockBaseWithRate blk: blocks)
 			{
-				this.signupCost = signupCost.add(blk.getRate().getSignupFee());
+				this.signupCost = signupCost.add(blk.getSignupCost());
 			}
 		}
 		return signupCost;
@@ -124,7 +124,7 @@ public class UsageBlockForBilling {
 			{
 				if(!blk.isDeleted())
 				{
-					instrumentCost = instrumentCost.add(blk.getRate().getInstrumentFee());
+					instrumentCost = instrumentCost.add(blk.getInstrumentCost());
 				}
 			}
 		}

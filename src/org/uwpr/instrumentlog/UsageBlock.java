@@ -1,15 +1,14 @@
 package org.uwpr.instrumentlog;
 
-import org.uwpr.costcenter.InstrumentRate;
+import org.uwpr.scheduler.UsageBlockBaseWithRate;
 
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 
-public class UsageBlock extends UsageBlockBase {
+public class UsageBlock extends UsageBlockBaseWithRate {
 
 	private String piName;
 	private int piID;
@@ -17,7 +16,6 @@ public class UsageBlock extends UsageBlockBase {
 	private String operatorName;
 	private String projectTitle;
 	private List<InstrumentUsagePayment> payments;
-	private InstrumentRate rate;
 	private Date invoiceDate;
 	
 	public UsageBlock() {
@@ -57,29 +55,6 @@ public class UsageBlock extends UsageBlockBase {
 
 	public void setPayments(List<InstrumentUsagePayment> payments) {
 		this.payments = payments;
-	}
-	
-	public InstrumentRate getRate() {
-		return rate;
-	}
-
-	public BigDecimal getTotalCost()
-	{
-		return getSignupCost().add(getInstrumentCost());
-	}
-
-	public BigDecimal getSignupCost()
-	{
-		return rate.getSignupFee();
-	}
-
-	public BigDecimal getInstrumentCost()
-	{
-		return isDeleted() ? BigDecimal.ZERO : rate.getInstrumentFee();
-	}
-
-	public void setRate(InstrumentRate rate) {
-		this.rate = rate;
 	}
 
 	public String toString() {

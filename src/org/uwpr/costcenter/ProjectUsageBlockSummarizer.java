@@ -3,20 +3,19 @@
  */
 package org.uwpr.costcenter;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.uwpr.instrumentlog.InstrumentUsagePayment;
 import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ProjectUsageBlockSummarizer.java

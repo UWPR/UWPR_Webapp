@@ -6,6 +6,8 @@ package org.uwpr.scheduler;
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.instrumentlog.UsageBlockBase;
 
+import java.math.BigDecimal;
+
 /**
  * UsageBlockBaseWithRate.java
  * @author Vagisha Sharma
@@ -22,5 +24,20 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 
 	public void setRate(InstrumentRate rate) {
 		this.rate = rate;
+	}
+
+	public BigDecimal getTotalCost()
+	{
+		return getSignupCost().add(getInstrumentCost());
+	}
+
+	public BigDecimal getSignupCost()
+	{
+		return rate.getSignupFee();
+	}
+
+	public BigDecimal getInstrumentCost()
+	{
+		return isDeleted() ? BigDecimal.ZERO : rate.getInstrumentFee();
 	}
 }
