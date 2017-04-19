@@ -45,9 +45,9 @@ public class InstrumentLogDao
 		logSignupAction(conn, Collections.singletonList(block), researcherId, message, ACTION.EDITED);
 	}
 
-	public void logSignupDeleted(Connection conn, List<? extends UsageBlockBase> usageBlocks, int researcherId) throws SQLException
+	public void logSignupDeleted(Connection conn, List<? extends UsageBlockBase> usageBlocks, int researcherId, String message) throws SQLException
 	{
-		logSignupAction(conn, usageBlocks, researcherId, null, ACTION.DELETED);
+		logSignupAction(conn, usageBlocks, researcherId, message, ACTION.DELETED);
 	}
 
 	public void logSignupPurged(Connection conn, UsageBlockBase block, int researcherId, String message) throws SQLException
