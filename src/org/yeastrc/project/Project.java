@@ -10,6 +10,8 @@
 package org.yeastrc.project;
 
 import org.apache.commons.lang.StringUtils;
+import org.uwpr.costcenter.RateType;
+import org.uwpr.costcenter.RateTypeDAO;
 import org.yeastrc.data.IData;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.db.DBConnectionManager;
@@ -1747,6 +1749,16 @@ public abstract class Project implements Comparable, IData, ComparableProject {
     public String getExtensionReasonsAsHTML() {
         return org.yeastrc.utils.HTML.convertToHTML(this.extensionReasons);
     }
-	
+
+	public RateType getRateType() throws SQLException
+	{
+		if(this instanceof BilledProject) {
+			return RateTypeDAO.getInstance().getRateForBilledProjects(this);
+		}
+		else if(this instanceof Collaboration) {
+			return RateTypeDAO.getInstance().getRateForUwprSupportedProjects();
+		}
+		return null;
+	}
 
 }

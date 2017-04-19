@@ -15,10 +15,8 @@ import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
-import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
-import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -191,9 +189,13 @@ public class EditBlockDetailsAction extends Action {
             conn = DBConnectionManager.getMainDbConnection();
             conn.setAutoCommit(false);
 
+            InstrumentLogDao logDao = InstrumentLogDao.getInstance();
+
             // Delete the old payment methods and add new ones
             for (UsageBlockBase block : blocksToUpdate) {
                 paymentDao.deletePaymentsForUsage(conn, block.getID());
+
+                block.setUpdaterResearcherID(user.getResearcher().getID());
 
                 for (EditBlockDetailsForm.PaymentPercent paymentPercent : paymentPercentList) {
                     if (paymentPercent.getPaymentPercentInteger() == 0.0)
@@ -205,6 +207,9 @@ public class EditBlockDetailsAction extends Action {
                     iup.setPaymentMethod(paymentMethod);
                     iup.setPercent(BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()));
                     paymentDao.savePayment(conn, iup);
+
+                    logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(),
+                            "Changed payment method for block to (" + iup.getPercent() + "%) " + paymentMethod.getDisplayString());
                 }
             }
 
@@ -223,7 +228,7 @@ public class EditBlockDetailsAction extends Action {
         catch(Exception e)
         {
             return returnError(mapping, request, "scheduler",
-                    new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks"),
+                    new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. Error: " + e.getMessage()),
                     "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
         }
         finally

@@ -157,14 +157,7 @@ public class ViewSchedulerAction extends Action {
         
         
         // Get the Time blocks the user will be able to select from
-        RateType rateType = null;
-        if(project instanceof BilledProject) {
-        	Affiliation affiliation = ((BilledProject)project).getAffiliation();
-        	rateType = RateTypeDAO.getInstance().getRateTypeForAffiliation(affiliation, project.isMassSpecExpertiseRequested());
-        }
-        else if(project instanceof Collaboration) {
-        	rateType = RateTypeDAO.getInstance().getRateForUwprSupportedProjects();
-        }
+        RateType rateType = project.getRateType();
         if(rateType == null) {
         	
         	ActionErrors errors = new ActionErrors();

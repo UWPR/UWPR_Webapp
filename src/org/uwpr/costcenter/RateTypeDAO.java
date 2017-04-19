@@ -8,6 +8,7 @@ package org.uwpr.costcenter;
 import org.apache.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Affiliation;
+import org.yeastrc.project.Project;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -108,7 +109,7 @@ public class RateTypeDAO {
     		}
     	}
 	
-	public RateType getRateTypeForAffiliation(Affiliation affiliation, boolean feeForService) throws SQLException {
+	private RateType getRateTypeForAffiliation(Affiliation affiliation, boolean feeForService) throws SQLException {
 		
 		String rateTypeName = affiliation.name();
 		if(feeForService) {
@@ -124,16 +125,12 @@ public class RateTypeDAO {
 	}
 	
 	public RateType getRateForUwprSupportedProjects() throws SQLException {
-		
-		
-		return RateTypeDAO.getInstance().getRateTypeForAffiliation(Affiliation.UW, false);
-		
-//		List<RateType> rateTypes = getAllRateTypes();
-//        for(RateType rateType: rateTypes) {
-//        	if(rateType.getName().equals("FREE")) {
-//        		return rateType;
-//        	}
-//        }
-//        return null;
+
+		return getRateTypeForAffiliation(Affiliation.UW, false);
+	}
+
+	public RateType getRateForBilledProjects(Project project) throws SQLException {
+
+		return getRateTypeForAffiliation(project.getAffiliation(), project.isMassSpecExpertiseRequested());
 	}
 }

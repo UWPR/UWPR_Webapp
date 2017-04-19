@@ -215,6 +215,15 @@ public class EditBlockDetailsFormAction extends Action {
 
         // get a list of ALL payment methods for the project
         List<PaymentMethod> paymentMethods = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
+        if(paymentMethods == null || paymentMethods.size() == 0)
+        {
+            ActionErrors errors = new ActionErrors();
+            errors.add("scheduler", new ActionMessage("error.costcenter.invalidaccess",
+                    "No payment methods found for project " + project.getID() + " (" + project.getTitle() + ")"));
+            saveErrors( request, errors );
+            ActionForward fwd = mapping.findForward("viewScheduler");
+            return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, fwd.getRedirect());
+        }
         request.setAttribute("paymentMethods", paymentMethods);
 
         List<EditBlockDetailsForm.PaymentPercent> paymentPercentList = new ArrayList<EditBlockDetailsForm.PaymentPercent>();

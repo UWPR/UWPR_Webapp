@@ -14,7 +14,6 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -30,7 +29,8 @@ public class ProjectInstrumentUsageUpdateEmailer
     {
         ADDED,
         EDITED,
-        DELETED;
+        DELETED,
+        PURGED;
     }
 
     private ProjectInstrumentUsageUpdateEmailer() {}
@@ -39,7 +39,9 @@ public class ProjectInstrumentUsageUpdateEmailer
         return instance;
     }
 
-    public void sendEmail(Project project, MsInstrument instrument, Researcher user, List<? extends UsageBlockBase> blocks, Action action) {
+    public void sendEmail(Project project, MsInstrument instrument, Researcher user, List<? extends UsageBlockBase> blocks,
+                          Action action, String actionDetailMessage,
+                          boolean includeProjectResearchers) {
 
         log.info("Sending project instrument update email");
 
@@ -60,7 +62,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
             message.setFrom(fromAddress);
 
-            // set the to address
+            // set the bcc address
             String emailStr = "";
             for(Researcher r: admins) {
                 emailStr += ","+r.getEmail();
@@ -70,18 +72,20 @@ public class ProjectInstrumentUsageUpdateEmailer
             Address[] bccAddress = InternetAddress.parse(emailStr);
             message.setRecipients(Message.RecipientType.BCC, bccAddress);
 
-            List<Researcher> projectResearchers = project.getResearchers();
-            emailStr = "";
-            emailStr += project.getPI().getEmail();
-            for(Researcher r: projectResearchers)
+            if(includeProjectResearchers)
             {
-                emailStr += ","+r.getEmail();
+                List<Researcher> projectResearchers = project.getResearchers();
+                emailStr = "";
+                emailStr += project.getPI().getEmail();
+                for (Researcher r : projectResearchers) {
+                    emailStr += "," + r.getEmail();
+                }
+                Address[] toAddress = InternetAddress.parse(emailStr);
+                message.setRecipients(Message.RecipientType.TO, toAddress);
             }
-            Address[] toAddress = InternetAddress.parse(emailStr);
-            message.setRecipients(Message.RecipientType.TO, toAddress);
 
             // set the subject
-            StringBuilder subject = new StringBuilder("UWPR - Instrument usage added");
+            StringBuilder subject = new StringBuilder("UWPR - Instrument usage ");
             subject.append(action);
             subject.append(" on ").append(instrument.getName());
 
@@ -89,7 +93,11 @@ public class ProjectInstrumentUsageUpdateEmailer
 
             // set the message body
             StringBuilder text = new StringBuilder();
-            text.append("UWPR Instrument usage ").append(action.name().toLowerCase()).append("\n");
+            text.append("UWPR Instrument usage ").append(action.name()).append("\n");
+            if(actionDetailMessage != null)
+            {
+                text.append(actionDetailMessage).append("\n");
+            }
             text.append("Instrument: ").append(instrument.getName()).append("\n");
             text.append("Project ID: " + project.getID() + "\n");
             text.append("Project title: " + project.getTitle() + "\n");
@@ -99,7 +107,13 @@ public class ProjectInstrumentUsageUpdateEmailer
             text.append("Project URL: http://proteomicsresource.washington.edu/pr/viewProject.do?ID="+project.getID()+"\n");
 
             text.append("\n");
-            text.append("Usage details: \n");
+            if(action.equals(Action.EDITED))
+            {
+                text.append("New usage details: \n");
+            }
+            else {
+                text.append("Usage details: \n");
+            }
             Map<Integer, String> userIdMap = new HashMap<Integer, String>();
             for(UsageBlockBase block: blocks)
             {

@@ -47,6 +47,7 @@ import org.uwpr.www.costcenter.UwprSupportedProjectPaymentMethodGetter;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -161,18 +162,10 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         
         
         // Get the rate type -- UW, non-profit, commercial etc.
-        RateType rateType = null;
-        if(project instanceof BilledProject) {
-        	Affiliation affiliation = ((BilledProject)project).getAffiliation();
-        	rateType = RateTypeDAO.getInstance().getRateTypeForAffiliation(affiliation, project.isMassSpecExpertiseRequested());
-        	if(rateType == null) {
-            	return sendError(response,"Could not find rate type for affiliation: "+affiliation.name());
-            }
-        }
-        else if(project instanceof Collaboration) {
-        	rateType = RateTypeDAO.getInstance().getRateForUwprSupportedProjects();
-        }
-        
+        RateType rateType = project.getRateType();
+		if(rateType == null) {
+			return sendError(response,"Could not find rate type for project(" + project.getID() + "): " + project.getTitle());
+		}
         
         // Get the start and end date and time
         String startDate = request.getParameter("startDate");
@@ -314,9 +307,10 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			}
 
 			// Email admins
+			boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
 			ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
 					allBlocks,
-					ProjectInstrumentUsageUpdateEmailer.Action.ADDED);
+					ProjectInstrumentUsageUpdateEmailer.Action.ADDED, null, emailProjectMembers);
 		}
 
 		// Write the response

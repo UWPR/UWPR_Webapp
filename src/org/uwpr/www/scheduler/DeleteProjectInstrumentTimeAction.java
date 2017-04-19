@@ -129,9 +129,10 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 
 
 		boolean deleteUsageAndSignup = false;
-		Groups groupsMan = Groups.getInstance();
-		if (groupsMan.isMember(user.getResearcher().getID(), "administrators"))
+		boolean emailProjectResearchers = true;
+		if (Groups.getInstance().isAdministrator(user.getResearcher()))
 		{
+			emailProjectResearchers = false;
 			// Delete the block if the user is an admin and 'deleteSignup' attribute is present in the request
 			if(request.getParameter("deleteSignup") != null)
 			{
@@ -152,10 +153,12 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 		}
 
 		// Email admins
+		ProjectInstrumentUsageUpdateEmailer.Action action = deleteUsageAndSignup ? ProjectInstrumentUsageUpdateEmailer.Action.PURGED
+				                                                                 : ProjectInstrumentUsageUpdateEmailer.Action.DELETED;
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(usageBlock.getInstrumentID());
 		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
 				Collections.singletonList(usageBlock),
-				ProjectInstrumentUsageUpdateEmailer.Action.DELETED);
+				action, null, emailProjectResearchers);
 
 		ActionForward fwd = mapping.findForward("Success");
 		ActionForward newFwd = new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());

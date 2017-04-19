@@ -101,19 +101,6 @@ public class InstrumentUsagePaymentDAO {
 		}
 	}
 
-	public void savePayment(InstrumentUsagePayment payment) throws SQLException {
-		
-		Connection conn = null;
-
-		try {
-			conn = getConnection();
-			savePayment(conn, payment);
-		}
-		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
     private Connection getConnection() throws SQLException {
         return DBConnectionManager.getMainDbConnection();
     }

@@ -7,8 +7,6 @@ package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
-import org.uwpr.costcenter.InvoiceInstrumentUsage;
-import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
 import org.yeastrc.project.Project;
@@ -139,10 +137,11 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 		InstrumentUsageDAO.getInstance().markDeleted(usageBlocks, user.getResearcher());
 
 		// Email admins
+		boolean emailProjectResearchers = !Groups.getInstance().isAdministrator(user.getResearcher());
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(instrumentId);
 		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
 				usageBlocks,
-				ProjectInstrumentUsageUpdateEmailer.Action.DELETED);
+				ProjectInstrumentUsageUpdateEmailer.Action.DELETED, null, emailProjectResearchers);
 
         PrintWriter writer = response.getWriter();
         writer.write("SUCCESS");

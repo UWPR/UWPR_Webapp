@@ -9,6 +9,7 @@ import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.Groups;
@@ -196,13 +197,23 @@ public class EditProjectInstrumentTimeAction extends Action {
 						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
 			}
 		}
-        
+
+		// If the user has not edited the dates, just update the instrument operator for the blocks
+		Date blksStart = blocksToDelete.get(0).getStartDate();
+		Date blksEnd = blocksToDelete.get(blocksToDelete.size() - 1).getEndDate();
+		if(blksStart.equals(editForm.getStartDateDate()) && blksEnd.equals(editForm.getEndDateDate()))
+		{
+			InstrumentUsageDAO.getInstance().updateBlocksInstrumentOperator(blocksToDelete, instrumentOperatorId);
+			ActionForward fwd = mapping.findForward("viewScheduler");
+			return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);
+		}
+
         // Make sure the old blocks can be deleted.
         for(UsageBlockBase block: blocksToDelete) {
         	StringBuilder errorMessage = new StringBuilder();
         	if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(block, user, errorMessage)) {
-        		return returnError(mapping, request, "scheduler", 
-        				new ActionMessage("error.costcenter.delete", 
+        		return returnError(mapping, request, "scheduler",
+        				new ActionMessage("error.costcenter.delete",
         						"Block ID "+block.getID()+": "+block.getStartDateFormated()+" - "+block.getEndDateFormated()+
         						". "+errorMessage.toString()),
         						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
@@ -230,22 +241,15 @@ public class EditProjectInstrumentTimeAction extends Action {
         			new ActionMessage("error.costcenter.invaliddata", "Could not convert given time range into blocks."),
 							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
         }
-        
-        
-        // Get the rate type -- UW, non-profit, commercial etc.
-        RateType rateType = null;
-        if(project instanceof BilledProject) {
-        	Affiliation affiliation = project.getAffiliation();
-        	rateType = RateTypeDAO.getInstance().getRateTypeForAffiliation(affiliation, project.isMassSpecExpertiseRequested());
-        	if(rateType == null) {
-        		return returnError(mapping, request, "scheduler", 
-            			new ActionMessage("error.costcenter.invaliddata", "Could not find rate type for affiliation: "+affiliation.name()),
-    							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-            }
-        }
-        else if(project instanceof Collaboration) {
-        	rateType = RateTypeDAO.getInstance().getRateForUwprSupportedProjects();
-        }
+
+
+		// Get the rate type -- UW, non-profit, commercial etc.
+        RateType rateType = project.getRateType();
+		if(rateType == null) {
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.costcenter.invaliddata", "Could not find rate type for project(" + project.getID() + "): " + project.getTitle()),
+					"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+		}
         
         List<UsageBlockBaseWithRate> allBlocks = new ArrayList<UsageBlockBaseWithRate>();
     	
@@ -441,12 +445,20 @@ public class EditProjectInstrumentTimeAction extends Action {
 			}
 		}
 		else {
-			// We no longer support subsidezed projects
+			// We no longer support subsidized projects
 			return returnError(mapping, request, "scheduler",
 					new ActionMessage("error.costcenter.invaliddata", "Subsized projects are not supported."),
 					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
 
 		}
+
+		// Email admins
+		boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
+		String actionMessage = "Editing scheduled time from " + TimeUtils.format(blocksToDelete.get(0).getStartDate()) + " - " + TimeUtils.format(blocksToDelete.get(blocksToDelete.size() - 1).getEndDate());
+		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+				allBlocks,
+				ProjectInstrumentUsageUpdateEmailer.Action.EDITED, actionMessage, emailProjectMembers);
+
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);
