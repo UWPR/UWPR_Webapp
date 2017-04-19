@@ -17,7 +17,6 @@ import org.yeastrc.project.payment.PaymentMethod;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -103,24 +102,7 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public void updateBlocksDates(List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
-
-		Connection conn = null;
-
-		try {
-
-			conn = getConnection();
-			conn.setAutoCommit(false);
-			updateBlocksDates(conn, blocks, logMessages);
-			conn.commit();
-
-		} finally {
-
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
-	private void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
+	public void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
 
 		if (blocks == null || blocks.size() == 0)
 			return;
@@ -129,14 +111,7 @@ public class InstrumentUsageDAO {
 
 		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
-		boolean queryBlock = false;
-		if(logMessages == null)
-		{
-			queryBlock = true;
-		}
 		PreparedStatement stmt = null;
-		PreparedStatement selectStmt = null;
-
 		ResultSet rs = null;
 
 		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
@@ -146,35 +121,15 @@ public class InstrumentUsageDAO {
 		sql.append(", updatedBy = ?");
 		sql.append(" WHERE id = ?");
 
-		String selectSql = "SELECT * FROM instrumentUsage WHERE id=?";
 		try {
 
 			stmt = conn.prepareStatement(sql.toString());
-			if(queryBlock)
-			{
-				selectStmt = conn.prepareStatement(selectSql);
-			}
 
 			int i = 0;
 			for(UsageBlockBase block: blocks)
 			{
-				String message = null;
-				if(queryBlock) {
-					// Get the existing database block
-					selectStmt.setInt(1, block.getID());
-					rs = selectStmt.executeQuery();
-					if (!rs.next()) {
-						throw new SQLException("Could not find existing block with id " + block.getID());
-					}
-					Date originalStartDate = rs.getTimestamp("startDate");
-					Date originalEndDate = rs.getTimestamp("endDate");
+				String message = logMessages.get(i++);
 
-					message = getUpdateMessage(originalStartDate, originalEndDate, block);
-				}
-				else
-				{
-					message = logMessages.get(i++);
-				}
 				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(), message);
 
 				stmt.setTimestamp(1, makeTimestamp(block.getStartDate()));
@@ -188,7 +143,6 @@ public class InstrumentUsageDAO {
 		} finally {
 
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(selectStmt != null) try {selectStmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
@@ -216,8 +170,8 @@ public class InstrumentUsageDAO {
             for(UsageBlockBase block: blocks)
             {
                 stmt.setInt(1, newProjectId);
-                stmt.setInt(3, block.getUpdaterResearcherID());
-                stmt.setInt(4, block.getID());
+                stmt.setInt(2, block.getUpdaterResearcherID());
+                stmt.setInt(3, block.getID());
                 stmt.executeUpdate();
 
 				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(),
@@ -231,6 +185,47 @@ public class InstrumentUsageDAO {
         }
     }
 
+	public void updateBlocksInstrumentOperator(List<? extends UsageBlockBase> blocks, int newInstrumentOperator) throws Exception {
+
+		if (blocks == null || blocks.size() == 0)
+			return;
+
+		log.info("Updating usage blocks (instrument operator) on instrument: " + blocks.get(0).getInstrumentID());
+
+		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
+
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
+		sql.append(" instrumentOperatorId = ?");
+		sql.append(", updatedBy = ?");
+		sql.append(" WHERE id = ?");
+		try {
+
+			conn = getConnection();
+			stmt = conn.prepareStatement(sql.toString());
+
+			for(UsageBlockBase block: blocks)
+			{
+				stmt.setInt(1, newInstrumentOperator);
+				stmt.setInt(2, block.getUpdaterResearcherID());
+				stmt.setInt(3, block.getID());
+				stmt.executeUpdate();
+
+				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(),
+						"Changed instrument operator from " + block.getInstrumentOperatorId() + " to " + newInstrumentOperator);
+			}
+
+		} finally {
+
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
 	public void markDeleted(List<UsageBlockBase> usageBlocks, Researcher user) throws Exception {
 
 		if (usageBlocks == null || usageBlocks.size() == 0)
@@ -243,18 +238,13 @@ public class InstrumentUsageDAO {
 		{
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			markDeleted(conn, usageBlocks, user);
+			markDeleted(conn, usageBlocks, user, null);
 			conn.commit();
 
 		} finally {
 
 			if(conn != null) try {conn.close();} catch(SQLException e){}
 		}
-	}
-
-	public int markDeleted(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
-	{
-		return markDeleted(conn, usageBlocks, researcher, null);
 	}
 
 	public int markDeletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
@@ -291,7 +281,7 @@ public class InstrumentUsageDAO {
 
 			int numUpdated = stmt.executeUpdate();
 
-			logDao.logSignupDeleted(conn, usageBlocks, researcher.getID());
+			logDao.logSignupDeleted(conn, usageBlocks, researcher.getID(), message);
 
 			return numUpdated;
 
@@ -408,7 +398,8 @@ public class InstrumentUsageDAO {
 				stmt.setInt(1, block.getID());
 				stmt.executeUpdate();
 
-				logDao.logSignupPurged(conn, block, researcher.getID(), message + ": " + block.toString());
+				message = message == null ? "" : message + ": ";
+				logDao.logSignupPurged(conn, block, researcher.getID(), message + block.toString());
 			}
 
 		} finally {
@@ -421,7 +412,8 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public void deleteOrAdjustSignupBlocks(Connection conn, Researcher researcher, int projectId, int instrumentId, RateType rateType, Date startDate, Date endDate) throws Exception
+	public void deleteOrAdjustSignupBlocks(Connection conn, Researcher researcher, int projectId, int instrumentId, RateType rateType,
+										   Date startDate, Date endDate) throws Exception
 	{
 		List<UsageBlockBase> signupBlocks = UsageBlockBaseDAO.getSignupBlocks(conn, projectId, instrumentId, startDate, endDate);
 
@@ -491,7 +483,7 @@ public class InstrumentUsageDAO {
 			}
 			else
 			{
-				// We should not be here!!
+				// We should not be here
 				throw new Exception("Cannot handle existing overlapping signup: " + sStartDate + " to " + sEndDate
 						+ ". Requested signup was from " + startDate + " to " + endDate);
 			}

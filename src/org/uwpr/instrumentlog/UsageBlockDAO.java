@@ -31,12 +31,32 @@ public class UsageBlockDAO
     public static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate,
                                                         boolean trim) throws SQLException
     {
+       return getUsageBlocksForInstrument(instrumentID, startDate, endDate, trim,
+               false); // Do not include signup-only blocks
+    }
+
+    /**
+     * Returns a list of usage blocks for the given instrument ID that have their start OR end dates .
+     * within the given date range.
+     * If trim is true, blocks that have either their start or end dates outside of the range are trimmed.
+     * @param instrumentID
+     * @param startDate
+     * @param endDate
+     * @param trim
+     * @return
+     * @throws SQLException
+     */
+    public static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate,
+                                                               boolean trim, boolean includeDeleted) throws SQLException
+    {
         // Get our connection to the database.
         Connection conn = null;
         try
         {
             conn = InstrumentUsageDAO.getConnection();
-            return getUsageBlocksForInstrument(instrumentID, startDate, endDate, trim, null, conn);
+            return getUsageBlocksForInstrument(instrumentID, startDate, endDate, trim, null,
+                    includeDeleted,
+                    conn);
 
         }
         finally
@@ -51,7 +71,7 @@ public class UsageBlockDAO
 
     static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID,
                                                  java.util.Date startDate, java.util.Date endDate, boolean trim,
-                                                 String sortBy, Connection conn) throws SQLException
+                                                 String sortBy, boolean includeDeleted, Connection conn) throws SQLException
     {
         if (conn == null)
             return null;
@@ -62,6 +82,10 @@ public class UsageBlockDAO
         filter.setEndDate(endDate);
         filter.setSortColumn(sortBy);
         filter.setTrimToFit(trim);
+        if(includeDeleted)
+        {
+            filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL);
+        }
         return getUsageBlocks(filter);
     }
 

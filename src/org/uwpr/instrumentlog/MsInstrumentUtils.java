@@ -237,7 +237,9 @@ public class MsInstrumentUtils {
 		
 		List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentID, startDate, endDate,
 				true, // truncate blocks to given start and end dates
-				"projectID", conn);
+				"projectID",
+				false, // Exclude sign-up only blocks
+				conn);
 		
 		List <ProjectInstrumentUsage> projUsageList = new ArrayList<ProjectInstrumentUsage>();
 		
