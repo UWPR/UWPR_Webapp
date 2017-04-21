@@ -248,6 +248,7 @@ function deleteTimeBlock(usageBlockId, projectId) {
                     <logic:equal name="usageBlock" property="deleted" value="false">
 					  <a href="#" onclick='markBlockDeleted(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
                     </logic:equal>
+                    <a href='viewEditBlockDetailsForm.do?projectId=<bean:write name="project" property="ID" />&instrumentId=<bean:write name="usageBlock" property="instrumentID" />&usageBlockIds=<bean:write name="usageBlock" property="ID" />'>[Edit]</a>
                     <yrcwww:member group="administrator">
                         <br>
                         <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Purge]</a>
