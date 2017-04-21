@@ -169,7 +169,7 @@ public class ViewTimeScheduledForProject extends Action {
             {
                 int val = Integer.valueOf(o1.getInstrumentID()).compareTo(o2.getInstrumentID());
                 if (val == 0)
-                    return o1.getStartDate().compareTo(o2.getStartDate());
+                    return o2.getStartDate().compareTo(o1.getStartDate());
                 else
                     return val;
             }
