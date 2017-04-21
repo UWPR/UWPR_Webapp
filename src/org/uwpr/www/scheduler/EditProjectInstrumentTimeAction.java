@@ -436,7 +436,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 			catch(Exception e)
 			{
 				return returnError(mapping, request, "scheduler",
-						new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks"),
+						new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. " + e.getMessage()),
 						"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 			}
 			finally
