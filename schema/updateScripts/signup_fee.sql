@@ -4,9 +4,9 @@ ALTER TABLE mainDb.projectPaymentMethod Engine=InnoDb;
 -- ALTER TABLE mainDb.invoice Engine=InnoDB;
 ALTER TABLE mainDb.invoiceInstrumentUsage Engine=InnoDb;
 
-ALTER TABLE instrumentUsage ADD COLUMN deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE mainDb.instrumentUsage ADD COLUMN deleted BOOLEAN DEFAULT FALSE;
 
-ALTER TABLE maindb.instrumentusage MODIFY COLUMN lastChanged timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+ALTER TABLE maindb.instrumentUsage MODIFY COLUMN lastChanged timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 CREATE TABLE mainDb.instrumentLog
 (
