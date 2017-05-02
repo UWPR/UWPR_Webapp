@@ -20,6 +20,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
@@ -290,8 +291,12 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         	return sendError(response,"Error getting approval for instrument time."+e.getMessage());
         }
 
-		boolean requiresConfirmation = Boolean.parseBoolean(request.getParameter("requiresConfirmation"));
-
+		boolean requiresConfirmation = true;
+		String requiresConfStr = request.getParameter("requiresConfirmation");
+		if(!StringUtils.isBlank(requiresConfStr))
+		{
+			requiresConfirmation = Boolean.parseBoolean(requiresConfStr);
+		}
 
         if(!requiresConfirmation)
 		{
