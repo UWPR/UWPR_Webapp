@@ -18,6 +18,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.uwpr.AdminUtils;
+import org.uwpr.AppProperties;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -63,7 +64,7 @@ public class NewPaymentMethodAddedEmailer {
 			MimeMessage message = new MimeMessage(mSession);
 
 			// set the from address
-			Address fromAddress = AdminUtils.getFromAddress();
+			Address fromAddress = AppProperties.getFromAddress();
 			message.setFrom(fromAddress);
 
 			// set the to address
@@ -83,12 +84,12 @@ public class NewPaymentMethodAddedEmailer {
 			// set the message body
 			StringBuilder text = new StringBuilder();
 			text.append("A new payment method has been added to project ID: "+projectId+"\n");
-			text.append("Project URL: " + AdminUtils.getHost() + "/pr/viewProject.do?ID="+projectId+"\n");
+			text.append("Project URL: " + AppProperties.getHost() + "/pr/viewProject.do?ID="+projectId+"\n");
 			text.append("\n");
 			
 			
 			text.append("Payment method ID: "+paymentMethod.getId()+"\n");
-			text.append("URL: " + AdminUtils.getHost() + "/pr/viewPaymentMethod.do?projectId="+projectId+
+			text.append("URL: " + AppProperties.getHost() + "/pr/viewPaymentMethod.do?projectId="+projectId+
 					"&paymentMethodId="+paymentMethod.getId()+"\n");
 			text.append("Created by: "+creator.getFirstName()+" "+creator.getLastName()+"\n");
 			if(!StringUtils.isBlank(paymentMethod.getUwbudgetNumber())) {

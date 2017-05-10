@@ -1,3 +1,4 @@
+<%@ page import="org.uwpr.AppProperties" %>
 <%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 
@@ -30,7 +31,7 @@ response.addHeader("Cache-control", "max-age=0"); // stale right away
 	
 	<div id="header" class="container">
 		<div id="logo">
-			<a href="http://proteomicsresource.washington.edu/"><img src="/pr/images/UWPR_Logo/UWPR_logo_TimesNewRoman_fade.png" class="center" style="vertical-align: bottom; margin-top: 2px;"/></a>
+			<a href="<%=AppProperties.getHost()%>"><img src="/pr/images/UWPR_Logo/UWPR_logo_TimesNewRoman_fade.png" class="center" style="vertical-align: bottom; margin-top: 2px;"/></a>
 		</div>
 		<div id="search">
 			<yrcwww:authenticated>

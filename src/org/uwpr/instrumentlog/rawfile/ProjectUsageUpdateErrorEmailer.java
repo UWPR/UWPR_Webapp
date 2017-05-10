@@ -16,6 +16,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
 import org.uwpr.AdminUtils;
+import org.uwpr.AppProperties;
 import org.yeastrc.project.Researcher;
 
 /**
@@ -51,7 +52,7 @@ public class ProjectUsageUpdateErrorEmailer {
 			MimeMessage message = new MimeMessage(mSession);
 
 			// set the from address
-			Address fromAddress = AdminUtils.getFromAddress();
+			Address fromAddress = AppProperties.getFromAddress();
 			message.setFrom(fromAddress);
 
 			// set the to address

@@ -13,7 +13,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
 import org.apache.struts.util.MessageResources;
-import org.uwpr.AdminUtils;
+import org.uwpr.AppProperties;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
 
@@ -50,7 +50,7 @@ public class NewProjectUtils {
 			MimeMessage message = new MimeMessage(mSession);
 			
 			// set the from address
-			Address fromAddress = AdminUtils.getFromAddress();
+			Address fromAddress = AppProperties.getFromAddress();
 			message.setFrom(fromAddress);
 			
 			// set the to address

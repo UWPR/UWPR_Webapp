@@ -9,16 +9,21 @@
 
 package org.yeastrc.www.login;
 
-import javax.servlet.http.*;
 import org.apache.struts.action.*;
-import java.util.*;
+import org.uwpr.AppProperties;
+import org.yeastrc.project.Researcher;
+import org.yeastrc.www.user.NoSuchUserException;
+import org.yeastrc.www.user.User;
+import org.yeastrc.www.user.UserUtils;
 
 import javax.mail.*;
-import javax.mail.internet.*;
-
-import org.uwpr.AdminUtils;
-import org.yeastrc.www.user.*;
-import org.yeastrc.project.Researcher;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.Properties;
 
 
 /**
@@ -104,7 +109,7 @@ public class ForgotPasswordAction extends Action {
            MimeMessage message = new MimeMessage(mSession);
 
            // set the from address
-           Address fromAddress = AdminUtils.getFromAddress();
+           Address fromAddress = AppProperties.getFromAddress();
            message.setFrom(fromAddress);
 
            // set the to address
@@ -115,7 +120,7 @@ public class ForgotPasswordAction extends Action {
            message.setSubject("UWPR Registration Info");
 
            // set the message body
-			String text = "Here is your login information for http://proteomicsresource.washington.edu/ :\n\n";
+			String text = "Here is your login information for " + AppProperties.getHost() + " :\n\n";
 			text += "Username: " + user.getUsername() + "\n";
 			text += "Password: " + password + "\n\n";
 			text += "Thank you,\nThe UW Proteomics Resource\n";

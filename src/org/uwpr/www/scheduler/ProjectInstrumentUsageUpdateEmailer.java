@@ -2,6 +2,7 @@ package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
 import org.uwpr.AdminUtils;
+import org.uwpr.AppProperties;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.www.util.TimeUtils;
@@ -58,7 +59,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             MimeMessage message = new MimeMessage(mSession);
 
             // set the from address
-            Address fromAddress = AdminUtils.getFromAddress();
+            Address fromAddress = AppProperties.getFromAddress();
             message.setFrom(fromAddress);
 
             // set the bcc address
@@ -103,7 +104,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             text.append("User: " + user.getFullName() + "\n");
             text.append("User ID: " + user.getID() + "\n");
 
-            text.append("Project URL: " + AdminUtils.getHost() + "/pr/viewProject.do?ID="+project.getID()+"\n");
+            text.append("Project URL: " + AppProperties.getHost() + "/pr/viewProject.do?ID="+project.getID()+"\n");
 
             text.append("\n");
             if(action.equals(Action.EDITED))

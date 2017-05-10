@@ -47,11 +47,11 @@
 		</p>
 
 		<p>
-		Click <a href="http://proteomicsresource.washington.edu/collab.php">here</a> for more information on how to collaborate.
+		Click <a href="<%=AppProperties.getHost()%>/collab.php">here</a> for more information on how to collaborate.
 		</p>
 		
 		<p>
-			For resources available at the UWPR click <a href="http://proteomicsresource.washington.edu/resources.php">here</a>.
+			For resources available at the UWPR click <a href="<%=AppProperties.getHost()%>/resources.php">here</a>.
 		</p>
 		<ul>
 			<li>
