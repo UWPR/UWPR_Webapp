@@ -1,10 +1,10 @@
 package org.uwpr.www.scheduler;
 
 import org.apache.log4j.Logger;
+import org.uwpr.AdminUtils;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.www.util.TimeUtils;
-import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
 
@@ -13,7 +13,6 @@ import javax.mail.Message;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -45,7 +44,7 @@ public class ProjectInstrumentUsageUpdateEmailer
 
         log.info("Sending project instrument update email");
 
-        List<Researcher> admins = getAdmins();
+        List<Researcher> admins = AdminUtils.getNotifyAdmins();
 
         try {
             // set the SMTP host property value
@@ -59,7 +58,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             MimeMessage message = new MimeMessage(mSession);
 
             // set the from address
-            Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
+            Address fromAddress = AdminUtils.getFromAddress();
             message.setFrom(fromAddress);
 
             // set the bcc address
@@ -104,7 +103,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             text.append("User: " + user.getFullName() + "\n");
             text.append("User ID: " + user.getID() + "\n");
 
-            text.append("Project URL: http://proteomicsresource.washington.edu/pr/viewProject.do?ID="+project.getID()+"\n");
+            text.append("Project URL: " + AdminUtils.getHost() + "/pr/viewProject.do?ID="+project.getID()+"\n");
 
             text.append("\n");
             if(action.equals(Action.EDITED))
@@ -145,41 +144,5 @@ public class ProjectInstrumentUsageUpdateEmailer
 
         } catch (Exception e) { log.error("Error sending email" , e); }
 
-    }
-
-    private List<Researcher> getAdmins()
-    {
-        // TODO Cannot use hardcoded database IDs
-        Researcher priska = new Researcher();
-        try {
-            priska.load(1756);
-        } catch (InvalidIDException e) {
-            log.error("No researcher found for ID: 1756", e);
-        } catch (SQLException e) {
-            log.error("Error loading reseracher for ID: 1756", e);
-        }
-        Researcher vsharma = new Researcher();
-        try {
-            vsharma.load(1811);
-        } catch (InvalidIDException e) {
-            log.error("No researcher found for ID: 1811", e);
-        } catch (SQLException e) {
-            log.error("Error loading reseracher for ID: 1811", e);
-        }
-
-        Researcher engj = new Researcher();
-        try {
-            engj.load(1752);
-        } catch (InvalidIDException e) {
-            log.error("No researcher found for ID: 1752", e);
-        } catch (SQLException e) {
-            log.error("Error loading reseracher for ID: 1752", e);
-        }
-
-        List<Researcher> researchers = new ArrayList<Researcher>(2);
-        researchers.add(priska);
-        researchers.add(vsharma);
-        researchers.add(engj);
-        return researchers;
     }
 }

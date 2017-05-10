@@ -16,6 +16,7 @@ import java.util.*;
 import javax.mail.*;
 import javax.mail.internet.*;
 
+import org.uwpr.AdminUtils;
 import org.yeastrc.www.user.*;
 import org.yeastrc.project.Researcher;
 
@@ -103,7 +104,7 @@ public class ForgotPasswordAction extends Action {
            MimeMessage message = new MimeMessage(mSession);
 
            // set the from address
-           Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
+           Address fromAddress = AdminUtils.getFromAddress();
            message.setFrom(fromAddress);
 
            // set the to address

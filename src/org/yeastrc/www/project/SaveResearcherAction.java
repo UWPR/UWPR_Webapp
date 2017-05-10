@@ -24,6 +24,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.uwpr.AdminUtils;
 import org.uwpr.htpasswd.HTPasswdUserUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.User;
@@ -129,7 +130,7 @@ public class SaveResearcherAction extends Action {
 			   MimeMessage message = new MimeMessage(mSession);
 
 			   // set the from address
-			   Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
+			   Address fromAddress = AdminUtils.getFromAddress();
 			   message.setFrom(fromAddress);
 
 			   // set the to address

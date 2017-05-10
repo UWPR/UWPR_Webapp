@@ -26,6 +26,7 @@ public class Groups {
 
     public static final String INSTRUMENT_OPERATOR = "Instrument Operators";
     public static final String ADMIN = "administrators";
+	public static final String NOTIFY = "Notify";
 
 	// Our constructor
 	private Groups() {
