@@ -20,7 +20,6 @@ import org.apache.struts.action.ActionMessage;
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.costcenter.InstrumentRateDAO;
 import org.uwpr.costcenter.RateType;
-import org.uwpr.costcenter.RateTypeDAO;
 import org.uwpr.costcenter.TimeBlock;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
@@ -133,7 +132,7 @@ public class ViewSchedulerAction extends Action {
         if(project instanceof Collaboration) {
         	if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
         		ActionErrors errors = new ActionErrors();
-        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","User does not have access to schedule instrument time for project."));
+        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","Users cannot schedule instrument time for UWPR supported projects."));
         		saveErrors( request, errors );
         		ActionForward fwd = mapping.findForward("Failure");
     			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
@@ -268,9 +267,6 @@ public class ViewSchedulerAction extends Action {
         	request.getSession().setAttribute("scheduler_month", null);
         }
         
-        if(project instanceof BilledProject)
-        	return mapping.findForward("BilledProjectScheduler");
-        else
-        	return mapping.findForward("SubsidizedProjectScheduler");
+        return mapping.findForward("BilledProjectScheduler");
 	}
 }

@@ -642,7 +642,6 @@
       type="org.uwpr.www.scheduler.ViewSchedulerAction"
       >
       <forward name="BilledProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForBilledProject.jsp" redirect="false" />
-      <forward name="SubsidizedProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForSubsidizedProject.jsp" redirect="false" />
       <forward name="Failure" path="/viewProject.do" redirect="false"/>
     </action>
     
