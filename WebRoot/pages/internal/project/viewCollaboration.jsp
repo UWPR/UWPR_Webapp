@@ -1,5 +1,5 @@
 
-<%@page import="org.yeastrc.project.CollaborationStatus"%><%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
+<%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
 <%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
@@ -187,12 +187,6 @@
 					<td><bean:write name="project" property="tsq_vantageRunsRequested" /></td>
 				</tr>
 				
-				<tr>
-					<td colspan="4" align="center">
-						<div style="margin-bottom: 10px;"><a href="#" onclick="showAvailability()">View MS Instrument Availability</a></div>
-					</td>
-				</tr>
-				
 				 <logic:equal name="project" property="accepted" value="true">
 				 <yrcwww:member group="administrators">
 					<tr>
@@ -257,21 +251,8 @@
 
    
  <div style="margin-top:15px;">
- <html:link href="/pr/editProject.do" paramId="ID" paramName="project" paramProperty="ID"><B>[EDIT PROJECT]</B></html:link>
- 
- <!-- 
- Users can extend collaborations only as billed projects.
- <logic:equal name="canExtend" value="true">
- 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
- 	 <html:link href="/pr/extendCollaboration.do" paramId="ID" paramName="project" paramProperty="ID"><B>[EXTEND PROJECT]</B></html:link>
- </logic:equal>
- -->
- 
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
- <html:link href="/pr/extendAsBilledProject.do" paramId="projectId" paramName="project" paramProperty="ID"><B>[EXTEND AS BILLED PROJECT]</B></html:link>
- 
+
  <yrcwww:member group="administrators">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
  </yrcwww:member>
  </div>
@@ -323,22 +304,9 @@
   			</TD>
   			<TD valign="top" width="75%"><bean:write name="reviewer" property="reviewerEmailCommentsAsHTML" filter="false"/></TD>
  		</tr>
- 		<tr>
- 			<td align="center" colspan="2" style="padding-top:20px">
- 			<a href="/pr/editCollaborationReview.do?projectId=<bean:write name="project" property="ID"/>&reviewerId=<bean:write name="reviewer" property="researcher.ID"/>" 
- 			   style="background:#00000A; color:#FFFFFF;margin-top:20px; padding: 3px 10px 3px 10px;font-weight:bold;">Edit</a></td>
- 		</tr>
- 		
- 		
  </table>
 </div>
 </logic:iterate>
-
-<yrcwww:member group="administrators">
-  <logic:present name="investigatorEmail">
-  		&nbsp;&nbsp;<a href="mailto:<bean:write name="investigatorEmail"/>?subject=<bean:write name="emailSubject"/>"><b>[Email Investigators]</b></a>
-  </logic:present>
- </yrcwww:member>
  
 </yrcwww:contentbox>
 </yrcwww:member>
@@ -349,25 +317,5 @@
   <!-- List the external links to data here: -->
   <%@ include file="/pages/internal/data/listDataForProject.jsp" %>
 
-<yrcwww:member group="administrators">
-<br/><br/>
-<yrcwww:contentbox title="Project Status">
-  <div style="width:100%;" align="center">
-  <html:link href="/pr/editCollaborationStatus.do" paramId="projectId" paramName="project" paramProperty="ID"><B>[UPDATE PROJECT STATUS]</B></html:link>
-  <br/>
-  <br/>
-  <div style="color:red; font-weight:bold; font-size:8pt;">
-  NOTE to reviewers: Plase DO NOT use this link to update the project status after submitting your review.
-  </div>
-  </div>
-</yrcwww:contentbox>
-</yrcwww:member>
-
-<script type="text/javascript">
-	function showAvailability() {
-		var url = "/pr/viewAllInstrumentCalendar.do?popup=true";
-		window.open(url, "Instrument_Calendar", "width=900,height=900,status=no,resizable=yes,scrollbars=yes");
-	}
-</script>
 
 <%@ include file="/includes/footer.jsp" %>

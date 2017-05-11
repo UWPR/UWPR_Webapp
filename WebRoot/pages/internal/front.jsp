@@ -144,8 +144,6 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 	<p>You have not yet submitted an abstract for collaboration.
 	<br/>  
 	For a billed project <html:link href="/pr/newBilledProject.do">click here</html:link>.
-	<br/>
-	For a UWPR supported project <html:link href="/pr/newCollaboration.do">click here</html:link>
 	</p>
 </logic:empty>
 
