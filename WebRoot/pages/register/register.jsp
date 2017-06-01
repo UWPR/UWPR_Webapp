@@ -123,7 +123,7 @@ be sent to you.
 	   <TD>Confirm password:</TD>
 	   <TD><html:password property="password2" size="15" maxlength="20"/></TD>
 	  </TR>
-	  
+		 <!--
 	  <tr>
 	  <td colspan="2">
 		<br/>
@@ -141,6 +141,7 @@ be sent to you.
 		    
 	  </td>
 	  </tr>
+	 -->
 	  
 	 </TABLE>
  </yrcwww:contentbox>

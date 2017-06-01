@@ -96,8 +96,8 @@ public class ScheduledTask implements ServletContextListener {
             
             String filePath = props.getProperty("file.location.rawcounts");
             if(filePath == null || filePath.trim().length() == 0) {
-                log.error("No value found for property: file.location.rawcounts");
-                ProjectUsageUpdateErrorEmailer.getInstance().sendEmail("Could not find path to rawcounts file.  Missing property file.location.rawcounts");
+                log.error("No value found for property: file.location.rawcounts. Skipping parsing raw file usage data...");
+                // ProjectUsageUpdateErrorEmailer.getInstance().sendEmail("Could not find path to rawcounts file.  Missing property file.location.rawcounts");
                 return;
             }
             
