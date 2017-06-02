@@ -140,7 +140,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 		boolean emailProjectResearchers = !Groups.getInstance().isAdministrator(user.getResearcher());
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(instrumentId);
 		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
-				usageBlocks,
+				usageBlocks, null,
 				ProjectInstrumentUsageUpdateEmailer.Action.DELETED, null, emailProjectResearchers);
 
         PrintWriter writer = response.getWriter();

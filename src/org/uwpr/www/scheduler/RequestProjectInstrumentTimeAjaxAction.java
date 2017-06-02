@@ -5,52 +5,31 @@
  */
 package org.uwpr.www.scheduler;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.struts.action.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.uwpr.costcenter.*;
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
+import org.uwpr.instrumentlog.MsInstrument;
+import org.uwpr.instrumentlog.MsInstrumentUtils;
+import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.scheduler.*;
+import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.*;
+import org.yeastrc.www.user.Groups;
+import org.yeastrc.www.user.User;
+import org.yeastrc.www.user.UserUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.uwpr.costcenter.InstrumentRate;
-import org.uwpr.costcenter.InstrumentRateDAO;
-import org.uwpr.costcenter.RateType;
-import org.uwpr.costcenter.RateTypeDAO;
-import org.uwpr.costcenter.TimeBlock;
-import org.uwpr.costcenter.TimeBlockDAO;
-import org.uwpr.instrumentlog.*;
-import org.uwpr.scheduler.InstrumentAvailabilityChecker;
-import org.uwpr.scheduler.PatternToDateConverter;
-import org.uwpr.scheduler.ProjectInstrumentTimeApprover;
-import org.uwpr.scheduler.SchedulerException;
-import org.uwpr.scheduler.TimeRangeSplitter;
-import org.uwpr.scheduler.UsageBlockBaseWithRate;
-import org.uwpr.scheduler.UsageBlockPaymentInformation;
-import org.uwpr.www.costcenter.UwprSupportedProjectPaymentMethodGetter;
-import org.yeastrc.db.DBConnectionManager;
-import org.yeastrc.project.*;
-import org.yeastrc.project.payment.PaymentMethod;
-import org.yeastrc.www.user.Groups;
-import org.yeastrc.www.user.User;
-import org.yeastrc.www.user.UserUtils;
+import java.util.*;
 
 /**
  * 
@@ -303,19 +282,33 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			// Save the blocks
 			if (project instanceof BilledProject)
 			{
-				String errorMessage = saveUsageBlocksForBilledProject(request, response, allBlocks, rateType, user.getResearcher());
-				if (errorMessage != null)
-					return sendError(response, errorMessage);
+				if(allBlocks == null || allBlocks.size() == 0)
+				{
+					sendError(response, "No usage blocks found.");
+				}
+
+				UsageBlockPaymentInformation paymentInfo = null;
+				try
+				{
+					paymentInfo = getPaymentInfo(request, allBlocks);
+					String errorMessage = saveUsageBlocksForBilledProject(allBlocks, paymentInfo, rateType, user.getResearcher());
+					if (errorMessage != null)
+						return sendError(response, errorMessage);
+				}
+				catch(SchedulerException | IllegalArgumentException e)
+				{
+					sendError(response, e.getMessage());
+				}
+
+				// Email admins
+				boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
+				ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+						allBlocks, paymentInfo,
+						ProjectInstrumentUsageUpdateEmailer.Action.ADDED, null, emailProjectMembers);
 			} else
 			{
 				return sendError(response, "Subsidized projects are not supported.");
 			}
-
-			// Email admins
-			boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
-			ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
-					allBlocks,
-					ProjectInstrumentUsageUpdateEmailer.Action.ADDED, null, emailProjectMembers);
 		}
 
 		// Write the response
@@ -326,48 +319,38 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		return null;
 	}
 
-	private static String saveUsageBlocksForBilledProject(HttpServletRequest request, HttpServletResponse response, 
-			List<? extends UsageBlockBase> usageBlocks, RateType rateType, Researcher user) throws Exception
-	{
-		if(usageBlocks == null || usageBlocks.size() == 0)
-		{
-			return "No usage blocks found.";
-		}
+	private static UsageBlockPaymentInformation getPaymentInfo(HttpServletRequest request,
+															   List<? extends UsageBlockBase> usageBlocks
+															   ) throws SchedulerException {
+
 		Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
 
 		// Get the payment method(s)
 		UsageBlockPaymentInformation paymentInfo = new UsageBlockPaymentInformation(usageBlocks.get(0).getProjectID());
-		
+
 		String method1IdString = request.getParameter("paymentMethodId1");
 		if(method1IdString == null) {
-			return "No payment method found in request";
+			throw new IllegalArgumentException( "No payment method found in request");
 		}
 		String method1Perc = request.getParameter("paymentMethod1Percent");
 		if(method1Perc == null) {
-			return "Percent to be billed to payment method 1 not found in request";
+			throw new IllegalArgumentException("Percent to be billed to payment method 1 not found in request");
 		}
-		try {
-			paymentInfo.add(method1IdString, method1Perc, endDate);
-		}
-		catch(SchedulerException e) {
-			return e.getMessage();
-		}
-		
-        if(request.getParameter("paymentMethodId2") != null && !(request.getParameter("paymentMethodId2").equals("0"))) {
-        	
-        	if(request.getParameter("paymentMethod2Percent") == null) {
-        		return "Percent to be billed to payment method 2 not found in request";
-        	}
-        	try {
-        		paymentInfo.add(request.getParameter("paymentMethodId2"), request.getParameter("paymentMethod2Percent"), endDate);
-        	}
-    		catch(SchedulerException e) {
-    			return e.getMessage();
-    		}
-        }
 
-        return saveUsageBlocksForBilledProject(usageBlocks, paymentInfo, rateType, user);
-        
+		// Throws SchedulerExceptoin
+		paymentInfo.add(method1IdString, method1Perc, endDate);
+
+		if(request.getParameter("paymentMethodId2") != null && !(request.getParameter("paymentMethodId2").equals("0"))) {
+
+			if(request.getParameter("paymentMethod2Percent") == null) {
+				throw new IllegalArgumentException("Percent to be billed to payment method 2 not found in request");
+			}
+
+			// Throws SchedulerException
+			paymentInfo.add(request.getParameter("paymentMethodId2"), request.getParameter("paymentMethod2Percent"), endDate);
+		}
+
+		return paymentInfo;
 	}
 
 	private static String saveUsageBlocksForBilledProject(

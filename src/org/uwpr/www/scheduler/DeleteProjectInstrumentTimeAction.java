@@ -157,7 +157,7 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 				                                                                 : ProjectInstrumentUsageUpdateEmailer.Action.DELETED;
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(usageBlock.getInstrumentID());
 		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
-				Collections.singletonList(usageBlock),
+				Collections.singletonList(usageBlock), null,
 				action, null, emailProjectResearchers);
 
 		ActionForward fwd = mapping.findForward("Success");

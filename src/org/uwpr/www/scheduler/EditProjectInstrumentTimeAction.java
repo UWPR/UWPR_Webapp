@@ -443,6 +443,13 @@ public class EditProjectInstrumentTimeAction extends Action {
 			{
 				if(conn != null) try {conn.close();} catch(SQLException ignored){}
 			}
+
+			// Email admins
+			boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
+			String actionMessage = "Editing scheduled time from " + TimeUtils.format(blocksToDelete.get(0).getStartDate()) + " - " + TimeUtils.format(blocksToDelete.get(blocksToDelete.size() - 1).getEndDate());
+			ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
+					allBlocks, paymentInfo,
+					ProjectInstrumentUsageUpdateEmailer.Action.EDITED, actionMessage, emailProjectMembers);
 		}
 		else {
 			// We no longer support subsidized projects
@@ -451,14 +458,6 @@ public class EditProjectInstrumentTimeAction extends Action {
 					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
 
 		}
-
-		// Email admins
-		boolean emailProjectMembers = !Groups.getInstance().isAdministrator(user.getResearcher());
-		String actionMessage = "Editing scheduled time from " + TimeUtils.format(blocksToDelete.get(0).getStartDate()) + " - " + TimeUtils.format(blocksToDelete.get(blocksToDelete.size() - 1).getEndDate());
-		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
-				allBlocks,
-				ProjectInstrumentUsageUpdateEmailer.Action.EDITED, actionMessage, emailProjectMembers);
-
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);

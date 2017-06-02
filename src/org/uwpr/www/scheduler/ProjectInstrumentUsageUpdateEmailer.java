@@ -5,15 +5,19 @@ import org.uwpr.AdminUtils;
 import org.uwpr.AppProperties;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.scheduler.UsageBlockBaseWithRate;
+import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
+import org.yeastrc.project.payment.PaymentMethod;
 
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -39,7 +43,9 @@ public class ProjectInstrumentUsageUpdateEmailer
         return instance;
     }
 
-    public void sendEmail(Project project, MsInstrument instrument, Researcher user, List<? extends UsageBlockBase> blocks,
+    public void sendEmail(Project project, MsInstrument instrument, Researcher user,
+                          List<? extends UsageBlockBase> blocks,
+                          UsageBlockPaymentInformation paymentInfo,
                           Action action, String actionDetailMessage,
                           boolean includeProjectResearchers) {
 
@@ -92,29 +98,51 @@ public class ProjectInstrumentUsageUpdateEmailer
             message.setSubject(subject.toString());
 
             // set the message body
-            StringBuilder text = new StringBuilder();
-            text.append("UWPR Instrument usage ").append(action.name()).append("\n");
+            StringBuilder usageDetails = new StringBuilder();
+            usageDetails.append("UWPR Instrument usage ").append(action.name()).append("\n");
             if(actionDetailMessage != null)
             {
-                text.append(actionDetailMessage).append("\n");
+                usageDetails.append(actionDetailMessage).append("\n");
             }
-            text.append("Instrument: ").append(instrument.getName()).append("\n");
-            text.append("Project ID: " + project.getID() + "\n");
-            text.append("Project title: " + project.getTitle() + "\n");
-            text.append("User: " + user.getFullName() + "\n");
-            text.append("User ID: " + user.getID() + "\n");
+            usageDetails.append("Instrument: ").append(instrument.getName()).append("\n");
+            usageDetails.append("Project ID: " + project.getID() + "\n");
+            usageDetails.append("Project title: " + project.getTitle() + "\n");
+            usageDetails.append("User: " + user.getFullName() + "\n");
+            usageDetails.append("User ID: " + user.getID() + "\n");
 
-            text.append("Project URL: " + AppProperties.getHost() + "/pr/viewProject.do?ID="+project.getID()+"\n");
+            usageDetails.append("Project URL: " + AppProperties.getHost() + "/pr/viewProject.do?ID="+project.getID()+"\n");
 
-            text.append("\n");
+            if(paymentInfo != null)
+            {
+                for (int i = 0; i < paymentInfo.getCount(); i++)
+                {
+
+                    PaymentMethod pm = paymentInfo.getPaymentMethod(i);
+                    BigDecimal perc = paymentInfo.getPercent(i);
+                    usageDetails.append("Payment method ").append(perc.doubleValue() < 100.0 ? perc.toString() + "%: " : ": ")
+                            .append(pm.getDisplayString()).append("\n");
+                }
+            }
+
+            BigDecimal signupCost = BigDecimal.ZERO;
+            BigDecimal instrumentCost = BigDecimal.ZERO;
+            boolean hasRate = false;
+
+            StringBuilder usageBlockDetails = new StringBuilder();
             if(action.equals(Action.EDITED))
             {
-                text.append("New usage details: \n");
+                usageBlockDetails.append("New usage details: \n");
             }
-            else {
-                text.append("Usage details: \n");
+            else if (action.equals(Action.DELETED))
+            {
+                usageBlockDetails.append("Deleted block details: \n");
+            }
+            else
+            {
+                usageBlockDetails.append("Usage details: \n");
             }
             Map<Integer, String> userIdMap = new HashMap<Integer, String>();
+
             for(UsageBlockBase block: blocks)
             {
                 String operator = userIdMap.get(block.getInstrumentOperatorId());
@@ -125,20 +153,47 @@ public class ProjectInstrumentUsageUpdateEmailer
                     operator = instrumentOperator.getFullName();
                     userIdMap.put(block.getInstrumentOperatorId(), operator);
                 }
-                text.append("Block ID: ").append(block.getID()).append(" ")
+                usageBlockDetails.append("Block ID: ").append(block.getID()).append(" ")
                         .append(TimeUtils.format(block.getStartDate())).append(" - ")
                         .append(TimeUtils.format(block.getEndDate()));
+
                 if(operator != null)
                 {
-                    text.append(", operator: ").append(operator);
+                    usageBlockDetails.append(", operator: ").append(operator);
                 }
-                text.append("\n");
+
+                if(block instanceof UsageBlockBaseWithRate)
+                {
+                    hasRate = true;
+                    UsageBlockBaseWithRate blkWRate = (UsageBlockBaseWithRate) block;
+                    BigDecimal blkSignupCost = blkWRate.getSignupCost();
+                    BigDecimal blkInstrCost = blkWRate.getInstrumentCost();
+
+                    signupCost = signupCost.add(blkSignupCost);
+                    instrumentCost = instrumentCost.add(blkInstrCost);
+
+                    usageBlockDetails.append(", ").append("signup: $" + blkSignupCost)
+                            .append(" instrument: $").append(blkInstrCost);
+                }
+
+                usageBlockDetails.append("\n");
             }
 
-            text.append("\n\nThank you,\nThe UW Proteomics Resource\n");
+            if(hasRate) {
+                usageDetails.append("Signup cost: $").append(signupCost);
+                usageDetails.append("\n");
+                usageDetails.append("Instrument cost: $").append(instrumentCost);
+                usageDetails.append("\n");
+                usageDetails.append("Total cost: ").append(signupCost.add(instrumentCost));
+                usageDetails.append("\n");
+            }
+            usageDetails.append("\n");
 
-            System.out.println(text);
-            message.setText(text.toString());
+            usageDetails.append(usageBlockDetails);
+            usageDetails.append("\n\nThank you,\nThe UW Proteomics Resource\n");
+
+            System.out.println(usageDetails);
+            message.setText(usageDetails.toString());
 
             // send the message
             Transport.send(message);
