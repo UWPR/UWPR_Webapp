@@ -5,8 +5,6 @@
  */
 package org.uwpr.instrumentlog.rawfile;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -17,7 +15,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
-import org.yeastrc.data.InvalidIDException;
+import org.uwpr.AdminUtils;
+import org.uwpr.AppProperties;
 import org.yeastrc.project.Researcher;
 
 /**
@@ -39,29 +38,8 @@ public class ProjectUsageUpdateErrorEmailer {
 		
 		log.info("Sending project usage update error email");
 		
-		// TODO Cannot use hardcoded database IDs
-		Researcher priska = new Researcher();
-		try {
-			priska.load(1756);
-		} catch (InvalidIDException e) {
-			log.error("No researcher found for ID: 1756", e);
-		} catch (SQLException e) {
-			log.error("Error loading reseracher for ID: 1756", e);
-		}
-		Researcher vsharma = new Researcher();
-		try {
-			vsharma.load(1811);
-		} catch (InvalidIDException e) {
-			log.error("No researcher found for ID: 1811", e);
-		} catch (SQLException e) {
-			log.error("Error loading reseracher for ID: 1811", e);
-		}
-		
-		List<Researcher> researchers = new ArrayList<Researcher>(2);
-		researchers.add(priska);
-		researchers.add(vsharma);
-		
-		
+		List<Researcher> researchers = AdminUtils.getNotifyAdmins();
+
 		try {
 			// set the SMTP host property value
 			Properties properties = System.getProperties();
@@ -74,7 +52,7 @@ public class ProjectUsageUpdateErrorEmailer {
 			MimeMessage message = new MimeMessage(mSession);
 
 			// set the from address
-			Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
+			Address fromAddress = AppProperties.getFromAddress();
 			message.setFrom(fromAddress);
 
 			// set the to address

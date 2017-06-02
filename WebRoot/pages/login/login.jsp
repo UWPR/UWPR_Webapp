@@ -9,8 +9,7 @@
 <%@ include file="/includes/errors.jsp" %>
 
 <%
-	response.sendRedirect("http://proteomicsresource.washington.edu/");
-	// response.sendRedirect("http://localhost:8090/index.php");
+	response.sendRedirect(AppProperties.getLoginPage());
  %>
  
 

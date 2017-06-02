@@ -193,9 +193,7 @@ public class ProjectsSearcher {
 				            continue;
 				    }
 				    else {
-				    	// continue; // not a Collaboration project
-				    	// This is not a Collaboration (or UWPR supported) project
-				    	// But, if we are here it means the is searching for Billed projects as well.
+				    	continue; // not a Collaboration project
 				    }
 				}
 				

@@ -109,10 +109,7 @@
 	<form-bean name="registerForm" type="org.yeastrc.register.RegisterForm"/>
 	<form-bean name="addLabDirectorForm" type="org.yeastrc.www.project.AddLabDirectorForm"/>
 	<form-bean name="forgotPasswordForm" type="org.yeastrc.www.login.ForgotPasswordForm"/>
-	<form-bean name="editCollaborationForm" type="org.yeastrc.www.project.EditCollaborationForm"/>
 	<form-bean name="editBilledProjectForm" type="org.yeastrc.www.project.EditBilledProjectForm"/>
-	<form-bean name="editCollaborationReviewForm" type="org.yeastrc.www.project.EditCollaborationReviewForm"/>
-	<form-bean name="editCollaborationStatusForm" type="org.yeastrc.www.project.EditCollaborationStatusForm"/>
 	<form-bean name="editInformationForm" type="org.yeastrc.www.account.EditInformationForm"/>
 	<form-bean name="editUsernameForm" type="org.yeastrc.www.account.EditUsernameForm"/>
 	<form-bean name="editPasswordForm" type="org.yeastrc.www.account.EditPasswordForm"/>
@@ -124,13 +121,11 @@
     <form-bean name="instrumentUsageForm" type="org.uwpr.www.instrumentlog.InstrumentUsageForm" />
     <form-bean name="dateRangeForm" type="org.uwpr.www.instrumentlog.DateRangeForm"></form-bean>
     <form-bean name="instrumentSelectorForm" type="org.uwpr.www.instrumentlog.InstrumentSelectorForm"></form-bean>
-    <form-bean name="rejectionCauseForm" type="org.yeastrc.www.project.ProjectRejectionCauseForm"></form-bean>
     <form-bean name="timeBlockForm" type="org.uwpr.www.costcenter.TimeBlockForm" />
     <form-bean name="instrumentRateForm" type="org.uwpr.www.costcenter.InstrumentRateForm" />
     <form-bean name="paymentMethodForm" type="org.yeastrc.www.project.payment.PaymentMethodForm" />
     <form-bean name="exportBillingInformationForm" type="org.uwpr.www.costcenter.ExportBillingInformationForm" />
     <form-bean name="editInstrumentTimeForm" type="org.uwpr.www.scheduler.EditProjectInstrumentTimeForm" />
-    <form-bean name="editBlockPaymentForm" type="org.uwpr.www.scheduler.EditBlockPaymentMethodForm" />
 	<form-bean name="editBlockDetailsForm" type="org.uwpr.www.scheduler.EditBlockDetailsForm" />
 	<form-bean name="uploadFileForm" type="org.yeastrc.www.files.UploadFileForm"></form-bean>
 	<form-bean name="viewInstrumentRatesForm" type="org.uwpr.www.costcenter.ViewInstrumentRatesForm"></form-bean>
@@ -175,13 +170,9 @@
 	<forward name="directAccessError" path="/pages/errors/directAccessError.jsp" />
 	<forward name="viewProject" path="/viewProject.do" />
 	<forward name="editProject" path="/editProject.do" />
-	<forward name="editCollaborationStatus" path="/editCollaborationStatus.do" />
-	<forward name="editCollaborationReview" path="/editCollaborationReview.do" />
 	<forward name="editInformation" path="/editInformation.do" />
 	<forward name="newResearcher" path="/newResearcher.do" />
 	<forward name="addLabDirector" path="/addLabDirector.do"/>
-	<forward name="newCollaboration" path="/newCollaboration.do" />
-	<forward name="extendCollaboration" path="/extendCollaboration.do" />
 	<forward name="newBilledProject" path="/newBilledProject.do" />
 	<forward name="viewRegister" path="/viewRegister.do" />
 	<forward name="manageGroups" path="/manageGroups.do" />
@@ -203,7 +194,6 @@
 	<forward name="viewTimeScheduledForProject" path="/viewTimeScheduledForProject.do"/>
 	<forward name="viewAllInstrumentCalendar" path="/viewAllInstrumentCalendar.do"/>
 	<forward name="viewEditInstrumentTimeForm" path="/viewEditInstrumentTimeForm.do"/>
-    <forward name="viewEditBlockPaymentForm" path="/viewEditBlockPaymentForm.do"/>
 	<forward name="viewEditBlockDetailsForm" path="/viewEditBlockDetailsForm.do"/>
     <forward name="viewTimeScheduledForInstrument" path="/viewTimeScheduledForInstrument.do"/>
     <forward name="viewTimeScheduledForOperator" path="/viewTimeScheduledForOperator.do"/>
@@ -449,7 +439,6 @@
 	<action
 	  path="/editProject"
 	  type="org.yeastrc.www.project.EditProjectAction">
-	  <forward name="Collaboration" path="/pages/internal/project/editCollaboration.jsp" redirect="false"/>
 	  <forward name="BilledProject" path="/pages/internal/project/editBilledProject.jsp" redirect="false"/>
 	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
 	</action>
@@ -523,119 +512,6 @@
 	</action>
 	
 	<!-- ============================================================================================ -->
-	<!-- ================= COLLABORATION (free projects) RELATED ACTIONS ============================ -->
-	<action
-	  path="/saveCollaboration"
-	  input="/pages/internal/project/editCollaboration.jsp"
-	  name="editCollaborationForm"
-	  scope="request"
-	  type="org.yeastrc.www.project.SaveCollaborationAction"
-	  validate="true">
-	  <forward name="Failure" path="/pages/internal/project/editCollaboration.jsp" redirect="false"/>
-	</action>
-
-	<action
-	  path="/newCollaboration"
-	  type="org.yeastrc.www.project.NewCollaborationAction">
-	  <forward name="BlockCollaboration" path="/pages/internal/project/overdueCollaborations.jsp" redirect="false" />
-	  <forward name="Success" path="/pages/internal/project/newCollaboration.jsp" redirect="false"/>
-	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
-	</action>
-
-	<action
-	  path="/extendCollaboration"
-	  type="org.yeastrc.www.project.ExtendCollaborationAction">
-	  <forward name="BlockCollaboration" path="/pages/internal/project/overdueCollaborations.jsp" redirect="false" />
-	  <forward name="Success" path="/pages/internal/project/extendCollaboration.jsp" redirect="false"/>
-	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
-	</action>
-	
-	<action
-	  path="/saveCollaborationExtension"
-	  input="/pages/internal/project/extendCollaboration.jsp"
-	  name="editCollaborationForm"
-	  scope="request"
-	  type="org.yeastrc.www.project.SaveCollaborationExtensionAction"
-	  validate="true">
-	  <forward name="Failure" path="/pages/internal/project/extendCollaboration.jsp" redirect="false"/>
-	  <forward name="Success" path="/viewProject.do" redirect="true"/>
-	</action>
-	
-	<action
-	  path="/saveNewCollaboration"
-	  input="/pages/internal/project/newCollaboration.jsp"
-	  name="editCollaborationForm"
-	  scope="request"
-	  type="org.yeastrc.www.project.SaveNewCollaborationAction"
-	  validate="true">
-	  <forward name="Failure" path="/pages/internal/project/newCollaboration.jsp" redirect="false"/>
-	  <forward name="Success" path="/viewProject.do" redirect="true"/>
-	</action>
-	
-	<!-- ============================================================================================ -->
-	<!-- COLLABORATION REVIEW  -->
-	<action
-	  path="/editCollaborationReview"
-	  type="org.yeastrc.www.project.EditCollaborationReviewAction">
-	  <forward name="Success" path="/pages/internal/project/editCollaborationReview.jsp" redirect="false"/>
-	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
-	</action>
-	
-	<action
-	  path="/saveCollaborationReview"
-	  type="org.yeastrc.www.project.SaveCollaborationReviewAction"
-	  input="/pages/internal/project/editCollaborationReview.jsp"
-	  name="editCollaborationReviewForm"
-	  scope="request"
-	  validate="true">
-	  <forward name="Success" path="/viewProject.do" redirect="true"/>
-	  <forward name="Failure" path="/pages/internal/project/editCollaborationReview.jsp" redirect="false"/>
-	</action>
-	
-	<action
-	  path="/editCollaborationStatus"
-	  type="org.yeastrc.www.project.EditCollaborationStatusAction">
-	  <forward name="Success" path="/pages/internal/project/editCollaborationStatus.jsp" redirect="false"/>
-	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
-	</action>
-	
-	<action
-	  path="/saveCollaborationStatus"
-	  type="org.yeastrc.www.project.SaveCollaborationStatusAction"
-	  input="/pages/internal/project/editCollaborationStatus.jsp"
-	  name="editCollaborationStatusForm"
-	  scope="request"
-	  validate="true">
-	  <forward name="Success" path="/viewProject.do" redirect="true"/>
-	  <forward name="Failure" path="/pages/internal/project/editCollaborationStatus.jsp" redirect="false"/>
-	</action>
-	<!-- ============================================================================================ -->
-	
-	
-	<!-- ================================================================================== -->
-	<!-- Collaboration rejection reasons -->
-	<!-- ================================================================================== -->
-	<action
-      path="/addRejectionCause"
-      type="org.yeastrc.www.project.AddProjectRejectionCauseAction"
-      input="/pages/internal/project/addRejectionReason.jsp"
-      name="rejectionCauseForm"
-      scope="request"
-      validate="true">
-      <forward name="Success" path="/pages/internal/project/rejectionReasonAdded.jsp" redirect="false" />
-      <forward name="Failure" path="/pages/internal/project/addRejectionReason.jsp" redirect="false"/>
-    </action>
-    
-    <action
-      path="/newRejectionCause"
-      type="org.yeastrc.www.project.NewProjectRejectionCauseAction">
-      <forward name="Success" path="/pages/internal/project/addRejectionReason.jsp" redirect="false" />
-      <forward name="Failure" path="/pages/internal/front.jsp" redirect="true"/>
-    </action>
-    
-	<!-- ================================================================================== -->
-	
-	
 	<!-- ================================================================================== -->
 	<!-- Billed projects -->
 	<!-- ================================================================================== -->
@@ -667,15 +543,6 @@
 	  validate="true">
 	  <forward name="Failure" path="/pages/internal/project/editBilledProject.jsp" redirect="false"/>
 	  <forward name="Success" path="/viewProject.do" redirect="true"/>
-	</action>
-	
-	<action
-	  path="/extendAsBilledProject"
-	  type="org.yeastrc.www.project.ExtendAsBilledProjectAction"
-	  name="editBilledProjectForm"
-	  validate="false">
-	  <forward name="Success" path="/pages/internal/project/newBilledProject.jsp" redirect="false"/>
-	  <forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
 	</action>
 	
 	<action
@@ -775,7 +642,6 @@
       type="org.uwpr.www.scheduler.ViewSchedulerAction"
       >
       <forward name="BilledProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForBilledProject.jsp" redirect="false" />
-      <forward name="SubsidizedProjectScheduler" path="/pages/internal/scheduler/viewSchedulerForSubsidizedProject.jsp" redirect="false" />
       <forward name="Failure" path="/viewProject.do" redirect="false"/>
     </action>
     

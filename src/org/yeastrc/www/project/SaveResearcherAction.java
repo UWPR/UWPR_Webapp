@@ -24,6 +24,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.uwpr.AppProperties;
 import org.uwpr.htpasswd.HTPasswdUserUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.User;
@@ -129,7 +130,7 @@ public class SaveResearcherAction extends Action {
 			   MimeMessage message = new MimeMessage(mSession);
 
 			   // set the from address
-			   Address fromAddress = new InternetAddress("do_not_reply@proteomicsresource.washington.edu");
+			   Address fromAddress = AppProperties.getFromAddress();
 			   message.setFrom(fromAddress);
 
 			   // set the to address
@@ -142,7 +143,7 @@ public class SaveResearcherAction extends Action {
 			   // set the message body
 				String text = "Greetings " + firstName + " " + lastName + ",\n\n";
 
-				text += "A new account has been created for you at http://proteomicsresource.washington.edu/ by\n";
+				text += "A new account has been created for you at " + AppProperties.getHost() + " by\n";
 				text += ((Researcher)(user.getResearcher())).getFirstName() + " ";
 				text += ((Researcher)(user.getResearcher())).getLastName() + ".\n\n";
 				text += "You can log into the site using the username and password given below to\n";

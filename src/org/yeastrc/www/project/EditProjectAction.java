@@ -17,7 +17,6 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -94,46 +93,7 @@ public class EditProjectAction extends Action {
 		EditProjectForm newForm = null;
 
 		// Forward them on to the happy success view page!		
-		if (project.getShortType().equals(Projects.COLLABORATION)) {
-			newForm = new EditCollaborationForm();			
-			request.setAttribute("editCollaborationForm", newForm);
-			forwardStr = "Collaboration";
-			
-			if (project instanceof Collaboration)  {// this should always be true
-			    
-			    Date dateAccepted = ((Collaboration)project).getDateAccepted();
-                if(dateAccepted != null)
-                    ((EditCollaborationForm)(newForm)).setDateAccepted(dateAccepted.toString());
-			    
-                // determine if the user viewing the form will be able to edit certain fields
-                int editable = 0;
-                if(Groups.getInstance().isMember(user.getID(), "administrators")) {
-		            editable = ProjectEditableChecker.FULL_EDITABLE; // form is always editable if an admin is looking at it. 
-		        }
-                else {
-                	editable = ProjectEditableChecker.getEditStatus((Collaboration) project);
-                }
-                ((EditCollaborationForm)(newForm)).setFullEditable(editable == ProjectEditableChecker.FULL_EDITABLE);
-            	((EditCollaborationForm)(newForm)).setPartEditable(editable == ProjectEditableChecker.FULL_EDITABLE ||
-        													       editable == ProjectEditableChecker.PART_EDITABLE);
-            	
-            	if(!((Collaboration)project).isPending()) {
-            		((EditCollaborationForm)(newForm)).setNotPending(true);
-            	}
-			}
-			
-			if(((Collaboration)project).getCollaborationStatus() == CollaborationStatus.REVISE) {
-			    request.setAttribute("statusIsRevise", true);
-			}
-			
-			String[] groups = project.getGroupsArray();
-			((EditCollaborationForm)(newForm)).setGroups(groups);
-			
-			// !!!!!!!!!!!!!!!!!!!!! PROJECT EXTENSION REASON !!!!!!!!!!!!!!!!!!!!!!!
-			newForm.setExtensionReasons(project.getExtensionReasons());
-		}
-
-		else if (project.getShortType().equals(Projects.BILLED_PROJECT)) {
+		if (project.getShortType().equals(Projects.BILLED_PROJECT)) {
 			newForm = new EditBilledProjectForm();			
 			request.setAttribute("editBilledProjectForm", newForm);
 			forwardStr = "BilledProject";

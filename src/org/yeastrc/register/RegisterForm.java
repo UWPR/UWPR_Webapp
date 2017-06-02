@@ -52,7 +52,8 @@ public class RegisterForm extends ActionForm {
 	 */
 	public ActionErrors validate(ActionMapping mapping, HttpServletRequest request) {
 		ActionErrors errors = new ActionErrors();
-		
+
+		/*
 		String remoteAddr = request.getRemoteAddr();
         ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
         reCaptcha.setPrivateKey("6LeJ1uQSAAAAAHT4CSVmFY4PbwV7N_dbqnUlDWl1");
@@ -64,7 +65,7 @@ public class RegisterForm extends ActionForm {
         if (!reCaptchaResponse.isValid()) {
           errors.add("catptcha", new ActionMessage("error.register.captcha"));
         }
-        
+        */
 		if (this.getUsername() == null || this.getUsername().length() < 1) {
 			errors.add("username", new ActionMessage("error.register.nousername"));
 		}

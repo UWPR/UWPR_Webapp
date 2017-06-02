@@ -53,12 +53,6 @@ public class FrontPageAction extends Action {
 		if (groupMan.isMember(user.getResearcher().getID(), "administrators")) {
 
 		}
-		
-		// Get all collaborations to be reviewed by this user (if this user is a reviewer)
-		if(groupMan.isMember(user.getResearcher().getID(), "Reviewers")) {
-		    List<Collaboration> collabs = user.getCollaborationsToReview();
-		    request.setAttribute("reviewAssignments", collabs);
-		}
         
 		// Go!
 		return mapping.findForward("Success");
