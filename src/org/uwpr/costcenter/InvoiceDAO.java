@@ -36,7 +36,7 @@ public class InvoiceDAO {
 		
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
-			stmt = conn.prepareStatement(sql);
+			stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 			stmt.setTimestamp(1, new Timestamp(invoice.getBillStartDate().getTime()));
 			stmt.setTimestamp(2, new Timestamp(invoice.getBillEndDate().getTime()));
 			stmt.setInt(3, invoice.getCreatedBy());

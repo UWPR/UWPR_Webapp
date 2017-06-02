@@ -60,18 +60,20 @@ public class InvoiceBlockCreator implements
 	@Override
 	public void exportDone() throws BillingInformationExporterException {
 
-		for(InvoiceInstrumentUsage block: invoicedBlocks) {
-
-			Connection conn = null;
-			// save the invoiced blocks
-			try {
-				conn = DBConnectionManager.getMainDbConnection();
-				conn.setAutoCommit(false);
-				invoiceBlockDao.saveBlocks(conn, invoicedBlocks);
-				conn.commit();
-			} catch (SQLException e) {
-				throw new BillingInformationExporterException("Error saving invoice block for invoice ID: "+invoice.getId(), e);
-			}
+		Connection conn = null;
+		try {
+			conn = DBConnectionManager.getMainDbConnection();
+			conn.setAutoCommit(false);
+			invoiceBlockDao.saveBlocks(conn, invoicedBlocks);
+			conn.commit();
+		}
+		catch(SQLException e)
+		{
+			throw new BillingInformationExporterException("Error saving invoice block for invoice ID: " + invoice.getId(), e);
+		}
+		finally
+		{
+			if(conn != null) try {conn.close();} catch(SQLException e){}
 		}
 	}
 }
