@@ -76,6 +76,24 @@ function deleteTimeBlock(usageBlockId, projectId) {
     }
 }
 
+   function exportBillingInformation(summarized)
+   {
+       var startDate = $("#startDate").val();
+       var endDate = $("#endDate").val();
+       if(!startDate || !endDate)
+       {
+            alert("Please enter start and end dates.");
+           return false;
+       }
+       var url = "/pr/exportProjectBillingInformation.do?projectId=" + $("#projectId").val() + "&startDate=" + startDate + "&endDate="+endDate;
+       if(summarized)
+       {
+           url += "&summarize=true";
+       }
+       document.location.href = url;
+       return false;
+   }
+
 </script>
 
 <logic:notPresent name="instruments">
@@ -184,6 +202,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
     &nbsp;
     sign-up hours: <span style="color:red;"><bean:write name="signupHours"/></span>
 </div>
+    <div style="margin-top:10px;margin-bottom:10px;">
+        Export billing information: <a href="" onclick="return exportBillingInformation()">[Detailed]</a>&nbsp;<a href="" onclick="return exportBillingInformation(true)">[Summarized]</a>
+    </div>
 <div style="font-weight:bold; text-alignment:center; font-size:8pt">
 	<html:link action="viewScheduler.do" paramName="project" paramProperty="ID" paramId="projectId">
 		[Schedule Time for Project]

@@ -893,6 +893,13 @@
       <forward name="Success" path="/pages/admin/costcenter/costCenterHome.jsp" redirect="false"/>
       <forward name="Failure" path="/pages/admin/costcenter/costCenterHome.jsp" redirect="false"/>
     </action>
+
+	<action
+			path="/exportProjectBillingInformation"
+			type="org.uwpr.www.costcenter.ExportProjectBillingInformationAction"
+			>
+		<forward name="Failure" path="/viewTimeScheduledForProject.do" redirect="false"/>
+	</action>
 	
 	<!-- ================================================================================== -->
 	<!-- MS instrument usage summary actions -->
