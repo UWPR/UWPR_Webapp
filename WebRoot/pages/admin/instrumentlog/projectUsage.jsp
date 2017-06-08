@@ -1,6 +1,5 @@
 
 <%@page import="org.uwpr.instrumentlog.ProjectInstrumentUsage"%>
-<%@page import="org.yeastrc.project.Collaboration"%>
 <%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
@@ -8,10 +7,6 @@
 
 <%@ include file="/includes/header.jsp" %>
 <%@ include file="/includes/errors.jsp" %>
-
-<logic:empty name="projectUsageList">
-  <logic:forward name="projectUsageList" />
-</logic:empty>
 
 
 <link REL="stylesheet" TYPE="text/css" HREF="/pr/css/tablesorter.css">

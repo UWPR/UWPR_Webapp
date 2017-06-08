@@ -284,7 +284,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			{
 				if(allBlocks == null || allBlocks.size() == 0)
 				{
-					sendError(response, "No usage blocks found.");
+					return sendError(response, "No usage blocks found.");
 				}
 
 				UsageBlockPaymentInformation paymentInfo = null;
@@ -295,9 +295,9 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 					if (errorMessage != null)
 						return sendError(response, errorMessage);
 				}
-				catch(SchedulerException | IllegalArgumentException e)
+				catch(Exception e)
 				{
-					sendError(response, e.getMessage());
+					return sendError(response, e.getMessage());
 				}
 
 				// Email admins
@@ -337,7 +337,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			throw new IllegalArgumentException("Percent to be billed to payment method 1 not found in request");
 		}
 
-		// Throws SchedulerExceptoin
+		// Throws SchedulerException
 		paymentInfo.add(method1IdString, method1Perc, endDate);
 
 		if(request.getParameter("paymentMethodId2") != null && !(request.getParameter("paymentMethodId2").equals("0"))) {
