@@ -65,6 +65,7 @@ public class ExportBillingInformationAction extends Action {
     	response.setHeader("Content-Disposition","attachment; filename=\"Billing_"+dateFormatter.format(startDate)+"_TO_"+dateFormatter.format(endDate)+".xls\"");
     	response.setHeader("cache-control", "no-cache");
 
+    	Exception exception = null;
     	Invoice invoice = null;
         try {
         	
@@ -105,38 +106,37 @@ public class ExportBillingInformationAction extends Action {
         }
         catch(BillingInformationExporterException e) {
         	log.error("Error exporting data", e);
-        	
-        	if(invoice != null) {
-        		log.info("Deleting invoice ID: "+invoice.getId());
-        		InvoiceDAO.getInstance().delete(invoice);
-        	}
-        	response.reset();
-        	
-        	ActionErrors errors = new ActionErrors();
-            errors.add("costcenter", new ActionMessage("error.costcenter.export", e.getMessage()));
-            saveErrors( request, errors );
-            return mapping.findForward("Failure");
+        	exception = e;
         }
         catch(Exception e) {
         	log.error("Exception writing response", e);
-        	
-        	if(invoice != null) {
-        		log.info("Deleting invoice ID: "+invoice.getId());
-        		InvoiceDAO.getInstance().delete(invoice);
-        	}
-        	
-        	response.reset();
-        	//writer.close();  // do not call this it will commit the response
-        	//if(response.isCommitted()) {
-        	//	log.info("committed");
-        	//}
-        	
-        	ActionErrors errors = new ActionErrors();
-            errors.add("costcenter", new ActionMessage("error.costcenter.export", e.getMessage()));
-            saveErrors( request, errors );
-            return mapping.findForward("Failure");
+        	exception = e;
         }
-        
+
+        if(exception != null)
+		{
+			if(invoice != null) {
+				log.info("Deleting invoice ID: "+invoice.getId());
+				try {
+					InvoiceDAO.getInstance().delete(invoice);
+				}
+				catch(Exception e)
+				{
+					log.error("Error deleting invoice ID " + invoice.getId());
+				}
+			}
+
+			response.reset();
+			//writer.close();  // do not call this it will commit the response
+			//if(response.isCommitted()) {
+			//	log.info("committed");
+			//}
+
+			ActionErrors errors = new ActionErrors();
+			errors.add("costcenter", new ActionMessage("error.costcenter.export", exception.getMessage()));
+			saveErrors( request, errors );
+			return mapping.findForward("Failure");
+		}
         return null;
 	}
 }

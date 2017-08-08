@@ -10,10 +10,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -72,7 +69,6 @@ public class BillingInformationExcelExporter {
 	}
 
 	public void exportToXls(OutputStream outStream) throws BillingInformationExporterException {
-		
 
 		// create a new workbook
 		Workbook wb = new HSSFWorkbook();
@@ -156,7 +152,6 @@ public class BillingInformationExcelExporter {
 			for(UsageBlockBase block: usageBlocks) {
 				writeBlockDetails(project, block, sheet);
 			}
-			informListenerExportDone();
 
 		} catch (SQLException e) {
 			throw new BillingInformationExporterException("Error reading usage details from database", e);
@@ -215,18 +210,26 @@ public class BillingInformationExcelExporter {
 		
 		// write out the cost for each summarized block
 		// there may be multiple payment methods for each block
+		// 08/08/18 When we are exporting summarized blocks, there is one UsageBlockForBilling per combination of
+		// instrumentId, researcherId, payment method Id and payment percent.  So, if there are two payment methods
+		// for a block, the summarizer will create two corresponding UsageBlockForBilling objects.
+		// Trigger listener method only once for each instrumentUsageId. Otherwise, invoiceInstrumentUsage
+		// table will have multiple entries for the same instrumentUsageId.
+		Set<Integer> exportedBlockIds = new HashSet<>();
 		for(UsageBlockForBilling block: summarizer.getSummarizedBlocks()) {
 			
 			boolean exported = writeBlockPaymentMethodDetails(sheet, block, true);
 			
 			if(exported) {
-				
+
 				for(UsageBlockBase ublock: block.getBlocks()) {
-					informListenerBlockExported(ublock);
+					if(!exportedBlockIds.contains(ublock.getID())) {
+						informListenerBlockExported(ublock);
+					}
+					exportedBlockIds.add(ublock.getID());
 				}
 			}
 		}
-		
 	}
 
 	private void writeHeaderDetailed(Sheet sheet) {

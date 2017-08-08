@@ -42,7 +42,6 @@ public class InvoiceInstrumentUsageDAO {
 		finally {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
-		
 	}
 	
 	public InvoiceInstrumentUsage getInvoiceBlock (int instrumentUsageId) throws SQLException {
