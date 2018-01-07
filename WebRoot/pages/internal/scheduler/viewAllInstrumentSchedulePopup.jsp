@@ -18,7 +18,7 @@
 <script type='text/javascript' src='/pr/js/jquery-ui-1.8.12.custom.min.js'></script>
 <script type='text/javascript' src='/pr/js/fullcalendar.min.js'></script>
 <script type='text/javascript' src='/pr/js/jquery.qtip-1.0.0-rc3.min.js'></script>
-<script type='text/javascript' src='/pr/js/uwpr.scheduler.js'></script>
+<script type='text/javascript' src='/pr/js/uwpr.scheduler.js?v=05.02.17'></script>
 
 <style type='text/css'>
 
