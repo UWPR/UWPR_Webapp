@@ -9,6 +9,7 @@ import org.apache.struts.action.*;
 import org.uwpr.costcenter.InvoiceInstrumentUsage;
 import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
 import org.uwpr.instrumentlog.*;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
@@ -258,7 +259,7 @@ public class EditBlockDetailsFormAction extends Action {
         List<Researcher> projectInstrumentOperators = project.getInstrumentOperators(instrumentOperators);
 
         EditBlockDetailsForm editForm = new EditBlockDetailsForm();
-        SimpleDateFormat dateFmt = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFmt = TimeUtils.shortDate;
         SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a");
         editForm.setStartDate(dateFmt.format(firstBlock.getStartDate()));
         editForm.setEndDate(dateFmt.format(blocksToUpdate.get(blocksToUpdate.size() - 1).getEndDate()));

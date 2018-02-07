@@ -113,6 +113,7 @@ public class UsageBlockBaseDAO
         blk.setDateChanged(rs.getTimestamp("lastChanged"));
         blk.setNotes(rs.getString("notes"));
         blk.setDeleted(rs.getBoolean("deleted"));
+        blk.setSetupBlock(rs.getBoolean("setupBlock"));
         return blk;
     }
 
@@ -158,8 +159,7 @@ public class UsageBlockBaseDAO
         return getUsageBlocks(filter);
     }
 
-    public static List<UsageBlockBase> getUsageBlocksForBilling(int projectId, Date startDate, Date endDate,
-                                                                boolean containedInRange) throws SQLException
+    public static List<UsageBlockBase> getUsageBlocksForBilling(int projectId, Date startDate, Date endDate) throws SQLException
     {
         if(projectId <= 0)
         {
@@ -169,7 +169,7 @@ public class UsageBlockBaseDAO
         filter.setProjectId(projectId);
         filter.setStartDate(startDate);
         filter.setEndDate(endDate);
-        filter.setContainedInRange(containedInRange);
+        filter.setContainedInRange(false);
         filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL); // Get sign-up only blocks also
         return getUsageBlocks(filter);
     }
@@ -255,6 +255,106 @@ public class UsageBlockBaseDAO
         }
     }
 
+    public static boolean hasUsageBlockEndsAt(int projectId, int instrumentId, Date endDate) throws SQLException {
+
+        Connection conn = null;
+
+        try {
+            conn = InstrumentUsageDAO.getConnection();
+            return hasUsageBlockEndsAt(conn, projectId, instrumentId, endDate);
+
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+        }
+    }
+
+    public static boolean hasUsageBlockEndsAt(Connection conn, int projectId, int instrumentId, Date endDate) throws SQLException {
+
+        return getUsageBlockEndsAt(conn, projectId, instrumentId, endDate) != null;
+    }
+
+    public static UsageBlockBase getUsageBlockEndsAt(int projectId, int instrumentId, Date endDate) throws SQLException {
+
+        Connection conn = null;
+
+        try {
+            conn = InstrumentUsageDAO.getConnection();
+            return getUsageBlockEndsAt(conn, projectId, instrumentId, endDate);
+
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+        }
+    }
+
+    public static UsageBlockBase getUsageBlockEndsAt(Connection conn, int projectId, int instrumentId, Date endDate) throws SQLException {
+
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM instrumentUsage WHERE projectID = ");
+        sql.append(projectId);
+        sql.append(" AND instrumentID= ").append(instrumentId);
+        sql.append(" AND deleted = 0");
+        sql.append(" AND endDate = '").append(dateFormat.format(endDate)).append("'");
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql.toString());
+            if (rs.next()) {
+                return makeUsageBlockBase(rs);
+            }
+            return null;
+
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
+            if(rs != null) try {rs.close();} catch(SQLException ignored){}
+        }
+    }
+
+    public static UsageBlockBase getUsageBlockStartsAt(int projectId, int instrumentId, Date startDate) throws SQLException {
+
+        Connection conn = null;
+        try {
+            conn = InstrumentUsageDAO.getConnection();
+            return getUsageBlockStartsAt(conn, projectId, instrumentId, startDate);
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+        }
+    }
+
+    public static UsageBlockBase getUsageBlockStartsAt(Connection conn, int projectId, int instrumentId, Date startDate) throws SQLException {
+
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM instrumentUsage WHERE projectID = ");
+        sql.append(projectId);
+        sql.append(" AND instrumentID= ").append(instrumentId);
+        sql.append(" AND deleted = 0");
+        sql.append(" AND startDate = '").append(dateFormat.format(startDate)).append("'");
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql.toString());
+            if (rs.next()) {
+                return makeUsageBlockBase(rs);
+            }
+            return null;
+
+        }
+        finally {
+            // Always make sure result sets and statements are closed,
+            if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
+            if(rs != null) try {rs.close();} catch(SQLException ignored){}
+        }
+    }
+
     static String makeSql(UsageBlockBaseFilter filter)
     {
         StringBuilder buf = new StringBuilder();
@@ -310,13 +410,13 @@ public class UsageBlockBaseDAO
             if(filter.getEndDate() != null)
             {
                 buf.append(joiner);
-                buf.append(" startDate <= '").append(dateFormat.format(filter.getEndDate())).append("'");
+                buf.append(" startDate < '").append(dateFormat.format(filter.getEndDate())).append("'");
                 joiner = " AND ";
             }
             if(filter.getStartDate() != null)
             {
                 buf.append(joiner);
-                buf.append(" endDate >= '").append(dateFormat.format(filter.getStartDate())).append("'");
+                buf.append(" endDate > '").append(dateFormat.format(filter.getStartDate())).append("'");
             }
         }
 

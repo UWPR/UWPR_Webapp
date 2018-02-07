@@ -11,10 +11,7 @@ import org.apache.struts.action.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.uwpr.costcenter.*;
-import org.uwpr.instrumentlog.InstrumentUsageDAO;
-import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.MsInstrumentUtils;
-import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.*;
@@ -133,8 +130,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         	return sendError(response,"Invalid instrumentID: "+instrumentId+" in request");
         }
         
-        
-        
         // If this is a BilledProject make sure it is not blocked
         if(project instanceof BilledProject && ((BilledProject)project).isBlocked()) {
         	return sendError(response,"This project has been blocked. If you think this is in error please contact us.");
@@ -169,76 +164,63 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         catch(SchedulerException e) {
         	return sendError(response,"Error reading end date. Error was: "+e.getMessage());
         }
-        
-        // Split the given range into time blocks
-        List<TimeBlock> timeBlocks = TimeBlockDAO.getInstance().getAllTimeBlocks();
-        List<TimeBlock> rangeTimeBlocks = null;
-        try {
-        	rangeTimeBlocks = TimeRangeSplitter.getInstance().split(rangeStartDate, rangeEndDate, timeBlocks);
-        }
-        catch(SchedulerException e) {
-        	return sendError(response,"Could not convert given time range into blocks. Error was: "+e.getMessage());
-        }
-        if(rangeTimeBlocks == null || rangeTimeBlocks.size() == 0) {
-        	if(!rangeEndDate.after(rangeStartDate)) {
-        		String msg = "End date has to be after start date. ";
-        		msg += "Selected start date was: "+format.format(rangeStartDate)+". ";
-        		msg += "Selected end date was: "+format.format(rangeEndDate);
-        		return sendError(response,msg);
-        	}
-        	else {
-        		return sendError(response,"Could not convert given time range into blocks.");
-        	}
-        }
-    	
-    	List<UsageBlockBaseWithRate> allBlocks = new ArrayList<UsageBlockBaseWithRate>();
-    	
-    	boolean first = true;
+
+        // Check dates
+		if(!rangeEndDate.after(rangeStartDate)) {
+			String msg = "End date has to be after start date. ";
+			msg += "Selected start date was: "+format.format(rangeStartDate)+". ";
+			msg += "Selected end date was: "+format.format(rangeEndDate);
+			return sendError(response,msg);
+		}
+
+		// Make sure the start date is on or after the current date
+		if (!ProjectInstrumentTimeApprover.getInstance().startDateApproved(rangeStartDate, user)) {
+			return sendError(response, "Cannot schedule instrument time in the past!");
+		}
+
     	Calendar startCal = Calendar.getInstance();
     	startCal.setTime(rangeStartDate);
-    	
-    	for(TimeBlock timeBlock: rangeTimeBlocks) {
-    		
-    		// get the instrumentRateID
-            InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateType.getId());
-            if(rate == null) {
-            	return sendError(response,"No rate information found for instrumentId: "+instrumentId+
-            			" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateType.getId()+" in request");
-            }
-            
-            UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
-            usageBlock.setProjectID(projectId);
-            usageBlock.setInstrumentID(instrumentId);
-			usageBlock.setInstrumentOperatorId(instrumentOperator.getID());
-            usageBlock.setInstrumentRateID(rate.getId());
-            usageBlock.setResearcherID(user.getResearcher().getID());
-            usageBlock.setStartDate(startCal.getTime());
-            startCal.add(Calendar.HOUR_OF_DAY, timeBlock.getNumHours());
-            usageBlock.setEndDate(startCal.getTime());
-            usageBlock.setRate(rate);
-            
-            
-            if(first) {
-            	// Make sure the start date is on or after the current date
-            	if(!ProjectInstrumentTimeApprover.getInstance().startDateApproved(usageBlock.getStartDate(), user)) {
-            		return sendError(response, "Cannot schedule instrument time in the past!");
-            	}
-            	
-            	first = false;
-            }
-            
-            allBlocks.add(usageBlock);
-            	
-    	}
+
+		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(TimeBlock.HOURLY);
+		if(timeBlock == null)
+		{
+			return sendError(response,"Could not find the hourly time block.");
+		}
+
+		// get the instrumentRateID
+		InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateType.getId());
+		if(rate == null) {
+			return sendError(response,"No rate information found for instrumentId: "+instrumentId+
+					" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateType.getId()+" in request");
+		}
+
+
+		UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
+		usageBlock.setProjectID(projectId);
+		usageBlock.setInstrumentID(instrumentId);
+		usageBlock.setInstrumentOperatorId(instrumentOperator.getID());
+		usageBlock.setInstrumentRateID(rate.getId());
+		usageBlock.setResearcherID(user.getResearcher().getID());
+		usageBlock.setStartDate(rangeStartDate /*timeRange.startDate*/);
+		usageBlock.setEndDate(rangeEndDate/*timeRange.endDate*/);
+		usageBlock.setRate(rate);
+
+		// If there is no previously scheduled block adjacent to this one, make this the setup block
+		if(!UsageBlockBaseDAO.hasUsageBlockEndsAt(projectId, instrumentId, usageBlock.getStartDate()))
+		{
+			usageBlock.setSetupBlock(true);
+		}
+
+		List<UsageBlockBaseWithRate> allBlocks = Collections.singletonList(usageBlock);
+
     	
 		// Check if the instrument is available
-    	for(UsageBlockBase block: allBlocks) {
-    		if(!InstrumentAvailabilityChecker.getInstance().isInstrumentAvailable(instrumentId, block.getStartDate(), block.getEndDate())) {
+		if(!InstrumentAvailabilityChecker.getInstance().isInstrumentAvailable(instrumentId, usageBlock.getStartDate(), usageBlock.getEndDate())) {
 
-    			return sendError(response, "Instrument is busy at the requested time between "
-    					+block.getStartDateFormated() + " and "+block.getEndDateFormated());
-    		}
-    	}
+			return sendError(response, "Instrument is busy at the requested time between "
+					+usageBlock.getStartDateFormated() + " and "+usageBlock.getEndDateFormated());
+		}
+
 		
     	// Make sure user has not exceeded instrument time quota
         try {
@@ -282,11 +264,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			// Save the blocks
 			if (project instanceof BilledProject)
 			{
-				if(allBlocks == null || allBlocks.size() == 0)
-				{
-					return sendError(response, "No usage blocks found.");
-				}
-
 				UsageBlockPaymentInformation paymentInfo = null;
 				try
 				{
@@ -370,6 +347,14 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 				return errorMessage;
 			}
 
+			// If there is a setup block adjacent to the last block, remove the setup flag from the block
+			UsageBlockBase lastBlock = usageBlocks.get(usageBlocks.size() - 1);
+			UsageBlockBase adjBlock = UsageBlockBaseDAO.getUsageBlockStartsAt(conn, lastBlock.getProjectID(), lastBlock.getInstrumentID(), lastBlock.getEndDate());
+			if(adjBlock != null)
+			{
+				InstrumentUsageDAO.getInstance().removeSetupFlag(conn, user, Collections.singletonList(adjBlock.getID()));
+			}
+
 			// Update signup
 			UsageBlockBase firstBlock = usageBlocks.get(0);
 			Date startDate = firstBlock.getStartDate();
@@ -416,23 +401,27 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		BigDecimal cost = BigDecimal.ZERO;
 		BigDecimal instrumentCost = BigDecimal.ZERO;
 		BigDecimal signupCost = BigDecimal.ZERO;
+		BigDecimal setupCost = BigDecimal.ZERO;
+
 
 		for(UsageBlockBaseWithRate block: usageBlocks) {
 			JSONObject obj = new JSONObject();
 			obj.put("id", String.valueOf(block.getID()));
-			obj.put("fee", String.valueOf(block.getRate().getRate()));
+			obj.put("fee", String.valueOf(block.getTotalCost()));
 			obj.put("start_date", block.getStartDateFormated());
 			obj.put("end_date", block.getEndDateFormated());
 			array.add(obj);
 
-			InstrumentRate rate = block.getRate();
-			cost = cost.add(rate.getRate());
-			instrumentCost = instrumentCost.add(rate.getInstrumentFee());
-			signupCost = signupCost.add(rate.getSignupFee());
+			cost = cost.add(block.getTotalCost());
+			instrumentCost = instrumentCost.add(block.getInstrumentCost());
+			signupCost = signupCost.add(block.getSignupCost());
+			setupCost = setupCost.add(block.getSetupCost());
 		}
+
 		json.put("total_cost", cost.doubleValue());
 		json.put("signup_cost", signupCost.doubleValue());
 		json.put("instrument_cost", instrumentCost.doubleValue());
+		json.put("setup_cost", setupCost.doubleValue());
 
 		json.put("requires_confirmation", requiresConfirmation);
 

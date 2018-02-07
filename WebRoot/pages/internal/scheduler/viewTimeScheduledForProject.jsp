@@ -31,8 +31,8 @@ $(document).ready(function() {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             }, 
-            // assign the seventh column (we start counting zero) 
-            10: {
+            // assign the eleventh column (we start counting zero) 
+            11: {
                 // disable it by setting the property sorter to false 
                 sorter: false 
             } 
@@ -194,6 +194,8 @@ function deleteTimeBlock(usageBlockId, projectId) {
 <div style="font-weight:bold; text-alignment:center;margin:10px;">
 	Total cost: $<span style="color:red;"><bean:write name="totalCost"/></span>
     &nbsp;
+    Setup cost: $<span style="color:red;"><bean:write name="setupCost"/></span>
+    &nbsp;
     Sign-up cost: $<span style="color:red;"><bean:write name="signupCost"/></span>
     &nbsp;
     Instrument cost: $<span style="color:red;"><bean:write name="instrumentCost"/></span>
@@ -220,6 +222,7 @@ function deleteTimeBlock(usageBlockId, projectId) {
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
+            <th class="scheduler">Setup</th>
             <th class="scheduler">SignUp</th>
             <th class="scheduler">Instrument</th>
 			<th class="scheduler">Total</th>
@@ -254,6 +257,7 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				</td>
 				<td><nobr><bean:write name="usageBlock" property="startDateFormated"/></nobr></td>
 				<td><nobr><bean:write name="usageBlock" property="endDateFormated"/></nobr></td>
+                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="setupCost"/></span></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="signupCost"/></span></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="instrumentCost"/></span></td>
 				<td align="right"><span class="costColumn"><bean:write name="usageBlock" property="totalCost"/></span></td>

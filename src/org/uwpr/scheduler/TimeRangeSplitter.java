@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.uwpr.scheduler;
 
 import java.util.ArrayList;
@@ -11,6 +8,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.uwpr.costcenter.TimeBlock;
+import org.uwpr.www.util.TimeUtils;
 
 /**
  * TimeRangeSplitter.java
@@ -70,7 +68,47 @@ public class TimeRangeSplitter {
 		return rangeBlocks;
 	}
 
-	
+	public List<TimeBlockRange> splitOnMonthEnd(Date startDate, Date endDate) {
+
+		List<TimeBlockRange> rangeBlocks = new ArrayList<TimeBlockRange>();
+
+		Calendar start = Calendar.getInstance();
+		start.setTime(startDate);
+
+		Calendar end = Calendar.getInstance();
+		end.setTime(endDate);
+
+		if(endDate.before(startDate))
+		{
+			return Collections.emptyList();
+		}
+
+		while(start.getTime().before(end.getTime())) {
+
+			if(start.get(Calendar.YEAR) == end.get(Calendar.YEAR) && start.get(Calendar.MONTH) == end.get(Calendar.MONTH))
+			{
+				rangeBlocks.add(new TimeBlockRange(start.getTime(), end.getTime()));
+				break;
+			}
+
+			Date s = start.getTime();
+			int lastDayInMonth = start.getActualMaximum(Calendar.DAY_OF_MONTH);
+			// start.add(Calendar.DAY_OF_MONTH, lastDayInMonth - start.get(Calendar.DAY_OF_MONTH));
+
+			start.set(Calendar.DAY_OF_MONTH, lastDayInMonth);
+			start.set(Calendar.MILLISECOND, 0);
+			start.set(Calendar.SECOND, 0);
+			start.set(Calendar.MINUTE, 0);
+			start.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
+			start.add(Calendar.MILLISECOND, TimeUtils.MILLIS_IN_DAY);
+			Date e = start.getTime();
+
+			rangeBlocks.add(new TimeBlockRange(s, e));
+		}
+
+		return rangeBlocks;
+	}
+
 	private boolean matchesBlockStarTime(Date startDate, TimeBlock block) {
 		
 		// If this block has no start and end time we return true
@@ -93,5 +131,16 @@ public class TimeRangeSplitter {
 		
 		long differenceInMillis = end.getTime() - start.getTime();
 		return (double) differenceInMillis / ((double)(1000 * 60 * 60));
+	}
+
+	public static class TimeBlockRange
+	{
+		public final Date startDate;
+		public final Date endDate;
+
+		public TimeBlockRange(Date startDate, Date endDate) {
+			this.startDate = startDate;
+			this.endDate = endDate;
+		}
 	}
 }

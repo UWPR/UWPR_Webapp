@@ -17,7 +17,6 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,7 +29,6 @@ public class ExportProjectBillingInformationAction extends Action {
 	private static final Logger log = Logger.getLogger(ExportProjectBillingInformationAction.class);
 
 	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("MM.dd.yyyy");
-	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -87,7 +85,7 @@ public class ExportProjectBillingInformationAction extends Action {
 		{
 			try
 			{
-				startDate = dateFormat.parse(startDateString);
+				startDate = TimeUtils.shortDate.parse(startDateString);
 				startDate = TimeUtils.makeBeginningOfDay(startDate);
 			}
 			catch(ParseException e)
@@ -101,9 +99,9 @@ public class ExportProjectBillingInformationAction extends Action {
 			try
 			{
 				// 2/15/2016 will be parsed as 2016-02-05 00-00-00 (12AM)
-				// Add a day (minus 1 millisec.) to the end date so that we include scheduled blocks that start on the end date.
-				endDate = dateFormat.parse(endDateString);
-				endDate = TimeUtils.makeEndOfDay(endDate);
+				// Add a day to the end date.
+				endDate = TimeUtils.shortDate.parse(endDateString);
+				endDate = TimeUtils.makeEndOfDay_12AM(endDate);
 			}
 			catch(ParseException e)
 			{
@@ -133,7 +131,7 @@ public class ExportProjectBillingInformationAction extends Action {
         	
         	exporter.setSummarize(summarize);
         	
-        	exporter.exportToXls(projectId, outStream);
+        	exporter.exportToXls(project, outStream);
 
         }
         catch(BillingInformationExporterException e) {

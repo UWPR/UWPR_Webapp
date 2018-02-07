@@ -43,6 +43,9 @@ public class BillingInformationExcelExporter {
 
 	private int rowNum = 0;
 
+	// These are blocks whose end or start date has to be updated because they extend outside the date range being billed.
+	// We do this only if we are invoicing blocks.
+	//private List<UsageBlockBase> _blocksToUpdate = new ArrayList<>();
 
 	public void setStartDate(java.util.Date startDate) {
 		this.startDate = startDate;
@@ -80,16 +83,16 @@ public class BillingInformationExcelExporter {
 		else
 			writeHeaderDetailed(sheet);
 		
-		// get a list of all projects (includes billed, subsidized and maintenance projects)
+		// get a list of all projects scheduled in the given time range(includes billed, subsidized and maintenance projects)
 		List<Project> projects = getAllProjects();
 		
 		// write details for each project
 		for(Project project: projects) {
 			
 			if(this.isSummarize())
-				exportSummarized(project.getID(), sheet, false);
+				exportSummarized(project, sheet, false);
 			else
-				exportDetailed(project.getID(), sheet, false);
+				exportDetailed(project, sheet, false);
 			
 		}
 		informListenerExportDone(); // Blocks will be invoiced in this step, if there is a listener
@@ -102,7 +105,7 @@ public class BillingInformationExcelExporter {
 	}
 	
 
-	public void exportToXls(int projectId, OutputStream outStream) throws BillingInformationExporterException {
+	public void exportToXls(Project project, OutputStream outStream) throws BillingInformationExporterException {
 		
 		// create a new workbook
 		Workbook wb = new HSSFWorkbook();
@@ -110,11 +113,11 @@ public class BillingInformationExcelExporter {
 		Sheet sheet = wb.createSheet();
 		
 		if(this.isSummarize()) {
-			exportSummarized(projectId, sheet, true);
+			exportSummarized(project, sheet, true);
 			informListenerExportDone();
 		}
 		else {
-			exportDetailed(projectId, sheet, true);
+			exportDetailed(project, sheet, true);
 			informListenerExportDone();
 		}
 		
@@ -125,21 +128,18 @@ public class BillingInformationExcelExporter {
 		}
 	}
 	
-	private void exportDetailed(int projectId, Sheet sheet, boolean writeHeader) throws BillingInformationExporterException {
+	private void exportDetailed(Project project, Sheet sheet, boolean writeHeader) throws BillingInformationExporterException {
 
 		if(writeHeader) {
 			// write the header
 			writeHeaderDetailed(sheet);
 		}
-		
-		// get the project
-		Project project = getProject(projectId);
 
 		// make sure the dates are alright
 		checkDates();
 
-		// get the usage blocks for this project between the start and end dates
-		List<UsageBlockBase> usageBlocks = getSortedUsageBlocksForProject_byStartDate(project);
+		// Get the usage blocks for this project that have their start OR end dates within the given date range.
+		List<UsageBlockBase> usageBlocks = getSortedUsageBlocksForProject_byStartDate(project.getID());
 
 		if(usageBlocks.size() == 0) {
 			log.info("No usage found for project ID: "+project.getID()+" between the dates: "+getStartDate()+" - "+getEndDate());
@@ -158,22 +158,19 @@ public class BillingInformationExcelExporter {
 		}
 	}
 	
-	private void exportSummarized(int projectId, Sheet sheet, boolean writeHeader) 
+	private void exportSummarized(Project project, Sheet sheet, boolean writeHeader)
 		throws BillingInformationExporterException {
 
 		if(writeHeader) {
 			// write the header
 			writeHeaderSummarized(sheet);
 		}
-		
-		// get the project
-		Project project = getProject(projectId);
 
 		// make sure the dates are alright
 		checkDates();
 
 		// Get the usage blocks for this project that have their start OR end dates within the given date range.
-		List<UsageBlockBase> usageBlocks = getSortedUsageBlocksForProject_byStartDate(project);
+		List<UsageBlockBase> usageBlocks = getSortedUsageBlocksForProject_byStartDate(project.getID());
 
 		
 		if(usageBlocks.size() == 0) {
@@ -187,8 +184,8 @@ public class BillingInformationExcelExporter {
 		for(UsageBlockBase block: usageBlocks) {
 			
 			if(block.getEndDate().after(this.getEndDate())) {
-				continue; // don't add if this block ends after the end time of the given range.  
-				          // It will be billed in the next cycle.  
+				// Should not happen
+				throw new BillingInformationExporterException("Block end date outside range. " + block.toString());
 			}
 			
 			// get the instrument rate
@@ -238,10 +235,7 @@ public class BillingInformationExcelExporter {
 		sheet.createRow(rowNum++).createCell(cellnum).setCellValue("Billing information exported on "+new java.util.Date());
 		sheet.createRow(rowNum++).createCell(cellnum).setCellValue("Start Date: "+this.getStartDate()+"\n");
 		sheet.createRow(rowNum++).createCell(cellnum).setCellValue("End Date: "+this.getEndDate()+"\n");
-		// if(this.isBillPartialBlocks())
-		//	sheet.createRow(rowNum++).createCell(cellnum).setCellValue("Start and end times marked with a '*' fall outside the given time range.\n\n");
-		// else
-			sheet.createRow(rowNum++).createCell(cellnum).setCellValue("* Only blocks ending in a billing period are billed in that period.\n");
+		sheet.createRow(rowNum++).createCell(cellnum).setCellValue("* Only blocks ending in a billing period are billed in that period.\n");
 
 		
 		Row row = sheet.createRow(rowNum++);
@@ -255,10 +249,6 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("End");
 		row.createCell(cellnum++).setCellValue("TimeBlock_Hours");
 		row.createCell(cellnum++).setCellValue("TimeBlock_Rate");
-		row.createCell(cellnum++).setCellValue("TimeBlock_Instrument_Rate");
-		row.createCell(cellnum++).setCellValue("TimeBlock_Signup_Rate");
-		// if(this.isBillPartialBlocks())
-		//	row.createCell(cellnum++).setCellValue("Billed_Hours");
 		row.createCell(cellnum++).setCellValue("Payment_Method");
 		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
 		row.createCell(cellnum++).setCellValue("Federal_Funding");
@@ -266,6 +256,7 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("AmountBilled");
 		row.createCell(cellnum++).setCellValue("BilledInstrument");
 		row.createCell(cellnum++).setCellValue("BilledSignup");
+		row.createCell(cellnum++).setCellValue("BilledSetup");
 		row.createCell(cellnum++).setCellValue("ContactFirstName");
 		row.createCell(cellnum++).setCellValue("ContactLastName");
 		row.createCell(cellnum++).setCellValue("ContactEmail");
@@ -298,6 +289,7 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("AmountBilled");
 		row.createCell(cellnum++).setCellValue("BilledInstrument");
 		row.createCell(cellnum++).setCellValue("BilledSignup");
+		row.createCell(cellnum++).setCellValue("BilledSetup");
 		row.createCell(cellnum++).setCellValue("ContactFirstName");
 		row.createCell(cellnum++).setCellValue("ContactLastName");
 		row.createCell(cellnum++).setCellValue("ContactEmail");
@@ -322,14 +314,9 @@ public class BillingInformationExcelExporter {
 		// get the instrument rate
 		InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentRate(block.getInstrumentRateID());
 
-		// get the name of the time block
-		TimeBlock timeBlock = rate.getTimeBlock();
-
-
 		// get the payment method(s) for this block
 		List<InstrumentUsagePayment> usagePayments = InstrumentUsagePaymentGetter.get(project, block);
-		
-		
+
 		boolean blockExported = false;
 		for(InstrumentUsagePayment usagePayment: usagePayments) {
 
@@ -354,7 +341,6 @@ public class BillingInformationExcelExporter {
 	private boolean writeBlockPaymentMethodDetails(Sheet sheet, UsageBlockForBilling block, boolean summarize)
 
 	throws BillingInformationExporterException {
-
 
 		PaymentMethod paymentMethod = block.getPaymentMethod();
 		BigDecimal percent = block.getBillingPercent();
@@ -400,11 +386,8 @@ public class BillingInformationExcelExporter {
 				throw new BillingInformationExporterException("Expected a single block when exporting non-summarized report. Found " + block.getBlocks().size());
 			}
 			UsageBlockBaseWithRate blk = block.getBlocks().get(0);
-			// These are the fees for a single block.  These may not be the same as the billed cost.  For example,
-			// only sign-up fee may be assessed to a block if the instrument was not used.
+			// Hourly rate
 			row.createCell(cellnum++).setCellValue(blk.getRate().getRate().toString());
-			row.createCell(cellnum++).setCellValue(blk.getRate().getInstrumentFee().toString());
-			row.createCell(cellnum++).setCellValue(blk.getRate().getSignupFee().toString());
 		}
 		
 		
@@ -441,6 +424,7 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getTotalCost(), percent, block.getEndDate()).toString() + flag);
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getInstrumentCost(), percent, block.getEndDate()).toString());
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getSignupCost(), percent, block.getEndDate()).toString());
+		row.createCell(cellnum++).setCellValue(getBilledCost(block.getSetupCost(), percent, block.getEndDate()).toString());
 
 		// contact details of the person associated with the payment method
 		row.createCell(cellnum++).setCellValue(paymentMethod.getContactFirstName());
@@ -451,14 +435,16 @@ public class BillingInformationExcelExporter {
 		return true;
 	}
 
-	private List<Project> getAllProjects() throws BillingInformationExporterException {
-
-		ProjectsSearcher searcher = new ProjectsSearcher();
-		// searcher.addType(new BilledProject().getShortType());
-
-		List<Project> projects = null;
+	private List<Project> getAllProjects() throws BillingInformationExporterException
+	{
+		List<Project> projects = new ArrayList<>();
 		try {
-			projects = searcher.search();
+			List<Integer> projectIds = ProjectDAO.instance().getScheduledProjects(startDate, endDate);
+			for(Integer projectId: projectIds)
+			{
+				Project project = getProject(projectId);
+				projects.add(project);
+			}
 		} catch (SQLException e) {
 			throw new BillingInformationExporterException("Error searching for projects", e);
 		}
@@ -479,17 +465,16 @@ public class BillingInformationExcelExporter {
 		return project;
 	}
 
-	private List<UsageBlockBase> getSortedUsageBlocksForProject_byStartDate(Project project)
+	private List<UsageBlockBase> getSortedUsageBlocksForProject_byStartDate(int projectId)
 			throws BillingInformationExporterException {
 
 		// Get the usage blocks for this project where the start OR end of the block falls between the
 		// start and end dates.
 		List<UsageBlockBase> usageBlocks;
 		try {
-			usageBlocks = UsageBlockBaseDAO.getUsageBlocksForBilling(project.getID(), startDate, endDate,
-					false); // Return blocks that have their start OR end dates within the given date range.
+			usageBlocks = UsageBlockBaseDAO.getUsageBlocksForBilling(projectId, startDate, endDate);
 		} catch (SQLException e) {
-			throw new BillingInformationExporterException("Error loading usage blocks for project ID: "+project.getID(), e);
+			throw new BillingInformationExporterException("Error loading usage blocks for project ID: "+projectId, e);
 		}
 
 		// sort the blocks by start dates
@@ -499,7 +484,43 @@ public class BillingInformationExcelExporter {
 				return o1.getStartDate().compareTo(o2.getStartDate());
 			}
 		});
-		return usageBlocks;
+
+		List<UsageBlockBase> blocksToBill = new ArrayList<>();
+		// If there are blocks that extend outside the given date range, split them, and save new blocks later if we are exporting an invoice.
+		for(UsageBlockBase block: usageBlocks)
+		{
+			if(block.getStartDate().before(startDate) && block.getEndDate().after(endDate))
+			{
+				// This should not happen due to limit on how many hours a user can sign up for
+				throw new BillingInformationExporterException("Unexpected block. Spans start AND end dates. " + block.toString());
+			}
+
+			if(block.getEndDate().after(endDate))
+			{
+				informListenerBlockUpdated(block); // To be updated later
+
+				UsageBlockBase billBlock = new UsageBlockBase();
+				block.copyTo(billBlock);
+				billBlock.setEndDate(endDate);
+				blocksToBill.add(billBlock);
+			}
+			else if(block.getStartDate().before(startDate))
+			{
+				// This SHOULD NOT happen, unless the previous billing cycle was not invoiced.
+				informListenerBlockUpdated(block); // To be updated later.
+
+				UsageBlockBase billBlock = new UsageBlockBase();
+				block.copyTo(billBlock);
+				billBlock.setStartDate(startDate);
+				billBlock.setSetupBlock(false); // The previous split block will be the setup block
+				blocksToBill.add(billBlock);
+			}
+			else
+			{
+				blocksToBill.add(block);
+			}
+		}
+		return blocksToBill;
 	}
 
 	private void checkDates() throws BillingInformationExporterException {
@@ -535,6 +556,14 @@ public class BillingInformationExcelExporter {
 	private void informListenerBlockExported(UsageBlockBase block) throws BillingInformationExporterException {
 		if(this.listener != null)
 			listener.blockExported(block);
+	}
+
+	private void informListenerBlockUpdated(UsageBlockBase block) throws BillingInformationExporterException {
+		// _blocksToUpdate.add(block); // TODO: remove this
+		if(this.listener != null)
+		{
+			listener.updateBlock(block);
+		}
 	}
 
 	private void informListenerExportDone() throws BillingInformationExporterException {

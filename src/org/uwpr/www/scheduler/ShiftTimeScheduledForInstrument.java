@@ -16,9 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -29,7 +27,6 @@ import java.util.*;
  */
 public class ShiftTimeScheduledForInstrument extends Action
 {
-    private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
     private static final Logger log = Logger.getLogger(ShiftTimeScheduledForInstrument.class);
 
     public ActionForward execute(ActionMapping mapping, ActionForm form,
@@ -94,7 +91,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         {
             try
             {
-                startDate = dateFormat.parse(startDateString);
+                startDate = TimeUtils.shortDate.parse(startDateString);
             }
             catch(ParseException e)
             {
@@ -109,7 +106,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         {
             try
             {
-                endDate = dateFormat.parse(endDateString);
+                endDate = TimeUtils.shortDate.parse(endDateString);
             }
             catch(ParseException e)
             {
@@ -179,6 +176,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         try {
             conn = DBConnectionManager.getMainDbConnection();
             conn.setAutoCommit(false);
+            log.info("Shifting usage blocks on instrument: " + instrumentId);
             instrumentUsageDAO.updateBlocksDates(conn, usageBlocksToShift, logMessages);
 
             // If we are going over some previously existing signup-only blocks, adjust / delete them

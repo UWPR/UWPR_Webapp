@@ -2,6 +2,7 @@ package org.uwpr.www.scheduler;
 
 import org.apache.struts.action.ActionForm;
 import org.uwpr.instrumentlog.UsageBlockFilter;
+import org.uwpr.www.util.TimeUtils;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,8 +22,6 @@ public class TimeScheduledFilterForm extends ActionForm {
     private int paymentMethodId = 0;
     private String startDateString;
     private String endDateString;;
-
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
     public int getProjectId() {
         return projectId;
@@ -80,7 +79,7 @@ public class TimeScheduledFilterForm extends ActionForm {
         setInstrumentId(filter.getInstrumentId());
         setInstrumentOperatorId(filter.getInstrumentOperatorId());
         setPaymentMethodId(filter.getPaymentMethodId());
-        setStartDateString(filter.getStartDate() == null ? "" : dateFormat.format(filter.getStartDate()));
-        setEndDateString(filter.getEndDate() == null ? "" : dateFormat.format(filter.getEndDate()));
+        setStartDateString(filter.getStartDate() == null ? "" : TimeUtils.shortDate.format(filter.getStartDate()));
+        setEndDateString(filter.getEndDate() == null ? "" : TimeUtils.shortDate.format(filter.getEndDate()));
     }
 }

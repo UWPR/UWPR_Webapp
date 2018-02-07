@@ -13,5 +13,6 @@ import org.uwpr.instrumentlog.UsageBlockBase;
 public interface BillingInformationExporterListener {
 
 	public void blockExported(UsageBlockBase block) throws BillingInformationExporterException;
+	public void updateBlock(UsageBlockBase block) throws BillingInformationExporterException;
 	public void exportDone() throws BillingInformationExporterException;
 }

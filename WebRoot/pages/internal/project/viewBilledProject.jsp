@@ -144,6 +144,7 @@
 					<th>Name</th>
                     <th>Current</th>
 					<th>Expires</th>
+					<th>Setup</th>
 					<th>Signup</th>
 					<th>Instrument</th>
                     <th>Total Cost</th>
@@ -183,7 +184,10 @@
 						<nobr><bean:write name="paymentMethod" property="budgetExpirationDate" /></nobr>
 					</td>
 					<td style="padding:3px">
-						$<bean:write name="paymentMethod" property="signupFee" />
+						$<bean:write name="paymentMethod" property="setupCost" />
+					</td>
+					<td style="padding:3px">
+						$<bean:write name="paymentMethod" property="signupCost" />
 					</td>
 					<td style="padding:3px">
 						$<bean:write name="paymentMethod" property="instrumentCost" />

@@ -55,8 +55,8 @@ public class InstrumentUsageDAO {
 		ResultSet rs = null;
 
 		String sql = "INSERT INTO " +
-				"instrumentUsage (projectID, instrumentID, instrumentOperatorId, instrumentRateID, startDate, endDate,enteredBy, dateEntered, updatedBy, notes, deleted) " +
-				"VALUES(?,?,?,?,?,?,?,?,?,?,?)";
+				"instrumentUsage (projectID, instrumentID, instrumentOperatorId, instrumentRateID, startDate, endDate,enteredBy, dateEntered, updatedBy, notes, deleted, setupBlock) " +
+				"VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
 
 		try
 		{
@@ -84,6 +84,8 @@ public class InstrumentUsageDAO {
 
 				stmt.setBoolean(11, block.isDeleted());
 
+				stmt.setBoolean(12, block.isSetupBlock());
+
 				stmt.executeUpdate();
 				rs = stmt.getGeneratedKeys();
 				if (rs.next()) {
@@ -102,12 +104,16 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, List<String> logMessages) throws Exception {
+	public void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, String message) throws SQLException
+	{
+		updateBlocksDates(conn, blocks, Collections.singletonList(message));
+	}
+
+	public void updateBlocksDates(Connection conn, List<? extends UsageBlockBase> blocks, List<String> logMessages) throws SQLException
+	{
 
 		if (blocks == null || blocks.size() == 0)
 			return;
-
-		log.info("Updating usage blocks on instrument: " + blocks.get(0).getInstrumentID());
 
 		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
@@ -128,7 +134,7 @@ public class InstrumentUsageDAO {
 			int i = 0;
 			for(UsageBlockBase block: blocks)
 			{
-				String message = logMessages.get(i++);
+				String message = logMessages.size() == 1 ? logMessages.get(0) : logMessages.get(i++);
 
 				logDao.logSignupEdited(conn, block, block.getUpdaterResearcherID(), message);
 
@@ -239,6 +245,8 @@ public class InstrumentUsageDAO {
 			conn = getConnection();
 			conn.setAutoCommit(false);
 			markDeleted(conn, usageBlocks, user, null);
+			// If any of the blocks we are deleting are setup blocks, make the next contiguous block (if found) the setup block.
+			updateSetupStatusForDeletedBlocks(conn, usageBlocks, user);
 			conn.commit();
 
 		} finally {
@@ -250,6 +258,72 @@ public class InstrumentUsageDAO {
 	public int markDeletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
 	{
 		return markDeleted(conn, usageBlocks, researcher, deletedByEditAction);
+	}
+
+	private int updateSetupStatusForDeletedBlocks(Connection conn, List<UsageBlockBase> deletedBlocks, Researcher researcher) throws SQLException {
+
+		if (deletedBlocks == null || deletedBlocks.size() == 0)
+			return 0;
+
+		log.info("Updating setup blocks, if any.");
+
+		List<Integer> blockIds = new ArrayList<>();
+		for (UsageBlockBase block : deletedBlocks) {
+			if (!block.isSetupBlock()) {
+				continue;
+			}
+
+			// If there is an adjacent block make it the setup block
+			UsageBlockBase adjBlock = UsageBlockBaseDAO.getUsageBlockStartsAt(block.getProjectID(), block.getInstrumentID(), block.getEndDate());
+			if (adjBlock != null) {
+				blockIds.add(adjBlock.getID());
+			}
+		}
+		if (blockIds.size() == 0)
+		{
+			log.info("No blocks found to update.");
+			return 0;
+		}
+
+		return makeSetupBlocks(conn, researcher, blockIds);
+	}
+
+	public int makeSetupBlocks(Connection conn, Researcher researcher, List<Integer> blockIds) throws SQLException
+	{
+		return updateSetupBlocks(conn, researcher, blockIds, Boolean.TRUE);
+	}
+
+	public int removeSetupFlag(Connection conn, Researcher researcher, List<Integer> blockIds) throws SQLException
+	{
+		return updateSetupBlocks(conn, researcher, blockIds, Boolean.FALSE);
+	}
+
+
+	private int updateSetupBlocks(Connection conn, Researcher researcher, List<Integer> blockIds, boolean makeSetup) throws SQLException
+	{
+		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
+		sql.append(" setupBlock = ?, ");
+		sql.append(" updatedBy = ? ");
+		sql.append(" WHERE id in (").append(StringUtils.join(blockIds, ",")).append(") ");
+
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try
+		{
+			stmt = conn.prepareStatement(sql.toString());
+			stmt.setBoolean(1, makeSetup);
+			stmt.setInt(2, researcher.getID());
+
+			int numUpdated = stmt.executeUpdate();
+
+			return numUpdated;
+
+		} finally {
+
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
 	}
 
 	private int markDeleted(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher, String message) throws SQLException {
@@ -271,13 +345,15 @@ public class InstrumentUsageDAO {
 
 		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
 		sql.append(" deleted = ?, ");
+		sql.append(" setupBlock = ?, ");
 		sql.append(" updatedBy = ? ");
 		sql.append(" WHERE id in (").append(StringUtils.join(usageBlockIds, ",")).append(") ");
 		try
 		{
 			stmt = conn.prepareStatement(sql.toString());
 			stmt.setBoolean(1, Boolean.TRUE);
-			stmt.setInt(2, researcher.getID());
+			stmt.setBoolean(2, Boolean.FALSE);
+			stmt.setInt(3, researcher.getID());
 
 			int numUpdated = stmt.executeUpdate();
 
@@ -451,7 +527,7 @@ public class InstrumentUsageDAO {
 					newBlock.setEndDate(sEndDate);
 					newBlock.setDeleted(true);
 					newBlock.setUpdaterResearcherID(researcher.getID());
-					updateRateId(conn, rateType, newBlock);
+					updateRateId(conn, rateType, newBlock); // TODO: Can be removed once we have migrated all blocks to hourly rates.
 					newBlocks.add(newBlock);
 					newBlock.setPayments(iupDao.getPaymentsForUsage(block.getID()));
 				}
@@ -462,7 +538,7 @@ public class InstrumentUsageDAO {
 					block.setEndDate(startDate);
 					block.setUpdaterResearcherID(researcher.getID());
 					// Get the new rateId
-					updateRateId(conn, rateType, block);
+					updateRateId(conn, rateType, block); // TODO: Can be removed once we have migrated all blocks to hourly rates.
 					toUpdate.add(block);
 					updateMsgs.add(adjustingSignup + ": " + updateMsg);
 				}
@@ -476,7 +552,7 @@ public class InstrumentUsageDAO {
 					String updateMsg = getUpdateMessage(block, endDate, block.getEndDate());
 					block.setStartDate(endDate);
 					// Get the new rateId
-					updateRateId(conn, rateType, block);
+					updateRateId(conn, rateType, block); // TODO: Can be removed once we have migrated all blocks to hourly rates.
 					toUpdate.add(block);
 					updateMsgs.add(adjustingSignup + ": " + updateMsg);
 				}
@@ -490,6 +566,8 @@ public class InstrumentUsageDAO {
 		}
 
 		delete(conn, toDelete, researcher, adjustingSignup);
+
+		log.info("Updating usage blocks on instrument: " + instrumentId);
 		updateBlocksDates(conn, toUpdate, updateMsgs);
 		save(conn, newBlocks, adjustingSignup);
 		for(UsageBlock block: newBlocks)
@@ -503,9 +581,11 @@ public class InstrumentUsageDAO {
 		}
 	}
 
+	// TODO: This may only be required until we migrate all scheduled time to the new hourly rate.
+	//       We should no longer have to update the rateID since we are using the same "hourly" block for everything.
 	private void updateRateId(Connection conn, RateType rateType, UsageBlockBase block) throws Exception
 	{
-		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlock(conn, block.getHours());
+		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(conn, TimeBlock.HOURLY);
 		if(timeBlock == null)
         {
             throw new Exception("Could not find a time block for numHours: " + block.getHours() + ". Attempting to adjust signup block: " + block.toString());
@@ -539,34 +619,59 @@ public class InstrumentUsageDAO {
 			List<? extends UsageBlockBase> usageBlocks,
 			UsageBlockPaymentInformation paymentInfo, String logMessage) {
 
-		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-
 		if(usageBlocks == null || usageBlocks.size() == 0)
 		{
 			return null;
 		}
 
+		List<UsageBlock> blocksWithPayment = new ArrayList<>(usageBlocks.size());
+		for(UsageBlockBase blk: usageBlocks)
+		{
+			UsageBlock uBlk = new UsageBlock();
+			blk.copyTo(uBlk);
+			blocksWithPayment.add(uBlk);
+
+			List<InstrumentUsagePayment> payments = new ArrayList<>();
+			uBlk.setPayments(payments);
+			for (int i = 0; i < paymentInfo.getCount(); i++)
+			{
+				PaymentMethod pm = paymentInfo.getPaymentMethod(i);
+				BigDecimal perc = paymentInfo.getPercent(i);
+
+				InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
+				usagePayment.setPaymentMethod(pm);
+				usagePayment.setPercent(perc);
+				payments.add(usagePayment);
+			}
+		}
+
+		return saveUsageBlocks(conn, blocksWithPayment, logMessage);
+	}
+
+	public String saveUsageBlocks(Connection conn,  List<UsageBlock> blocksWithPayment, String logMessage)
+	{
+		if(blocksWithPayment == null || blocksWithPayment.size() == 0)
+		{
+			return null;
+		}
+
+		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
+
 		try
 		{
 			// Blocks are in order
-			for (UsageBlockBase block : usageBlocks)
+			for (UsageBlock block : blocksWithPayment)
 			{
 				log.info("Saving usage block: " + block.toString());
 
 				// save to the instrumentUsage table
 				InstrumentUsageDAO.getInstance().save(conn, Collections.singletonList(block), logMessage);
 
-				for (int i = 0; i < paymentInfo.getCount(); i++)
+
+				for (InstrumentUsagePayment iup: block.getPayments())
 				{
-
-					PaymentMethod pm = paymentInfo.getPaymentMethod(i);
-					BigDecimal perc = paymentInfo.getPercent(i);
-
-					InstrumentUsagePayment usagePayment = new InstrumentUsagePayment();
-					usagePayment.setInstrumentUsageId(block.getID());
-					usagePayment.setPaymentMethod(pm);
-					usagePayment.setPercent(perc);
-					iupDao.savePayment(conn, usagePayment);
+					iup.setInstrumentUsageId(block.getID());
+					iupDao.savePayment(conn, iup);
 				}
 			}
 		}

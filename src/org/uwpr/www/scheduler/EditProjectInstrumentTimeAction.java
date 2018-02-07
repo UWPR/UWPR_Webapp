@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -27,7 +28,7 @@ import java.util.*;
  */
 public class EditProjectInstrumentTimeAction extends Action {
 
-	
+	private static final DateFormat format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
@@ -140,7 +141,6 @@ public class EditProjectInstrumentTimeAction extends Action {
 
 
 		// get the usageBlockIds from the request
-		// get the usage block ID(s)
         List<Integer> usageBlockIds = new ArrayList<Integer>();
         String usageBlockIdString = editForm.getUsageBlockIdsToEdit();
         if(usageBlockIdString != null) {
@@ -220,29 +220,6 @@ public class EditProjectInstrumentTimeAction extends Action {
         	}
         }
 
-        
-        // Make sure we can create new blocks in the given time range
-        Date rangeStartDate = editForm.getStartDateDate();
-        Date rangeEndDate = editForm.getEndDateDate();
-        // Split the given range into time blocks
-        List<TimeBlock> timeBlocks = TimeBlockDAO.getInstance().getAllTimeBlocks();
-        List<TimeBlock> rangeTimeBlocks = null;
-        try {
-        	rangeTimeBlocks = TimeRangeSplitter.getInstance().split(rangeStartDate, rangeEndDate, timeBlocks);
-        }
-        catch(SchedulerException e) {
-        	return returnError(mapping, request, "scheduler", 
-        			new ActionMessage("error.costcenter.invaliddata", 
-                			"Could not convert given time range into blocks. Error was: "+e.getMessage()),
-    						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-        }
-        if(rangeTimeBlocks == null || rangeTimeBlocks.size() == 0) {
-        	return returnError(mapping, request, "scheduler", 
-        			new ActionMessage("error.costcenter.invaliddata", "Could not convert given time range into blocks."),
-							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-        }
-
-
 		// Get the rate type -- UW, non-profit, commercial etc.
         RateType rateType = project.getRateType();
 		if(rateType == null) {
@@ -251,54 +228,64 @@ public class EditProjectInstrumentTimeAction extends Action {
 					"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 		}
         
-        List<UsageBlockBaseWithRate> allBlocks = new ArrayList<UsageBlockBaseWithRate>();
-    	
-    	boolean first = true;
+        List<UsageBlockBaseWithRate> allBlocks = new ArrayList<>();
 
-    	UsageBlockBase oldBlock = blocksToDelete.get(0);
-    	for(TimeBlock timeBlock: rangeTimeBlocks) {
-    		
-    		// get the instrumentRateID
-            InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateType.getId());
-            if(rate == null) {
-            	return returnError(mapping, request, "scheduler", 
-            			new ActionMessage("error.costcenter.invaliddata", 
-            					"No rate information found for instrumentId: "+instrumentId+
-                    			" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateType.getId()+" in request"),
-    							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-            }
-            
-            UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
-            usageBlock.setProjectID(projectId);
-            usageBlock.setInstrumentID(instrumentId);
-			usageBlock.setInstrumentOperatorId(instrumentOperatorId);
-            usageBlock.setInstrumentRateID(rate.getId());
-            usageBlock.setResearcherID(oldBlock.getResearcherID());
-            usageBlock.setUpdaterResearcherID(user.getResearcher().getID());
-            usageBlock.setDateCreated(oldBlock.getDateCreated());
-            usageBlock.setStartDate(startCal.getTime());
-            startCal.add(Calendar.HOUR_OF_DAY, timeBlock.getNumHours());
-            usageBlock.setEndDate(startCal.getTime());
-            usageBlock.setRate(rate);
-            
-            
-            if(first) {
-            	// Make sure the start date is on or after the current date
-            	if(!ProjectInstrumentTimeApprover.getInstance().startDateApproved(usageBlock.getStartDate(), user)) {
-            		return returnError(mapping, request, "scheduler", 
-                			new ActionMessage("error.costcenter.invaliddata", 
-                					"Cannot schedule instrument time in the past!"),
-        							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-            	}
-            	
-            	first = false;
-            }
-            
-            allBlocks.add(usageBlock);
-            	
-    	}
-        
-		
+		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(TimeBlock.HOURLY);
+		if(timeBlock == null)
+		{
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.costcenter.invaliddata", "Could not find the hourly time block."),
+					"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+		}
+
+		// get the instrumentRateID
+		InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(instrumentId, timeBlock.getId(), rateType.getId());
+		if(rate == null) {
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.costcenter.invaliddata",
+							"No rate information found for instrumentId: "+instrumentId+
+									" and timeBlockId: "+timeBlock.getId()+" and rateTypeId: "+rateType.getId()+" in request"),
+					"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+		}
+
+		// Make sure we can create new blocks in the given time range
+		Date rangeStartDate = editForm.getStartDateDate();
+		Date rangeEndDate = editForm.getEndDateDate();
+
+		// Check dates
+		if(!rangeEndDate.after(rangeStartDate)) {
+			String msg = "End date has to be after start date. ";
+			msg += "Selected start date was: "+format.format(rangeStartDate)+". ";
+			msg += "Selected end date was: "+format.format(rangeEndDate);
+			return returnError(mapping, request, "scheduler",
+								new ActionMessage("error.costcenter.invaliddata", msg),
+						       "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+		}
+
+		// Make sure the start date is on or after the current date
+		if (!ProjectInstrumentTimeApprover.getInstance().startDateApproved(rangeStartDate, user)) {
+			return returnError(mapping, request, "scheduler",
+					new ActionMessage("error.costcenter.invaliddata",
+							"Cannot schedule instrument time in the past!"),
+					"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+		}
+
+		UsageBlockBase oldBlock = blocksToDelete.get(0);
+
+		UsageBlockBaseWithRate usageBlock = new UsageBlockBaseWithRate();
+		usageBlock.setProjectID(projectId);
+		usageBlock.setInstrumentID(instrumentId);
+		usageBlock.setInstrumentOperatorId(instrumentOperatorId);
+		usageBlock.setInstrumentRateID(rate.getId());
+		usageBlock.setResearcherID(oldBlock.getResearcherID());
+		usageBlock.setUpdaterResearcherID(user.getResearcher().getID());
+		usageBlock.setDateCreated(oldBlock.getDateCreated());
+		usageBlock.setStartDate(rangeStartDate);
+		usageBlock.setEndDate(rangeEndDate);
+		usageBlock.setRate(rate);
+		allBlocks.add(usageBlock);
+
+
     	// Make sure user has not exceeded instrument time quota
         if(project instanceof Collaboration) {
             try {
@@ -333,8 +320,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
 			}
 		}
-        
-        
+
         // Check if the instrument is available
     	for(UsageBlockBase block: allBlocks) {
     		if(!InstrumentAvailabilityChecker.getInstance().isInstrumentAvailable(instrumentId, 
@@ -347,15 +333,13 @@ public class EditProjectInstrumentTimeAction extends Action {
     							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
     		}
     	}
-    	
 
         // Save the new blocks
     	if(project instanceof BilledProject) {
-    		
-    		// get the payment method(s) for the old blocks.
+
     		// get the payment method(s) used for the first block.  
     		InstrumentUsagePaymentDAO paymentDao = InstrumentUsagePaymentDAO.getInstance();
-    		List<InstrumentUsagePayment> paymentMethods = paymentDao.getPaymentsForUsage(blocksToDelete.get(0).getID());
+    		List<InstrumentUsagePayment> paymentMethods = paymentDao.getPaymentsForUsage(oldBlock.getID());
     		Map<Integer, String> paymentInfoMap = new HashMap<Integer, String>();
     		for(InstrumentUsagePayment paymentMethod: paymentMethods) {
     			paymentInfoMap.put(paymentMethod.getPaymentMethod().getId(), paymentMethod.getPercent().toString());
@@ -411,12 +395,6 @@ public class EditProjectInstrumentTimeAction extends Action {
 				conn = DBConnectionManager.getMainDbConnection();
 				conn.setAutoCommit(false);
 
-				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo);
-				if (errorMessage != null)
-					return returnError(mapping, request, "scheduler",
-							new ActionMessage("error.costcenter.invaliddata", errorMessage),
-							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
-
 				// Mark the old blocks as deleted
 				try {
 					instrumentUsageDAO.markDeletedByEditAction(conn, blocksToDelete, user.getResearcher());
@@ -426,6 +404,27 @@ public class EditProjectInstrumentTimeAction extends Action {
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.delete", e.getMessage()),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+				}
+
+				// If there is no previously scheduled block adjacent to the new first block, make it the setup block
+				if(!UsageBlockBaseDAO.hasUsageBlockEndsAt(conn, projectId, instrumentId, allBlocks.get(0).getStartDate()))
+				{
+					allBlocks.get(0).setSetupBlock(true);
+				}
+
+				// Save the blocks
+				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo);
+				if (errorMessage != null)
+					return returnError(mapping, request, "scheduler",
+							new ActionMessage("error.costcenter.invaliddata", errorMessage),
+							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+
+
+				// If there is a setup block adjacent to the last block, remove the setup flag from that block
+				UsageBlockBase adjBlock = UsageBlockBaseDAO.getUsageBlockStartsAt(conn, projectId, instrumentId, allBlocks.get(allBlocks.size() - 1).getEndDate());
+				if(adjBlock != null)
+				{
+					InstrumentUsageDAO.getInstance().removeSetupFlag(conn, user.getResearcher(), Collections.singletonList(adjBlock.getID()));
 				}
 
 				// Delete and/or adjust any sign-up only blocks that overlap with the new usage blocks

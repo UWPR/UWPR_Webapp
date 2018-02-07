@@ -5,8 +5,10 @@ package org.uwpr.scheduler;
 
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.instrumentlog.UsageBlockBase;
+import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * UsageBlockBaseWithRate.java
@@ -28,16 +30,50 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 
 	public BigDecimal getTotalCost()
 	{
-		return getSignupCost().add(getInstrumentCost());
+		return getCost().add(getSetupCost()); // Add any setup cost
+	}
+
+	public BigDecimal getCost()
+	{
+		BigDecimal cost = rate.getRate();
+		if(rate.isHourly())
+		{
+			cost = cost.multiply(new BigDecimal(getHours()));
+		}
+		if(isDeleted())
+		{
+			return calcSignupCost(cost);
+		}
+		return cost;
 	}
 
 	public BigDecimal getSignupCost()
 	{
-		return rate.getSignupFee();
+		BigDecimal cost = getCost();
+		if(isDeleted())
+		{
+			return cost; // Only sign-up cost in this case
+		}
+		return calcSignupCost(cost);
+	}
+
+	private static BigDecimal calcSignupCost(BigDecimal cost)
+	{
+		return cost.multiply(InstrumentRate.SIGNUP_PERC).setScale(2, RoundingMode.HALF_UP);
 	}
 
 	public BigDecimal getInstrumentCost()
 	{
-		return isDeleted() ? BigDecimal.ZERO : rate.getInstrumentFee();
+		if(this.isDeleted())
+		{
+			return BigDecimal.ZERO;
+		}
+		BigDecimal cost = getCost();
+		return cost.multiply(InstrumentRate.INSTRUMENT_PERC).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal getSetupCost()
+	{
+		return isSetupBlock() ? rate.getRateType().getSetupFee() : BigDecimal.ZERO;
 	}
 }

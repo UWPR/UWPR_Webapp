@@ -5,9 +5,9 @@
  */
 package org.uwpr.costcenter;
 
+import org.uwpr.www.util.TimeUtils;
+
 import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * Represents a block of time that a user can reserve an instrument for.
@@ -23,9 +23,8 @@ public class TimeBlock {
 	private int numHours;
 	private String name;
 	private Date createDate;
-	
-	private static final DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
-	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+	public static final String HOURLY = "hourly";
 	
 	public int getId() {
 		return id;
@@ -41,7 +40,7 @@ public class TimeBlock {
 	public String getStartTimeString() {
 		if(startTime == null) 
 			return "-";
-		else return timeFormat.format(startTime.getTime());
+		else return TimeUtils.timeFormat.format(startTime.getTime());
 	}
 	
 	public void setStartTime(Date startTime) {
@@ -62,7 +61,7 @@ public class TimeBlock {
 		
 		if(endTime == null)
 			return "-";
-		else return timeFormat.format(endTime.getTime());
+		else return TimeUtils.timeFormat.format(endTime.getTime());
 	}
 	
 	public int getNumHours() {
@@ -90,7 +89,7 @@ public class TimeBlock {
 	}
 	
 	public String getCreateDateString() {
-		return dateFormat.format(createDate);
+		return TimeUtils.shortDate.format(createDate);
 	}
 	
 	public void setCreateDate(Date createDate) {

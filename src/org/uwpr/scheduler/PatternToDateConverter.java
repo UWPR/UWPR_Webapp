@@ -3,9 +3,9 @@
  */
 package org.uwpr.scheduler;
 
-import java.text.DateFormat;
+import org.uwpr.www.util.TimeUtils;
+
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -18,8 +18,6 @@ import java.util.Date;
 public class PatternToDateConverter {
 
 	//private static final Pattern timePattern = Pattern.compile("(\\d+):(\\d+)([a|p]m)");
-	
-	private static final DateFormat format = new SimpleDateFormat("MM/dd/yyyy");
 	
 	public static Date convert(String dateString, String timeString) throws SchedulerException {
 		
@@ -34,7 +32,7 @@ public class PatternToDateConverter {
 		
 		// convert the date string
 		try {
-			Date date = format.parse(dateString);
+			Date date = TimeUtils.shortDate.parse(dateString);
 			calendar.setTime(date);
 			
 		} catch (ParseException e) {
@@ -62,6 +60,6 @@ public class PatternToDateConverter {
 	
 	public static Date parseDate(String dateString) throws ParseException {
 		
-		return format.parse(dateString);
+		return TimeUtils.shortDate.parse(dateString);
 	}
 }

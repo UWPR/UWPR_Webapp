@@ -57,6 +57,7 @@ public class RateTypeDAO {
                 rateType.setId(rateTypeId);
                 rateType.setName(rs.getString("name"));
                 rateType.setDescription(rs.getString("description"));
+                rateType.setSetupFee(rs.getBigDecimal("setupFee"));
                 return rateType;
             }
             else {
@@ -99,6 +100,7 @@ public class RateTypeDAO {
     				rateType.setId(rs.getInt("id"));
     				rateType.setName(rs.getString("name"));
     				rateType.setDescription(rs.getString("description"));
+					rateType.setSetupFee(rs.getBigDecimal("setupFee"));
     				rateTypes.add(rateType);
     			}
     			return rateTypes;

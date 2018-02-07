@@ -15,6 +15,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.www.costcenter.PaymentMethodChecker;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.payment.PaymentMethod;
 
 import javax.servlet.http.HttpServletRequest;
@@ -91,7 +92,7 @@ public class PaymentMethodForm extends ActionForm {
 			{
 				try
 				{
-					budgetExpirationDate = PaymentMethod.dateFormat.parse(budgetExpirationDateStr);
+					budgetExpirationDate = TimeUtils.shortDate.parse(budgetExpirationDateStr);
 				} catch (ParseException e)
 				{
 					errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid expiration date. Accepted date format is MM/dd/yyyy"));
@@ -213,7 +214,7 @@ public class PaymentMethodForm extends ActionForm {
 	public void setBudgetExpirationDate(Date budgetExpirationDate)
 	{
 		this.budgetExpirationDate = budgetExpirationDate;
-		budgetExpirationDateStr = budgetExpirationDate == null ? "" : PaymentMethod.dateFormat.format(budgetExpirationDate);
+		budgetExpirationDateStr = budgetExpirationDate == null ? "" : TimeUtils.shortDate.format(budgetExpirationDate);
 	}
 
 	public String getPoNumber() {

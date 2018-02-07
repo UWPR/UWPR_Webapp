@@ -4,11 +4,11 @@
 package org.yeastrc.project.payment;
 
 import org.apache.commons.lang.StringUtils;
+import org.uwpr.costcenter.Cost;
+import org.uwpr.www.util.TimeUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -42,15 +42,8 @@ public class PaymentMethod {
 	private boolean federalFunding;
     private BigDecimal poAmount;
 
-    private BigDecimal invoicedCost;
-	
-	private static final BigDecimal ZERO = new BigDecimal("0").setScale(1);
-
-	private BigDecimal signupFee = ZERO;
-	private BigDecimal instrumentCost = ZERO;
-	// private BigDecimal totalCost;
-
-	public static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    private Cost invoicedCost;
+	private Cost cost;
 
 	public int getId() {
 		return id;
@@ -191,7 +184,7 @@ public class PaymentMethod {
 	}
 
     public BigDecimal getPoAmount() {
-        return poAmount != null ? poAmount : ZERO;
+        return poAmount != null ? poAmount : BigDecimal.ZERO;
     }
 
     public void setPoAmount(BigDecimal poAmount) {
@@ -199,32 +192,33 @@ public class PaymentMethod {
     }
 
     public BigDecimal getTotalCost() {
-        return signupFee.add(instrumentCost);
+		return cost == null ? BigDecimal.ZERO : cost.getTotal();
     }
 
 	public BigDecimal getInstrumentCost()
 	{
-		return instrumentCost;
-	}
-	public BigDecimal getSignupFee()
-	{
-		return signupFee;
+		return cost == null ? BigDecimal.ZERO : cost.instrumentCost;
 	}
 
-    public void setInstrumentCost(BigDecimal instrumentCost) {
-        this.instrumentCost = instrumentCost;
+	public BigDecimal getSignupCost()
+	{
+		return cost == null ? BigDecimal.ZERO : cost.signupCost;
+	}
+
+	public BigDecimal getSetupCost()
+	{
+		return cost == null ? BigDecimal.ZERO : cost.setupCost;
+	}
+
+    public void setCost(Cost cost) {
+        this.cost = cost;
     }
-
-	public void setSignupFee(BigDecimal signupFee)
-	{
-		this.signupFee = signupFee;
-	}
 
     public BigDecimal getInvoicedCost() {
-        return invoicedCost != null ? invoicedCost : ZERO;
+        return invoicedCost != null ? BigDecimal.ZERO : invoicedCost.getTotal();
     }
 
-    public void setInvoicedCost(BigDecimal invoicedCost) {
+    public void setInvoicedCost(Cost invoicedCost) {
         this.invoicedCost = invoicedCost;
     }
 
@@ -241,7 +235,7 @@ public class PaymentMethod {
 
 		if(budgetExpirationDate != null)
 		{
-			displayString.append(", exp: " + dateFormat.format(budgetExpirationDate));
+			displayString.append(", exp: " + TimeUtils.shortDate.format(budgetExpirationDate));
 		}
         return displayString.toString();
     }

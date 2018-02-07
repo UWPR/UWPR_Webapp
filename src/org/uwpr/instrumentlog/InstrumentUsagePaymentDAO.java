@@ -32,12 +32,34 @@ public class InstrumentUsagePaymentDAO {
 		return getPaymentsForUsage(instrumentUsageId, 0);
 	}
 
-    public List<InstrumentUsagePayment> getPaymentsForUsage(int instrumentUsageId, int paymentMethodId) throws SQLException {
+	public List<InstrumentUsagePayment> getPaymentsForUsage(Connection conn, int instrumentUsageId) throws SQLException {
 
-    		Connection conn = null;
+		return getPaymentsForUsage(conn, instrumentUsageId, 0);
+	}
+
+	public List<InstrumentUsagePayment> getPaymentsForUsage(int instrumentUsageId, int paymentMethodId) throws SQLException {
+
+		Connection conn = null;
+
+		try {
+			conn = getConnection();
+			return getPaymentsForUsage(conn, instrumentUsageId, paymentMethodId);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		finally {
+			// Always make sure result sets and statements are closed,
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+		return null;
+	}
+
+    public List<InstrumentUsagePayment> getPaymentsForUsage(Connection conn, int instrumentUsageId, int paymentMethodId) throws SQLException {
+
     		Statement stmt = null;
     		ResultSet rs = null;
-
 
             String sql = "SELECT * FROM instrumentUsagePayment WHERE instrumentUsageID="+instrumentUsageId;
             if(paymentMethodId != 0)
@@ -50,8 +72,7 @@ public class InstrumentUsagePaymentDAO {
             List <InstrumentUsagePayment> payments = new ArrayList<InstrumentUsagePayment>();
 
             try {
-            	conn = getConnection();
-                stmt = conn.createStatement();
+            	stmt = conn.createStatement();
                 rs = stmt.executeQuery(sql);
                 while (rs.next()) {
 
@@ -76,8 +97,7 @@ public class InstrumentUsagePaymentDAO {
 
             finally {
                 // Always make sure result sets and statements are closed,
-            	if(conn != null) try {conn.close();} catch(SQLException e){}
-    			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            	if(stmt != null) try {stmt.close();} catch(SQLException e){}
     			if(rs != null) try {rs.close();} catch(SQLException e){}
             }
             return null;

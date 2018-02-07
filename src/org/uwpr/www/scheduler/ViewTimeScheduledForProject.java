@@ -20,9 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,8 +35,6 @@ import java.util.List;
 public class ViewTimeScheduledForProject extends Action {
 
     private static final Logger log = Logger.getLogger(ViewTimeScheduledForProject.class);
-
-    private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -120,7 +116,7 @@ public class ViewTimeScheduledForProject extends Action {
         {
             try
             {
-                startDate = dateFormat.parse(startDateString);
+                startDate = TimeUtils.shortDate.parse(startDateString);
                 startDate = TimeUtils.makeBeginningOfDay(startDate);
             }
             catch(ParseException e)
@@ -134,9 +130,9 @@ public class ViewTimeScheduledForProject extends Action {
             try
             {
                 // 2/15/2016 will be parsed as 2016-02-05 00-00-00 (12AM)
-                // Add a day (minus 1 millisec.) to the end date so that we include scheduled blocks that start on the end date.
-                endDate = dateFormat.parse(endDateString);
-                endDate = TimeUtils.makeEndOfDay(endDate);
+                // Add a day to the end date so that we include scheduled blocks that start on the end date.
+                endDate = TimeUtils.shortDate.parse(endDateString);
+                endDate = TimeUtils.makeEndOfDay_12AM(endDate);
             }
             catch(ParseException e)
             {
@@ -182,6 +178,7 @@ public class ViewTimeScheduledForProject extends Action {
         int totalInstrumentHours = 0;
         BigDecimal signupCost = BigDecimal.ZERO;
         BigDecimal instrumentCost = BigDecimal.ZERO;
+        BigDecimal setupCost = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
 
         for(UsageBlock block: usageBlocks)
@@ -190,6 +187,7 @@ public class ViewTimeScheduledForProject extends Action {
             totalCost = totalCost.add(block.getTotalCost());
             signupCost = signupCost.add(block.getSignupCost());
             instrumentCost = instrumentCost.add(block.getInstrumentCost());
+            setupCost = setupCost.add(block.getSetupCost());
 
             totalSignupHours += hours;
 
@@ -199,6 +197,7 @@ public class ViewTimeScheduledForProject extends Action {
             }
         }
         request.setAttribute("totalCost", totalCost.setScale(2, RoundingMode.HALF_UP));
+        request.setAttribute("setupCost", setupCost.setScale(2, RoundingMode.HALF_UP));
         request.setAttribute("signupCost", signupCost.setScale(2, RoundingMode.HALF_UP));
         request.setAttribute("instrumentCost", instrumentCost.setScale(2, RoundingMode.HALF_UP));
         request.setAttribute("signupHours", totalSignupHours);

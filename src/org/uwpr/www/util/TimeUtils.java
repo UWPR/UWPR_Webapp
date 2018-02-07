@@ -1,5 +1,6 @@
 package org.uwpr.www.util;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -13,6 +14,8 @@ public class TimeUtils
     public static int MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
 
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
+    public static final SimpleDateFormat shortDate = new SimpleDateFormat("MM/dd/yyyy");
+    public static final DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
 
     private TimeUtils(){}
 
@@ -32,7 +35,22 @@ public class TimeUtils
         return startCal.getTime();
     }
 
-    public static Date makeEndOfDay(Date date)
+//    public static Date makeEndOfDay(Date date)
+//    {
+//        if(date == null)
+//        {
+//            return null;
+//        }
+//        Calendar endCal = Calendar.getInstance();
+//        endCal.setTime(date);
+//        endCal.set(Calendar.MILLISECOND, 0);
+//        endCal.set(Calendar.SECOND, 0);
+//        endCal.set(Calendar.MINUTE, 0);
+//        endCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
+//        return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY - 1);
+//    }
+
+    public static Date makeEndOfDay_12AM(Date date)
     {
         if(date == null)
         {
@@ -44,11 +62,17 @@ public class TimeUtils
         endCal.set(Calendar.SECOND, 0);
         endCal.set(Calendar.MINUTE, 0);
         endCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
-        return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY - 1);
+        return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY);
     }
 
     public static String format(Date date)
     {
         return dateFormat.format(date);
+    }
+
+    public static int getHours(Date start, Date end)
+    {
+        long time = end.getTime() - start.getTime();
+        return (int) (time / MILLIS_IN_HOUR);
     }
 }

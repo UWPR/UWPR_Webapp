@@ -11,6 +11,7 @@ import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.uwpr.scheduler.UsageBlockDeletableDecider;
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.Researcher;
@@ -230,9 +231,11 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         	updater = new Researcher();
         	updater.load(blocksToEdit.get(0).getUpdaterResearcherID());
         }
+
+
         
         EditProjectInstrumentTimeForm editForm = new EditProjectInstrumentTimeForm();
-        SimpleDateFormat dateFmt = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat dateFmt = TimeUtils.shortDate;
         SimpleDateFormat timeFmt = new SimpleDateFormat("H");
         editForm.setStartDate(dateFmt.format(blocksToEdit.get(0).getStartDate()));
         editForm.setEndDate(dateFmt.format(blocksToEdit.get(blocksToEdit.size() - 1).getEndDate()));

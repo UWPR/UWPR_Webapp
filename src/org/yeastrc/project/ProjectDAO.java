@@ -7,6 +7,7 @@
 package org.yeastrc.project;
 
 import org.apache.log4j.Logger;
+import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.Connection;
@@ -14,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -162,5 +164,35 @@ public class ProjectDAO {
         }
         return 0;
         
+    }
+
+    public List<Integer> getScheduledProjects(Date startDate, Date endDate) throws SQLException
+    {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        List<Integer> projectIds = new ArrayList<>();
+        try {
+            conn = getConnection();
+            stmt = conn.createStatement();
+
+            String sqlStr = "SELECT DISTINCT projectID FROM instrumentUsage WHERE startDate < '"
+                    + UsageBlockBaseDAO.dateFormat.format(endDate) + "' AND endDate > '" + UsageBlockBaseDAO.dateFormat.format(startDate) + "'";
+
+            rs = stmt.executeQuery(sqlStr);
+
+            while (rs.next())
+            {
+                projectIds.add(rs.getInt(1));
+            }
+        } finally {
+
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(rs != null) try {rs.close();} catch(SQLException e){}
+            if(conn != null) try {conn.close();} catch(SQLException e){}
+        }
+
+        return projectIds;
     }
 }

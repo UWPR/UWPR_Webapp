@@ -80,7 +80,7 @@ hr {
 }
 
 .container {
-	width: 900px;
+	width: 1000px;
 	margin: 0px auto;
 }
 
@@ -92,7 +92,7 @@ hr {
 
 #header {
 	overflow: hidden;
-	width: 900px;
+	width: 1000px;
 	padding: 0px 25px;
 	height: 52px;
 	background: url(../images/template/header-bg_900x52.png) no-repeat left top;
@@ -184,10 +184,10 @@ hr {
 
 #menu {
 	overflow: hidden;
-	width: 850px;
+	width: 950px;
 	height: 36px;
 	padding: 0px 25px;
-	background: url(../images/template/menu-bg_900x36.jpg) no-repeat left top;
+	background: url(../images/template/menu-bg_1000x36.jpg) no-repeat left top;
 }
 
 #menu ul {
@@ -241,7 +241,7 @@ hr {
 /** SUB MENU */
 #submenu {
 	overflow: hidden;
-	width: 900px;
+	width: 1000px;
 	margin: 0px auto 0px;
 	padding: 3px 0px;
 	/** background: #EEEEEE; 
@@ -253,7 +253,7 @@ hr {
 /** HISTORY */
 #breadcrumb {
 	overflow: hidden;
-	width: 900px;
+	width: 1000px;
 	margin: 15px auto 2px;
 	font-size: 8pt;
 	
@@ -263,7 +263,7 @@ hr {
 
 #page {
 	overflow: hidden;
-	width: 900px;
+	width: 1000px;
 	margin: 0px auto;
 	/** padding: 15px 5px; */
 }
@@ -324,7 +324,7 @@ table td
 	background: url(../images/template/wrapper-bg.png) repeat;
     margin:0;
     padding:10px;
-    width:900px;
+    width:1000px;
     margin-left:auto;
     margin-right:auto;
 }

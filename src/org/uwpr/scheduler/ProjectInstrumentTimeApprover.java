@@ -103,9 +103,7 @@ public class ProjectInstrumentTimeApprover {
 		int totalHours = 0;
 		for(UsageBlockBase block: blocksBeingScheduled) {
 
-			Date sDate = block.getStartDate();
-			Date eDate = block.getEndDate();
-			totalHours += (eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60);
+			totalHours += block.getHours();
 		}
 		return totalHours;
 	}

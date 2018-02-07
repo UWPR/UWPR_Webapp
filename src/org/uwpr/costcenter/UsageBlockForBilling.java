@@ -29,6 +29,7 @@ public class UsageBlockForBilling {
 	private PaymentMethod paymentMethod; // payment method and percent will be the same for all the blocks.
 	private BigDecimal percent;
 	private int totalHours = -1;
+	private BigDecimal setupCost = null;
 	private BigDecimal signupCost = null;
 	private BigDecimal instrumentCost = null;
 	private BigDecimal totalCost = null;
@@ -83,7 +84,14 @@ public class UsageBlockForBilling {
 			totalHours = 0;
 			for(UsageBlockBaseWithRate blk: blocks)
 			{
-				this.totalHours += blk.getRate().getTimeBlock().getNumHours();
+				if(blk.getRate().isHourly())
+				{
+					this.totalHours += blk.getHours();
+				}
+				else
+				{
+					this.totalHours += blk.getRate().getTimeBlock().getNumHours();
+				}
 			}
 		}
 		return totalHours;
@@ -100,6 +108,19 @@ public class UsageBlockForBilling {
 			}
 		}
 		return totalCost;
+	}
+
+	public BigDecimal getSetupCost()
+	{
+		if(setupCost == null)
+		{
+			setupCost = BigDecimal.ZERO;
+			for(UsageBlockBaseWithRate blk: blocks)
+			{
+				this.setupCost = setupCost.add(blk.getSetupCost());
+			}
+		}
+		return setupCost;
 	}
 
 	public BigDecimal getSignupCost()

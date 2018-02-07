@@ -32,8 +32,6 @@ public class ViewTimeScheduledForOperator extends Action {
 
     private static final Logger log = Logger.getLogger(ViewTimeScheduledForOperator.class);
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception
     {
@@ -119,7 +117,7 @@ public class ViewTimeScheduledForOperator extends Action {
         {
             try
             {
-                startDate = dateFormat.parse(startDateString);
+                startDate = TimeUtils.shortDate.parse(startDateString);
                 startDate = TimeUtils.makeBeginningOfDay(startDate);
             }
             catch(ParseException e)
@@ -133,9 +131,9 @@ public class ViewTimeScheduledForOperator extends Action {
             try
             {
                 // 2/15/2016 will be parsed as 2016-02-05 00-00-00 (12AM)
-                // Add a day (minus 1 millisec.) to the end date so that we include scheduled blocks that start on the end date.
-                endDate = dateFormat.parse(endDateString);
-                endDate = TimeUtils.makeEndOfDay(endDate);
+                // Add a day to the end date so that we include scheduled blocks that start on the end date.
+                endDate = TimeUtils.shortDate.parse(endDateString);
+                endDate = TimeUtils.makeEndOfDay_12AM(endDate);
             }
             catch(ParseException e)
             {

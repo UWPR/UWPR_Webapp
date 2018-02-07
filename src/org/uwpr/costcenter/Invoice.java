@@ -5,6 +5,8 @@
  */
 package org.uwpr.costcenter;
 
+import org.uwpr.www.util.TimeUtils;
+
 import java.util.Date;
 
 /**
@@ -47,5 +49,13 @@ public class Invoice {
 	}
 	public void setCreatedBy(int createdBy) {
 		this.createdBy = createdBy;
+	}
+
+	public String toString()
+	{
+		StringBuilder str = new StringBuilder("ID: ").append(id);
+		str.append("; ").append(TimeUtils.shortDate.format(billStartDate));
+		str.append(" - ").append(TimeUtils.shortDate.format(billEndDate));
+		return str.toString();
 	}
 }

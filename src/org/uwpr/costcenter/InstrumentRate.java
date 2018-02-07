@@ -5,14 +5,11 @@
  */
 package org.uwpr.costcenter;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 import org.uwpr.instrumentlog.MsInstrument;
-import org.uwpr.instrumentlog.UsageBlockBaseFilter;
+import org.uwpr.www.util.TimeUtils;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 
@@ -29,8 +26,6 @@ public class InstrumentRate {
 	
 	public static BigDecimal SIGNUP_PERC = new BigDecimal("0.10");
 	public static BigDecimal INSTRUMENT_PERC = new BigDecimal("0.90");
-
-	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 	
 	public int getId() {
 		return id;
@@ -53,36 +48,9 @@ public class InstrumentRate {
 	public BigDecimal getRate() {
 		return rate;
 	}
+
 	public void setRate(BigDecimal rate) {
 		this.rate = rate;
-	}
-
-	public BigDecimal getSignupFee()
-	{
-		return getSignupCost(this.rate);
-	}
-
-	public BigDecimal getInstrumentFee()
-	{
-		return getInstrumentCost(this.rate);
-	}
-
-	public BigDecimal getCost(UsageBlockBaseFilter.BlockType blockType)
-	{
-		if(blockType == UsageBlockBaseFilter.BlockType.ALL)
-		{
-			return this.rate;
-		}
-		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
-		{
-			return getSignupFee();
-		}
-		else if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
-		{
-			return getInstrumentFee();
-		}
-		else
-			return BigDecimal.ZERO;
 	}
 
 	public TimeBlock getTimeBlock() {
@@ -98,7 +66,7 @@ public class InstrumentRate {
 		this.createDate = createDate;
 	}
 	public String getCreateDateString() {
-		return dateFormat.format(createDate);
+		return TimeUtils.shortDate.format(createDate);
 	}
 	public boolean isCurrent() {
 		return isCurrent;
@@ -107,13 +75,8 @@ public class InstrumentRate {
 		this.isCurrent = isCurrent;
 	}
 
-	public static BigDecimal getSignupCost(BigDecimal rate)
+	public boolean isHourly()
 	{
-		return rate.multiply(SIGNUP_PERC).setScale(2, RoundingMode.HALF_UP);
-	}
-
-	public static BigDecimal getInstrumentCost(BigDecimal rate)
-	{
-		return rate.multiply(INSTRUMENT_PERC).setScale(2, RoundingMode.HALF_UP);
+		return timeBlock.getName().equals(TimeBlock.HOURLY);
 	}
 }

@@ -26,6 +26,7 @@ public class UsageBlockBase implements Block
 	private Date dateChanged;
 	private String notes;
 	private boolean deleted = false;
+	private boolean setupBlock = false;
 	
 	private static DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
@@ -179,10 +180,17 @@ public class UsageBlockBase implements Block
 		this.deleted = deleted;
 	}
 
+	public boolean isSetupBlock() {
+		return setupBlock;
+	}
+
+	public void setSetupBlock(boolean setupBlock) {
+		this.setupBlock = setupBlock;
+	}
+
 	public int getHours()
 	{
-		long time = getEndDate().getTime() - getStartDate().getTime();
-		return (int) (time / TimeUtils.MILLIS_IN_HOUR);
+		return TimeUtils.getHours(getStartDate(), getEndDate());
 	}
 
     public String toString() {
@@ -209,6 +217,7 @@ public class UsageBlockBase implements Block
         blk.setDateChanged(dateChanged);
         blk.setNotes(notes);
 		blk.setDeleted(deleted);
+		blk.setSetupBlock(setupBlock);
     }
     
     public UsageBlockBase newBlock() {

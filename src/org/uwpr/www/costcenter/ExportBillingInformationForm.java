@@ -5,9 +5,7 @@
  */
 package org.uwpr.www.costcenter;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -15,14 +13,12 @@ import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.uwpr.www.util.TimeUtils;
 
 /**
  * 
  */
 public class ExportBillingInformationForm extends ActionForm {
-
-	
-	private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 	
 	private String startDateString;
 	private String endDateString;
@@ -65,11 +61,11 @@ public class ExportBillingInformationForm extends ActionForm {
 	}
 	
 	public java.util.Date getStartDate() throws ParseException {
-		return dateFormat.parse(startDateString);
+		return TimeUtils.shortDate.parse(startDateString);
 	}
 
 	public void setStartDate(java.util.Date startDate) {
-		this.startDateString = dateFormat.format(startDate);
+		this.startDateString = TimeUtils.shortDate.format(startDate);
 	}
 
 	public String getStartDateString() {
@@ -81,11 +77,11 @@ public class ExportBillingInformationForm extends ActionForm {
 	}
 
 	public java.util.Date getEndDate() throws ParseException {
-		return dateFormat.parse(endDateString);
+		return TimeUtils.shortDate.parse(endDateString);
 	}
 
 	public void setEndDate(java.util.Date endDate) {
-		this.endDateString = dateFormat.format(endDate);
+		this.endDateString = TimeUtils.shortDate.format(endDate);
 	}
 
 	public String getEndDateString() {

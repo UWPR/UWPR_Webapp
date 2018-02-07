@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
@@ -78,12 +79,12 @@ public class UsageBlockPaymentInformation {
 		{
 			try
 			{
-				Date endDateOnly = PaymentMethod.dateFormat.parse(PaymentMethod.dateFormat.format(endDate));
+				Date endDateOnly = TimeUtils.shortDate.parse(TimeUtils.shortDate.format(endDate)); // Get just the date component
 				if(endDateOnly.after(paymentMethod.getBudgetExpirationDate()))
 				{
 					throw new SchedulerException("UW Budget number " + paymentMethod.getUwbudgetNumber() + " expires on " +
-							PaymentMethod.dateFormat.format(paymentMethod.getBudgetExpirationDate()) + ". Please select a different budget or adjust the end date (" +
-							PaymentMethod.dateFormat.format(endDate) + ") of the requested time. ");
+							TimeUtils.shortDate.format(paymentMethod.getBudgetExpirationDate()) + ". Please select a different budget or adjust the end date (" +
+							TimeUtils.shortDate.format(endDate) + ") of the requested time. ");
 				}
 			} catch (ParseException e)
 			{

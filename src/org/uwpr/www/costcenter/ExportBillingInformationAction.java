@@ -9,6 +9,10 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.www.util.TimeUtils;
+import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.project.InvalidProjectTypeException;
+import org.yeastrc.project.Project;
+import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -16,6 +20,7 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -71,8 +76,8 @@ public class ExportBillingInformationAction extends Action {
         	
         	BillingInformationExcelExporter exporter = new BillingInformationExcelExporter();
 
-			Date startBillDate = TimeUtils.makeBeginningOfDay(startDate);
-			Date endBillDate = TimeUtils.makeEndOfDay(endDate);
+			Date startBillDate = TimeUtils.makeBeginningOfDay(startDate); // 12AM
+			Date endBillDate = TimeUtils.makeEndOfDay_12AM(endDate); // Next day 12AM
         	exporter.setStartDate(startBillDate);
 			exporter.setEndDate(endBillDate);
         	
@@ -95,9 +100,20 @@ public class ExportBillingInformationAction extends Action {
             	exporter.setBillinInformationExporterListener(invoiceBlockCreator);
         	}
         	
-        	if(projectId != 0)
-        		//exporter.export(projectId, writer);
-        		exporter.exportToXls(projectId, outStream);
+        	if(projectId != 0) {
+				Project project = null;
+				try {
+					project = ProjectFactory.getProject(projectId);
+				} catch (InvalidProjectTypeException e) {
+					throw new BillingInformationExporterException("Invalid project type requested", e);
+				} catch (SQLException e) {
+					throw new BillingInformationExporterException("Error loading the project from database. ProjectId: "+projectId, e);
+				} catch (InvalidIDException e) {
+					throw new BillingInformationExporterException("No project found for ID "+projectId, e);
+				}
+				//exporter.export(projectId, writer);
+				exporter.exportToXls(project, outStream);
+			}
         	else
         		//exporter.export(writer);
         		exporter.exportToXls(outStream);

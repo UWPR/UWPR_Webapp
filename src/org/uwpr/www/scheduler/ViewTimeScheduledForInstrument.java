@@ -14,9 +14,7 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -32,9 +30,7 @@ public class ViewTimeScheduledForInstrument extends Action {
 
     private static final Logger log = Logger.getLogger(ViewTimeScheduledForInstrument.class);
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-
-	public ActionForward execute(ActionMapping mapping, ActionForm form, 
+	public ActionForward execute(ActionMapping mapping, ActionForm form,
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		
 		
@@ -81,7 +77,7 @@ public class ViewTimeScheduledForInstrument extends Action {
         {
             try
             {
-                startDate = dateFormat.parse(startDateString);
+                startDate = TimeUtils.shortDate.parse(startDateString);
                 startDate = TimeUtils.makeBeginningOfDay(startDate);
             }
             catch(ParseException e)
@@ -95,9 +91,9 @@ public class ViewTimeScheduledForInstrument extends Action {
             try
             {
                 // 2/15/2016 will be parsed as 2016-02-05 00-00-00 (12AM)
-                // Add a day (minus 1 millisec.) to the end date so that we include scheduled blocks that start on the end date.
-                endDate = dateFormat.parse(endDateString);
-                endDate = TimeUtils.makeEndOfDay(endDate);
+                // Add a day to the end date so that we include scheduled blocks that start on the end date.
+                endDate = TimeUtils.shortDate.parse(endDateString);
+                endDate = TimeUtils.makeEndOfDay_12AM(endDate);
             }
             catch(ParseException e)
             {
@@ -113,9 +109,9 @@ public class ViewTimeScheduledForInstrument extends Action {
             // If we were not given start and end dates, we will return instrument usage
             // for 90 days
             startDate = DateUtils.currentMinusDays(59);
-            startDateString = dateFormat.format(startDate);
+            startDateString = TimeUtils.shortDate.format(startDate);
             endDate = DateUtils.currentPlusDays(30); // set time to the end of the day
-            endDateString = dateFormat.format(endDate);
+            endDateString = TimeUtils.shortDate.format(endDate);
         }
 
         TimeScheduledFilterForm filterForm = (TimeScheduledFilterForm)form;

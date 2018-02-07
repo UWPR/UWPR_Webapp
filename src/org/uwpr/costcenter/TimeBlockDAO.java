@@ -106,6 +106,45 @@ public class TimeBlockDAO {
     		}
     	}
 
+	public TimeBlock getTimeBlockForName(String name) throws SQLException {
+
+		Connection conn = null;
+
+		try {
+			conn = getConnection();
+			return getTimeBlockForName(conn, name);
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+	public TimeBlock getTimeBlockForName(Connection conn, String name) throws SQLException {
+
+		String sql = "SELECT * FROM timeBlock where name = '" + name + "'";
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(sql);
+
+			if(rs.next()) {
+				TimeBlock timeBlock = makeTimeBlock(rs);
+				return timeBlock;
+			}
+			else {
+				log.error("No entry found in table timeBlock for name: " + name);
+			}
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
+
+		return null;
+	}
+
 	private TimeBlock makeTimeBlock(ResultSet rs) throws SQLException
 	{
 		TimeBlock timeBlock = new TimeBlock();
