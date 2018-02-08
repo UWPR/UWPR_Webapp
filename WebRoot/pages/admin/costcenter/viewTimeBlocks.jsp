@@ -18,9 +18,9 @@
 $(document).ready(function() { 
 	// extend the default setting to always include the zebra widget. 
     $.tablesorter.defaults.widgets = ['zebra']; 
-    // extend the default setting to always sort on the third (# hours) column 
+    // extend the default setting to always sort, DESC, on the first (ID) column
     // column indexes are 0-based.
-    $.tablesorter.defaults.sortList = [[2,0]]; 
+    $.tablesorter.defaults.sortList = [[0,1]];
     $("#blocklist_table").tablesorter({
     	headers: { 
             // assign the seventh column (we start counting zero) 

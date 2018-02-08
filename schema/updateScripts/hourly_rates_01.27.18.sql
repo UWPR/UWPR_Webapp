@@ -73,7 +73,7 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (13, 26, 5, 64.85, NOW(), 1),
 -- Commercial
-(14, 26, 6, 190.86, NOW(), 1)
+(13, 26, 6, 190.86, NOW(), 1)
 ;
 
 -- -------------------------------------------------------------------------------- --

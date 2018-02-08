@@ -26,7 +26,7 @@ response.addHeader("Cache-control", "max-age=0"); // stale right away
  <yrcwww:title />
 
 	<link href="http://fonts.googleapis.com/css?family=Arvo:400,700" rel="stylesheet" type="text/css" />
- 	<link REL="stylesheet" TYPE="text/css" HREF="/pr/css/default.css">
+ 	<link REL="stylesheet" TYPE="text/css" HREF="/pr/css/default.css?v=01.28.18">
  	<!--[if lte IE 7]><link href="default_ie6.css" rel="stylesheet" type="text/css" /><![endif]-->
  	
 	<link REL="stylesheet" TYPE="text/css" HREF="/pr/css/calendar.css" />
