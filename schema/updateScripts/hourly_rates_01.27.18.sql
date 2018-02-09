@@ -14,6 +14,9 @@ UPDATE mainDb.rateType SET setupFee = 69.45 WHERE id IN (5,6); -- NON PROFIT FFS
 UPDATE mainDb.instrumentRate SET isCurrent = 0 WHERE isCurrent = 1 AND instrumentID in (4, 7, 10, 11, 12, 13) AND rateTypeID in (1,4,5,6);
 -- SELECT * FROM maindb.instrumentrate WHERE isCurrent = 1 AND instrumentID in (4, 7, 10, 11, 12, 13) AND rateTypeID in (1,4,5,6);
 
+-- ------ INSERT new instrument --------------- --
+INSERT INTO msData.msInstrument (id, name, description, active, color) VALUES (14, "Elite", "Elite", 1, "ff8103");
+
 -- ------ INSERT new instrument rates
 INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, createDate, isCurrent) VALUES
 -- -- TSQ ----
@@ -73,7 +76,17 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (13, 26, 5, 64.85, NOW(), 1),
 -- Commercial
-(13, 26, 6, 190.86, NOW(), 1)
+(13, 26, 6, 190.86, NOW(), 1),
+
+-- -- Elite ----
+-- UW
+(14, 26, 1, 11.25, NOW(), 1),
+-- UW-FFS
+(14, 26, 4, 22.5, NOW(), 1),
+-- Non Profit
+(14, 26, 5, 79.59, NOW(), 1),
+-- Commercial
+(14, 26, 6,  129.59, NOW(), 1)
 ;
 
 -- -------------------------------------------------------------------------------- --
