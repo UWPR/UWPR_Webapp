@@ -146,7 +146,7 @@ public class ViewSchedulerAction extends Action {
         {
         	if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
         		ActionErrors errors = new ActionErrors();
-        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","Users cannot schedule instrument time for Fee-for-Service projects."));
+        		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess","Users cannot schedule instrument time for projects with additional labor."));
         		saveErrors( request, errors );
         		ActionForward fwd = mapping.findForward("Failure");
     			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());

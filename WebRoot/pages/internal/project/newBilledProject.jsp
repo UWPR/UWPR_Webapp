@@ -205,7 +205,7 @@ Fields followed by * are required.
 		<td width="75%" valign="top" style="padding-top:10px">
 			<html:radio property="massSpecExpertiseRequested" value="true"/>Yes
 			<html:radio property="massSpecExpertiseRequested" value="false" />No
-			<span style="color:red; font-weight:bold; font-size: 8pt;">(Fee for service rates will apply if "Yes" is selected)</span>
+			<span style="color:red; font-weight:bold; font-size: 8pt;">(Additional labor rates will apply if "Yes" is selected)</span>
 			<html:hidden property="massSpecExpertiseRequested" styleId="massSpecExpertiseRequested_hidden"/>
 		</td>
 	</tr>

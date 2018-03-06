@@ -252,7 +252,7 @@ Fields followed by * are required.
 				<html:radio property="massSpecExpertiseRequested" value="true" disabled="true"/>Yes
 				<html:radio property="massSpecExpertiseRequested" value="false" disabled="true"/>No
 			</logic:equal>
-			<span style="color:red; font-weight:bold; font-size: 8pt;">(Fee for service rates will apply if "Yes" is selected)</span>
+			<span style="color:red; font-weight:bold; font-size: 8pt;">(Additional labor rates will apply if "Yes" is selected)</span>
 		</td>
 	</tr>
 	

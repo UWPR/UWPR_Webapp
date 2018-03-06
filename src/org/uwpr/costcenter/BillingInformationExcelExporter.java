@@ -243,7 +243,7 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("Lab_Director");
 		row.createCell(cellnum++).setCellValue("Researcher");
 		row.createCell(cellnum++).setCellValue("Instrument");
-		row.createCell(cellnum++).setCellValue("Fee_For_Service");
+		row.createCell(cellnum++).setCellValue("Labor");
 		row.createCell(cellnum++).setCellValue("UsageBlockID");
 		row.createCell(cellnum++).setCellValue("Start");
 		row.createCell(cellnum++).setCellValue("End");
@@ -278,7 +278,7 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("Lab_Director");
 		row.createCell(cellnum++).setCellValue("Researcher");
 		row.createCell(cellnum++).setCellValue("Instrument");
-		row.createCell(cellnum++).setCellValue("Fee_For_Service");
+		row.createCell(cellnum++).setCellValue("Labor");
 		row.createCell(cellnum++).setCellValue("Start");
 		row.createCell(cellnum++).setCellValue("End");
 		row.createCell(cellnum++).setCellValue("Hours_Used");
