@@ -27,16 +27,16 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (7, 26, 5, 42.92, NOW(), 1),
 -- Commercial
-(7, 26, 6, 97.92, NOW(), 1),
+(7, 26, 6, 101.69, NOW(), 1),
 
 -- -- TSQV ----
 (10, 26, 1, 8.00, NOW(), 1),
 -- UW-FFS
 (10, 26, 4, 16.00, NOW(), 1),
 -- Non Profit
-(10, 26, 5, 50.62, NOW(), 1),
+(10, 26, 5, 50.63, NOW(), 1),
 -- Commercial
-(10, 26, 6, 105.62, NOW(), 1),
+(10, 26, 6, 104.05, NOW(), 1),
 
 -- -- OT1 ----
 -- UW
@@ -46,7 +46,7 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (4, 26, 5, 53.05, NOW(), 1),
 -- Commercial
-(4, 26, 6, 108.05, NOW(), 1),
+(4, 26, 6, 111.82, NOW(), 1),
 
 -- -- QE+ ----
 -- UW
@@ -56,7 +56,7 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (11, 26, 5, 56.51, NOW(), 1),
 -- Commercial
-(11, 26, 6, 181.51, NOW(), 1),
+(11, 26, 6, 186.86, NOW(), 1),
 
 -- -- Fusion ----
 -- UW
@@ -66,7 +66,7 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (12, 26, 5, 64.42, NOW(), 1),
 -- Commercial
-(12, 26, 6, 189.42, NOW(), 1),
+(12, 26, 6, 187.29, NOW(), 1),
 
 -- -- Lumos ----
 -- UW
@@ -74,9 +74,9 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- UW-FFS
 (13, 26, 4, 27.00, NOW(), 1),
 -- Non Profit
-(13, 26, 5, 64.85, NOW(), 1),
+(13, 26, 5, 64.86, NOW(), 1),
 -- Commercial
-(13, 26, 6, 190.86, NOW(), 1),
+(13, 26, 6, 187.73, NOW(), 1),
 
 -- -- Elite ----
 -- UW
@@ -86,7 +86,7 @@ INSERT INTO mainDb.InstrumentRate (instrumentID, blockID, rateTypeID, fee, creat
 -- Non Profit
 (14, 26, 5, 79.59, NOW(), 1),
 -- Commercial
-(14, 26, 6,  129.59, NOW(), 1)
+(14, 26, 6,  133.01, NOW(), 1)
 ;
 
 -- -------------------------------------------------------------------------------- --
