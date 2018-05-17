@@ -11,9 +11,6 @@ package org.yeastrc.register;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.tanesha.recaptcha.ReCaptchaImpl;
-import net.tanesha.recaptcha.ReCaptchaResponse;
-
 import org.apache.struts.action.*;
 
 /**
@@ -30,6 +27,8 @@ public class RegisterForm extends ActionForm {
 	private String username = null;
 	private String password = null;
 	private String password2 = null;
+	private String challenge = null;
+	private String cresponse = null;
 
 	// Registrant's info
 	private String firstName = null;
@@ -53,16 +52,9 @@ public class RegisterForm extends ActionForm {
 	public ActionErrors validate(ActionMapping mapping, HttpServletRequest request) {
 		ActionErrors errors = new ActionErrors();
 
-		String remoteAddr = request.getRemoteAddr();
-        ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
-        reCaptcha.setPrivateKey("6LeJ1uQSAAAAAHT4CSVmFY4PbwV7N_dbqnUlDWl1");
-
-        String challenge = request.getParameter("recaptcha_challenge_field");
-        String uresponse = request.getParameter("recaptcha_response_field");
-        ReCaptchaResponse reCaptchaResponse = reCaptcha.checkAnswer(remoteAddr, challenge, uresponse);
-
-        if (!reCaptchaResponse.isValid()) {
-          errors.add("catptcha", new ActionMessage("error.register.captcha"));
+        if (!passChallenge())
+        {
+          errors.add("challenge", new ActionMessage("error.register.challenge"));
         }
         
 		if (this.getUsername() == null || this.getUsername().length() < 1) {
@@ -118,10 +110,38 @@ public class RegisterForm extends ActionForm {
 				errors.add("zip", new ActionMessage("error.register.zip"));
 		}		
 
+		if(errors.size() > 0)
+		{
+			cresponse = null;
+		}
 		return errors;
 
 	}
-	
+
+	private boolean passChallenge()
+	{
+		if(getChallenge() == null || getCresponse() == null)
+		{
+			return false;
+		}
+
+		Integer expected;
+		Integer actual;
+		try
+		{
+			expected = Integer.parseInt(getChallenge());
+			actual = Integer.parseInt(getCresponse());
+		}
+		catch(NumberFormatException e) {return false;}
+
+		if(expected == null || actual == null)
+		{
+			return false;
+		}
+
+		return expected.equals(actual);
+	}
+
 	/**
 	 * Set the username.
 	 * @param arg The username.
@@ -267,4 +287,19 @@ public class RegisterForm extends ActionForm {
 	 */
 	public String getCountry() { return this.country; }
 
+	public String getChallenge() {
+		return challenge;
+	}
+
+	public void setChallenge(String challenge) {
+		this.challenge = challenge;
+	}
+
+	public String getCresponse() {
+		return cresponse;
+	}
+
+	public void setCresponse(String cresponse) {
+		this.cresponse = cresponse;
+	}
 }

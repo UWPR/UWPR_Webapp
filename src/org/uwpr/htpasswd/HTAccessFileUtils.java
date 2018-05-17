@@ -163,6 +163,7 @@ public class HTAccessFileUtils {
 		usernames.add( "engj" );
 		usernames.add( "priska");
 		usernames.add( "mriffle" );
+		usernames.add( "vsharma" );
 
 		if ( usernames.size() > 0 )
 			fw.write( "require user " + StringUtils.join( usernames.iterator(), " " ) + "\n" );

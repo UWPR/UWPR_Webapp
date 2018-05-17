@@ -1,22 +1,14 @@
+<%@ page import="java.util.Random" %>
 <%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
 <%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
 
-<%@ page import="net.tanesha.recaptcha.ReCaptcha"  %>
-<%@ page import="net.tanesha.recaptcha.ReCaptchaFactory"  %>
 <logic:notPresent name="states" scope="session">
  <logic:forward name="viewRegister"/>
 </logic:notPresent>
 
 <%@ include file="/includes/header.jsp" %>
-
-<script type="text/javascript">
-	 var RecaptchaOptions = {
-	    theme : 'clean'
-	 };
- </script>
-
 
 <yrcwww:contentbox title="Registration Form">
 
@@ -125,21 +117,19 @@ be sent to you.
 	  </TR>
 	  
 	  <tr>
-	  <td colspan="2">
-		<br/>
-		<div style="font-weight:bold;">Verify your registration by entering the words you see in the image below.</div>
-		<script type="text/javascript" 
-		        src="http://www.google.com/recaptcha/api/challenge?k=6LeJ1uQSAAAAANkt9-9H82WYPRTkf6smn9MAHFht"></script>      
-		<noscript>
-	       <iframe src="http://www.google.com/recaptcha/api/noscript?k=6LeJ1uQSAAAAANkt9-9H82WYPRTkf6smn9MAHFht"
-	           height="300" width="500" frameborder="0"></iframe><br>
-	       <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-	       </textarea>
-	       <input type="hidden" name="recaptcha_response_field"
-	           value="manual_challenge">
-    	</noscript>
-		    
+	  <td>
+		  <%
+		  	  Random r = new Random();
+		      int a = r.nextInt(10) + 1; // Random number between 1 and 10
+		      int b = r.nextInt(10) + 1;
+		  %>
+		  <%=a + " + " + b + " = "%>
+		  <br><span style="font-size:10px; color:red;">Challenge question</span>
 	  </td>
+	  <td>
+		  <html:text property="cresponse" size="15" maxlength="20"/>
+	  </td>
+		  <html:hidden property="challenge" value="<%=String.valueOf(a+b)%>"/>
 	  </tr>
 	  
 	 </TABLE>
