@@ -12,7 +12,10 @@ import org.uwpr.costcenter.InvoiceInstrumentUsage;
 import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
 import org.uwpr.instrumentlog.*;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -301,6 +304,11 @@ public class JSONInstrumentUsageGetter {
 			JSONObject blockObject = new JSONObject();
 			blockObject.put("id",block.getID());
 			blockObject.put("label",block.getStartDateFormated()+" - "+block.getEndDateFormated() + " (" + paymentMethodString.toString() + ")" + user);
+			try {
+				blockObject.put("addToCal", addToCalenderLink(block));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
 			// If this block has already been billed it cannot be deleted or edited even by admins
 			InvoiceInstrumentUsage billedBlock = null;
 			try {
@@ -355,5 +363,25 @@ public class JSONInstrumentUsageGetter {
 //		}
 		
 		return event;
+	}
+
+	private Object addToCalenderLink(UsageBlock block) throws UnsupportedEncodingException {
+		/*
+			https://www.google.com/calendar/render?action=TEMPLATE&text=UWPR&dates=20140127T224000Z/20140320T221500Z&details=Some+Details&sf=true&output=xml
+		 */
+
+		String title = URLEncoder.encode("UWPR " + block.getInstrumentName() + ", Project: " + block.getProjectID(), "UTF-8");
+		String details = URLEncoder.encode("Project: " + block.getProjectTitle(), "UTF-8");
+		String dates = formatForGoogleCal(block.getStartDate()) + "/" + formatForGoogleCal(block.getEndDate());
+
+		String link = "https://www.google.com/calendar/render?action=TEMPLATE&text="+title+"&details="+details+"&dates="+dates;
+		return link;
+	}
+
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+	private static SimpleDateFormat timeFormat = new SimpleDateFormat("HHmmss");
+	private String formatForGoogleCal(Date date)
+	{
+		return dateFormat.format(date) + "T" + timeFormat.format(date);
 	}
 }
