@@ -4,7 +4,6 @@ import org.apache.commons.lang.StringUtils;
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.costcenter.InstrumentRateDAO;
 import org.uwpr.costcenter.TimeBlock;
-import org.uwpr.costcenter.TimeBlockDAO;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.Connection;
@@ -12,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -286,6 +286,8 @@ public class UsageBlockDAO
 
         List <UsageBlock> usageBlks = new ArrayList<>();
 
+        InstrumentRateDAO rateDao = InstrumentRateDAO.getInstance();
+        InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
         try {
             conn = InstrumentUsageDAO.getConnection();
             stmt = conn.createStatement();
@@ -295,7 +297,6 @@ public class UsageBlockDAO
                 UsageBlock newBlk = makeUsageBlock(rs);
 
                 // Get the instrument rate
-                InstrumentRateDAO rateDao = InstrumentRateDAO.getInstance();
                 InstrumentRate rate = rateDao.getInstrumentRate(newBlk.getInstrumentRateID());
                 if(rate == null)
                     throw new SQLException("No instrument rate found for ID: "+newBlk.getInstrumentRateID());
@@ -303,7 +304,23 @@ public class UsageBlockDAO
                 if(rate.getTimeBlock().getName().equals(TimeBlock.HOURLY)) {
                     usageBlks.add(newBlk);
                 }
+
+                // Get the payment method.
+                List<InstrumentUsagePayment> payments = iupDao.getPaymentsForUsage(newBlk.getID(), paymentMethodId);
+                // We should have exactly one payment method
+                if(payments.size() == 0)
+                {
+                    throw new SQLException("No payment method found for usage block " + newBlk.getID() + " and payment method " + paymentMethodId);
+                }
+                else if(payments.size() != 1)
+                {
+                    throw new SQLException("Expected 1 payment method for usage block "+ newBlk.getID() + " and payment method "
+                            + paymentMethodId + ". Found " + payments.size());
+                }
+
+                newBlk.setPayments(payments);
             }
+
             return usageBlks;
         }
 

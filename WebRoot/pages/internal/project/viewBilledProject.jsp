@@ -1,4 +1,5 @@
-
+<%@ page import="org.yeastrc.project.payment.PaymentMethodUsage" %>
+<%@ page import="org.yeastrc.project.payment.PaymentMethod" %>
 <%@ taglib uri="/WEB-INF/yrc-www.tld" prefix="yrcwww" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
@@ -183,20 +184,23 @@
 					<td style="padding:3px">
 						<nobr><bean:write name="paymentMethod" property="budgetExpirationDate" /></nobr>
 					</td>
+						<%
+							PaymentMethodUsage pmu = new PaymentMethodUsage(((PaymentMethod)paymentMethod).getId());
+						%>
 					<td style="padding:3px">
-						$<bean:write name="paymentMethod" property="setupCost" />
+						$<%=pmu.getSetupCost()%>
 					</td>
 					<td style="padding:3px">
-						$<bean:write name="paymentMethod" property="signupCost" />
+						$<%=pmu.getSignupCost()%>
 					</td>
 					<td style="padding:3px">
-						$<bean:write name="paymentMethod" property="instrumentCost" />
+						$<%=pmu.getInstrumentCost()%>
 					</td>
                     <td style="padding:3px">
-                        $<bean:write name="paymentMethod" property="totalCost" />
+                        $<%=pmu.getTotalCost()%>
                     </td>
                     <td style="padding:3px">
-                        $<bean:write name="paymentMethod" property="invoicedCost" />
+                        $<%=pmu.getInvoicedCost()%>
                     </td>
 					<td style="padding:3px">
 						<nobr>

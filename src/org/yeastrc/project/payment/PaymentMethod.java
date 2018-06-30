@@ -4,7 +4,6 @@
 package org.yeastrc.project.payment;
 
 import org.apache.commons.lang.StringUtils;
-import org.uwpr.costcenter.Cost;
 import org.uwpr.www.util.TimeUtils;
 
 import java.math.BigDecimal;
@@ -41,9 +40,6 @@ public class PaymentMethod {
 	private boolean isCurrent;
 	private boolean federalFunding;
     private BigDecimal poAmount;
-
-    private Cost invoicedCost;
-	private Cost cost;
 
 	public int getId() {
 		return id;
@@ -189,37 +185,6 @@ public class PaymentMethod {
 
     public void setPoAmount(BigDecimal poAmount) {
         this.poAmount = poAmount;
-    }
-
-    public BigDecimal getTotalCost() {
-		return cost == null ? BigDecimal.ZERO : cost.getTotal();
-    }
-
-	public BigDecimal getInstrumentCost()
-	{
-		return cost == null ? BigDecimal.ZERO : cost.instrumentCost;
-	}
-
-	public BigDecimal getSignupCost()
-	{
-		return cost == null ? BigDecimal.ZERO : cost.signupCost;
-	}
-
-	public BigDecimal getSetupCost()
-	{
-		return cost == null ? BigDecimal.ZERO : cost.setupCost;
-	}
-
-    public void setCost(Cost cost) {
-        this.cost = cost;
-    }
-
-    public BigDecimal getInvoicedCost() {
-        return invoicedCost != null ? BigDecimal.ZERO : invoicedCost.getTotal();
-    }
-
-    public void setInvoicedCost(Cost invoicedCost) {
-        this.invoicedCost = invoicedCost;
     }
 
     public String getDisplayString()

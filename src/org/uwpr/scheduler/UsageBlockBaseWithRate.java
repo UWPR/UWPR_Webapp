@@ -3,6 +3,7 @@
  */
 package org.uwpr.scheduler;
 
+import org.uwpr.costcenter.CostUtils;
 import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.instrumentlog.UsageBlockBaseFilter;
@@ -59,7 +60,7 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 
 	private static BigDecimal calcSignupCost(BigDecimal cost)
 	{
-		return cost.multiply(InstrumentRate.SIGNUP_PERC).setScale(2, RoundingMode.HALF_UP);
+		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
 	}
 
 	public BigDecimal getInstrumentCost()
@@ -69,7 +70,7 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 			return BigDecimal.ZERO;
 		}
 		BigDecimal cost = getCost();
-		return cost.multiply(InstrumentRate.INSTRUMENT_PERC).setScale(2, RoundingMode.HALF_UP);
+		return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
 	}
 
 	public BigDecimal getSetupCost()

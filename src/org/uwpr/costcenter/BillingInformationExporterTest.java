@@ -75,7 +75,7 @@ public class BillingInformationExporterTest extends TestCase {
 		BigDecimal blockCost = new BigDecimal(70.0).setScale(2, RoundingMode.HALF_UP); // we need two decimal places.
 		
 		// This block lies with the time range. Cost should the same as the cost of block
-		BigDecimal toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		BigDecimal toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				new Timestamp(blockEnd.getTimeInMillis()));
 		assertEquals(blockCost, toBill);
 	}
@@ -102,13 +102,13 @@ public class BillingInformationExporterTest extends TestCase {
 		
 		// Block start is before the requested start date.
 		// Cost should the same as the cost of block
-		BigDecimal toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		BigDecimal toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		assertEquals(blockCost, toBill);
 		
 		// bill partial blocks
 		//exporter.setBillPartialBlocks(true);
-		toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		// This is a 24 hour block that costs 80 dollars
 		// Actual hours within range are 9 
@@ -139,13 +139,13 @@ public class BillingInformationExporterTest extends TestCase {
 		// Block end is after the requested end date. 
 		// This block will be billed in the next cycle. 
 		// Cost should be zero
-		BigDecimal toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		BigDecimal toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		assertEquals(BigDecimal.ZERO, toBill);
 		
 		// bill partial blocks
 		//exporter.setBillPartialBlocks(true);
-		toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		
 		// This is a 16 hour block that costs 90 dollars
@@ -175,7 +175,7 @@ public class BillingInformationExporterTest extends TestCase {
 		// The start and end times lies outside the time range. Cost should be a fraction of the total cost
 		BigDecimal blockCost = new BigDecimal(100.0);
 		
-		BigDecimal toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		BigDecimal toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		assertEquals(BigDecimal.ZERO, toBill);
 		
@@ -189,7 +189,7 @@ public class BillingInformationExporterTest extends TestCase {
 		BigDecimal fractionCost = new BigDecimal(d).setScale(2, RoundingMode.HALF_UP);
 		log.info(fractionCost);
 		
-		toBill = exporter.getBilledCost(blockCost, BillingInformationExcelExporter.ONE_HUNDRED,
+		toBill = exporter.getBilledCost(blockCost, CostUtils.ONE_HUNDRED,
 				 new Timestamp(blockEnd.getTimeInMillis()));
 		assertEquals(fractionCost, toBill);
 	}

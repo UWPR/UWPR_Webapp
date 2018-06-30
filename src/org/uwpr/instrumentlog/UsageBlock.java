@@ -1,7 +1,10 @@
 package org.uwpr.instrumentlog;
 
+import org.uwpr.costcenter.CostUtils;
+import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.scheduler.UsageBlockBaseWithRate;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -114,4 +117,28 @@ public class UsageBlock extends UsageBlockBaseWithRate {
 	public UsageBlock newBlock() {
         return new UsageBlock();
     }
+
+    private BigDecimal getTotalPaymentPercent()
+	{
+		BigDecimal totalPercent = BigDecimal.ZERO;
+		if(payments == null)
+		{
+			return totalPercent;
+		}
+		for(InstrumentUsagePayment iup: payments)
+		{
+			totalPercent = totalPercent.add(iup.getPercent());
+		}
+		return totalPercent;
+	}
+
+	public BigDecimal getCost()
+	{
+		return CostUtils.calcCost(super.getCost(), getTotalPaymentPercent());
+	}
+
+	public BigDecimal getSetupCost()
+	{
+		return CostUtils.calcCost(super.getSetupCost(), getTotalPaymentPercent());
+	}
 }

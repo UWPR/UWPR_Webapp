@@ -44,19 +44,20 @@ function backToProject(projectId) {
                 </logic:notEmpty>
                 <tr>
                     <td>Total used: </td>
-                    <td>$<bean:write name="paymentMethod" property="totalCost"/></td>
+                    <td>$<bean:write name="paymentMethodUsage" property="totalCost"/></td>
                 </tr>
                 <tr>
                     <td>Invoiced: </td>
-                    <td>$<bean:write name="paymentMethod" property="invoicedCost"/></td>
+                    <td>$<bean:write name="paymentMethodUsage" property="invoicedCost"/></td>
                 </tr>
                 <logic:notEmpty name="paymentMethod" property="ponumber">
                     <tr>
                         <td>Balance: </td>
                         <bean:define id="payment" name="paymentMethod" type="org.yeastrc.project.payment.PaymentMethod"/>
+						<bean:define id="paymentUsage" name="paymentMethodUsage" type="org.yeastrc.project.payment.PaymentMethodUsage"/>
                         <%
                             BigDecimal available = payment.getPoAmount() != null ? payment.getPoAmount() : new BigDecimal("0");
-                            BigDecimal used = payment.getTotalCost() != null ? payment.getTotalCost() : new BigDecimal("0");
+                            BigDecimal used = paymentUsage.getTotalCost() != null ? paymentUsage.getTotalCost() : BigDecimal.ZERO;
                             BigDecimal balance = available.subtract(used);
                             if(balance.doubleValue() < 0.0) balance = new BigDecimal("0");
                             balance = balance.setScale(2, RoundingMode.HALF_UP);

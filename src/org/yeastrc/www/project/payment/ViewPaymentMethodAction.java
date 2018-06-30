@@ -19,6 +19,7 @@ import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
+import org.yeastrc.project.payment.PaymentMethodUsage;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -90,7 +91,9 @@ public class ViewPaymentMethodAction extends Action {
         
         try {
         	PaymentMethod paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+			PaymentMethodUsage pmu = new PaymentMethodUsage(paymentMethodId);
         	request.setAttribute("paymentMethod", paymentMethod);
+        	request.setAttribute("paymentMethodUsage", pmu);
         	request.setAttribute("projectId", projectId);
         }
         catch(Exception e) {

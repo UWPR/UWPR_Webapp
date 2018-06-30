@@ -6,17 +6,13 @@
 package org.yeastrc.project.payment;
 
 import org.apache.log4j.Logger;
-import org.uwpr.costcenter.Cost;
-import org.uwpr.costcenter.InstrumentRate;
-import org.uwpr.costcenter.TimeBlock;
-import org.uwpr.costcenter.TimeBlockDAO;
+import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.UsageBlock;
 import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 import org.uwpr.instrumentlog.UsageBlockDAO;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,7 +32,7 @@ public class PaymentMethodDAO {
 	public static PaymentMethodDAO getInstance() {
 		return instance;
 	}
-	
+
 	public PaymentMethod getPaymentMethod (int paymentMethodId) throws SQLException {
 		
 		String sql = "SELECT * FROM paymentMethod WHERE id="+paymentMethodId;
@@ -89,9 +85,6 @@ public class PaymentMethodDAO {
         paymentMethod.setCurrent(rs.getBoolean("isCurrent"));
         paymentMethod.setFederalFunding(rs.getBoolean("federalFunding"));
         paymentMethod.setPoAmount(rs.getBigDecimal("POAmount"));
-
-		paymentMethod.setCost(getCost(paymentMethod.getId()));
-        paymentMethod.setInvoicedCost(getInvoicedCost(paymentMethod.getId()));
 
         return paymentMethod;
     }
@@ -310,15 +303,13 @@ public class PaymentMethodDAO {
     private BigDecimal getInstrumentCostOld(int paymentMethodId) throws SQLException
     {
         BigDecimal cost = getCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
-		cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
-		return cost.setScale(2, RoundingMode.HALF_UP);
+        return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
     }
 
 	private BigDecimal getSignupFeeOld(int paymentMethodId) throws SQLException
 	{
 		BigDecimal cost = getCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
-		cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
-		return cost.setScale(2, RoundingMode.HALF_UP);
+		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
 	}
 
 	private BigDecimal getCostOld(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException
@@ -367,7 +358,7 @@ public class PaymentMethodDAO {
 		}
 	}
 
-	private Cost getInvoicedCost(int paymentMethodId) throws SQLException
+	public Cost getInvoicedCost(int paymentMethodId) throws SQLException
     {
     	// Get the cost for the pre-hourly rates, pre setup fee blocks
 		BigDecimal instrumentCost = getInvoicedInstrumentCostOld(paymentMethodId);
@@ -379,6 +370,7 @@ public class PaymentMethodDAO {
 		for(UsageBlock block: usageBlocks)
 		{
 			if(block.getInvoiceDate() != null) {
+
 				instrumentCost = instrumentCost.add(block.getInstrumentCost());
 				signupCost = signupCost.add(block.getSignupCost());
 				setupCost = setupCost.add(block.getSetupCost());
@@ -391,15 +383,13 @@ public class PaymentMethodDAO {
 	private BigDecimal getInvoicedInstrumentCostOld(int paymentMethodId) throws SQLException
 	{
 		BigDecimal cost = getInvoicedCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
-		cost = cost.multiply(InstrumentRate.INSTRUMENT_PERC);
-		return cost.setScale(2, RoundingMode.HALF_UP);
+		return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
 	}
 
 	private BigDecimal getInvoicedSignupFeeOld(int paymentMethodId) throws SQLException
 	{
 		BigDecimal cost = getInvoicedCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
-		cost = cost.multiply(InstrumentRate.SIGNUP_PERC);
-		return cost.setScale(2, RoundingMode.HALF_UP);
+		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
 	}
 
 	private BigDecimal getInvoicedCostOld(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException

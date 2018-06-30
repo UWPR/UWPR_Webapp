@@ -5,13 +5,6 @@
  */
 package org.uwpr.costcenter;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.SQLException;
-import java.util.*;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -23,6 +16,12 @@ import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.*;
 import org.yeastrc.project.payment.PaymentMethod;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * 
@@ -36,8 +35,6 @@ public class BillingInformationExcelExporter {
 	private boolean summarize = false;
 
 	private BillingInformationExporterListener listener = null;
-
-	public static BigDecimal ONE_HUNDRED = new BigDecimal(100);
 
 	private static final Logger log = Logger.getLogger(BillingInformationExcelExporter.class);
 
@@ -542,15 +539,12 @@ public class BillingInformationExcelExporter {
 			return BigDecimal.ZERO;
 		}
 
-		return getPercentCost(blockCost, percent).setScale(2, RoundingMode.HALF_UP);
+		return getPercentCost(blockCost, percent);
 	}
 
 	BigDecimal getPercentCost(BigDecimal blockCost, BigDecimal percent) {
 
-		if(percent.doubleValue() == 100.0)
-			return blockCost;
-		else
-			return blockCost.multiply(percent.divide(ONE_HUNDRED));
+		return CostUtils.calcCost(blockCost, percent);
 	}
 
 	private void informListenerBlockExported(UsageBlockBase block) throws BillingInformationExporterException {

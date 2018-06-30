@@ -645,7 +645,15 @@ public class InstrumentUsageDAO {
 			}
 		}
 
-		return saveUsageBlocks(conn, blocksWithPayment, logMessage);
+		String message = saveUsageBlocks(conn, blocksWithPayment, logMessage);
+		int i;
+		for(i = 0; i < blocksWithPayment.size(); i++)
+		{
+			UsageBlockBase blkBase = usageBlocks.get(i); // These are in the same order as blocksWithPayment.
+			UsageBlock blk = blocksWithPayment.get(i);
+			blkBase.setID(blk.getID());
+		}
+		return message;
 	}
 
 	public String saveUsageBlocks(Connection conn,  List<UsageBlock> blocksWithPayment, String logMessage)
