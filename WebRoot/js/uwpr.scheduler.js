@@ -219,9 +219,10 @@
                                 }
 								// menudiv += event_blk.id+"&nbsp;";
 
-								menudiv += event_blk.label+'</nobr>';
+								menudiv += event_blk.label;
 								// console.log(event_blk.addToCal);
-								menudiv += ' <a target="_blank" style="margin-left:3px" href="' +event_blk.addToCal+ '"><img src="/pr/images/calendar.png" width="18" height="18" /></a>';
+								menudiv += ' <a target="_blank" style="margin-left:3px" href="' +event_blk.addToCal+ '"><img src="/pr/images/calendar_small.png" width="18" height="18" /></a>';
+								menudiv += '</nobr>';
 								menudiv += '</span><br>';
 								
 							 }
@@ -240,7 +241,7 @@
 							menudiv += '<nobr>';
 							menudiv += event_blk.label;
                             // console.log(event_blk.addToCal);
-                            menudiv += ' <a target="_blank" style="margin-left:3px" href="' +event_blk.addToCal+ '"><img src="/pr/images/calendar.png" width="18" height="18"/></a>';
+                            menudiv += ' <a target="_blank" style="margin-left:3px" href="' +event_blk.addToCal+ '"><img src="/pr/images/calendar_small.png" width="18" height="18"/></a>';
 							
 							if(event_blk.editable) {
 								menudiv += '<input name="select_block_for_delete_'+event.id+'" type="checkbox" value="'+event_blk.id+'" checked="checked" style="visibility:hidden;"></input>';
