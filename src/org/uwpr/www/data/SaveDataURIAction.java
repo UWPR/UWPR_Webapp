@@ -8,6 +8,7 @@ import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -27,6 +28,8 @@ import org.yeastrc.www.user.UserUtils;
  *
  */
 public class SaveDataURIAction extends Action {
+
+	private static final Logger log = Logger.getLogger(SaveDataURIAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -92,7 +95,10 @@ public class SaveDataURIAction extends Action {
 		try {
 			DataURISaver.getInstance().save( dataURI );
 			HTAccessFileUtils.getInstance().writeHTAccessFile(project, new URL( uri ) );
-		} catch (Exception e) { ; }
+		} catch (Exception e)
+		{
+			log.error("Error saving data URI.", e);
+		}
 		
 		// we had difficulty saving this to the database
 		if (dataURI.getId() == 0) {

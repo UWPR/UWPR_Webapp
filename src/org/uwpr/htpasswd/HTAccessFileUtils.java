@@ -4,6 +4,7 @@
 package org.uwpr.htpasswd;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
 import org.yeastrc.project.Project;
@@ -13,13 +14,20 @@ import org.yeastrc.www.user.User;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Mike
  *
  */
 public class HTAccessFileUtils {
+
+	private static final Logger log = Logger.getLogger(HTAccessFileUtils.class);
 
 	// private constructor
 	private HTAccessFileUtils() { }
@@ -136,40 +144,52 @@ public class HTAccessFileUtils {
 		
 		File htaccess = new File( file, ".htaccess" );
 		if (htaccess.exists()) htaccess.delete();
-		
-		FileWriter fw = new FileWriter( htaccess );
-		fw.write( "AuthType Basic\n" );
-		fw.write( "AuthName \"UWPR Data Server\"\n" );
-		fw.write( "AuthUserFile " + HTPasswdUtils.PASSWORD_FILE + "\n" );
-		
-		Collection<String> usernames = new HashSet<String>();
-		try {
-			User user = new User();
-			user.load( project.getPI().getID() );
-			usernames.add( user.getUsername() );
-			user = null;
+
+		try(FileWriter fw = new FileWriter( htaccess )) {
+			fw.write("AuthType Basic\n");
+			fw.write("AuthName \"UWPR Data Server\"\n");
+			fw.write("AuthUserFile " + HTPasswdUtils.PASSWORD_FILE + "\n");
+
+			Collection<String> usernames = new HashSet<String>();
+			try {
+				User user = new User();
+				user.load(project.getPI().getID());
+				usernames.add(user.getUsername());
+				user = null;
 		} catch (Exception e ) { ; }
 
         for(Researcher researcher: project.getResearchers())
         {
             try
             {
-                User user = new User();
-                user.load( researcher.getID() );
-                usernames.add( user.getUsername() );
+					User user = new User();
+					user.load(researcher.getID());
+					usernames.add(user.getUsername());
             } catch (Exception ignored ) { ; }
-        }
+			}
 
-		usernames.add( "engj" );
-		usernames.add( "priska");
-		usernames.add( "mriffle" );
-		usernames.add( "vsharma" );
+			usernames.add("engj");
+			usernames.add("priska");
+			usernames.add("mriffle");
+			usernames.add("vsharma");
 
-		if ( usernames.size() > 0 )
-			fw.write( "require user " + StringUtils.join( usernames.iterator(), " " ) + "\n" );
-		else
-			fw.write( "require user no_one_in_project\n" );
-		
-		fw.close();
+			if (usernames.size() > 0)
+				fw.write("require user " + StringUtils.join(usernames.iterator(), " ") + "\n");
+			else
+				fw.write("require user no_one_in_project\n");
+		}
+
+		if(htaccess.exists())
+		{
+			try {
+				// Change the permissions
+				Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-rw-r--");
+				Files.setPosixFilePermissions(htaccess.toPath(), perms);
+			}
+			catch(Exception e)
+			{
+				log.error("Error changing permissions on .htaccess file: " + htaccess.toString(), e);
+			}
+		}
 	}
 }
