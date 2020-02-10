@@ -45,6 +45,6 @@ public class PaymentMethodUsage
 	}
 
     public BigDecimal getInvoicedCost() {
-        return invoicedCost != null ? BigDecimal.ZERO : invoicedCost.getTotal();
+        return invoicedCost == null ? BigDecimal.ZERO : invoicedCost.getTotal();
     }
 }
