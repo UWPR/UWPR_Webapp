@@ -75,6 +75,14 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 
 	public BigDecimal getSetupCost()
 	{
-		return isSetupBlock() ? rate.getRateType().getSetupFee() : BigDecimal.ZERO;
+		if(isSetupBlock())
+		{
+			// If the instrument fee is zero, do not add a setup fee. (This if for the "Pressure Cell & Laser Puller".
+			return rate.getRate().doubleValue() == 0.0 ? BigDecimal.ZERO : rate.getRateType().getSetupFee();
+		}
+		else
+		{
+			return BigDecimal.ZERO;
+		}
 	}
 }
