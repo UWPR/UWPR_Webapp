@@ -50,7 +50,7 @@ public class ViewSchedulerAction extends Action {
 			saveErrors( request, errors );
 			return mapping.findForward("authenticate");
 		}
-		
+        
         
         // we need a projectID
         int projectId = 0;
@@ -66,7 +66,21 @@ public class ViewSchedulerAction extends Action {
             saveErrors( request, errors );
             return mapping.findForward("standardHome");
         }
-        
+
+		// !!!!! TEMPORARY !!!!!!!
+		Groups siteGroups = Groups.getInstance();
+		if(!siteGroups.isMember(user.getResearcher().getID(), "administrators")) {
+			ActionErrors errors = new ActionErrors();
+			String message = "To comply with social distancing guidlines during the COVID-19 pandemic we've removed the self sign up capability for all UWPR instruments.\n" +
+					" Please contact Priska von Haller at (priska at uw.edu) to schedule instrument time.";
+
+			errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess",message));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+			return newFwd;
+		}
+		// !!!!!! TEMPORARY !!!!!!
         // we need an instrumentID
         int instrumentId = 0;
         try {

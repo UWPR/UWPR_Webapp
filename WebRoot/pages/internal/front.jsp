@@ -19,6 +19,27 @@
 
 <P>Welcome to the internal Proteomics Resource web site.</P>
 
+	<p>
+	<div style="color:red; font-style:italic; font-size:20px">
+	To comply with social distancing guidlines during the COVID-19 pandemic we've removed the self sign up capability for all UWPR instruments.
+	Please contact Priska von Haller at (priska at uw.edu) to schedule instrument time.
+	</div>
+	</p>
+
+	<p>
+	<div style="color:red; font-style:italic; font-size:20px">
+		All UWPR users must abide by the University of Washington AND the
+		<a href="https://proteomicsresource.washington.edu/COVID19.php">UWPR specific guidelines for COVID-19 prevention</a>
+	</div>
+	</p>
+	
+	<p>
+	<div style="color:darkred; font-size:larger">
+		Please review the <a href="https://www.washington.edu/research/guidelines-for-covid-19-prevention-while-working-in-the-laboratory-or-other-onsite-research-facilities/">
+		UW Guidelines for COVID-19 prevention while working in the laboratory or other onsite research facilities
+	     </a>
+	</div>
+	</p>
 <logic:present name="showReminder">
 	<!--
 	<div id="acknowledgementReminder" style="color:red;font-weight:bold;margin-top:20px;margin-bottom:20px;">
