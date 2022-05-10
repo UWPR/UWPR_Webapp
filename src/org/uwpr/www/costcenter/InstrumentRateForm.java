@@ -27,7 +27,7 @@ public class InstrumentRateForm extends ActionForm {
 	private boolean isCurrent;
 	
 	
-	//private static final Logger log = Logger.getLogger(InstrumentRateForm.class);
+	//private static final Logger log = LogManager.getLogger(InstrumentRateForm.class);
 	
 	/** 
 	 * Method validate

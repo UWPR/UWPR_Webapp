@@ -5,7 +5,8 @@
  */
 package org.uwpr.scheduler;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.project.Researcher;
@@ -22,7 +23,7 @@ public class ProjectInstrumentTimeApprover {
 
 	private static final ProjectInstrumentTimeApprover instance = new ProjectInstrumentTimeApprover();
 	
-	private static final Logger log = Logger.getLogger(ProjectInstrumentTimeApprover.class);
+	private static final Logger log = LogManager.getLogger(ProjectInstrumentTimeApprover.class);
 	
 	public static int HOURS_QUOTA_BILLED_PROJECT = 24 * 20; // 480 hours
 	public static int HOURS_QUOTA_FREE_PROJECT = 24 * 5;

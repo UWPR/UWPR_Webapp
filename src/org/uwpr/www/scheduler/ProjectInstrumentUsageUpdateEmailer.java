@@ -1,6 +1,7 @@
 package org.uwpr.www.scheduler;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.AdminUtils;
 import org.uwpr.AppProperties;
 import org.uwpr.instrumentlog.MsInstrument;
@@ -27,7 +28,7 @@ public class ProjectInstrumentUsageUpdateEmailer
 {
     private static ProjectInstrumentUsageUpdateEmailer instance = new ProjectInstrumentUsageUpdateEmailer();
 
-    private static final Logger log = Logger.getLogger(ProjectInstrumentUsageUpdateEmailer.class);
+    private static final Logger log = LogManager.getLogger(ProjectInstrumentUsageUpdateEmailer.class);
 
     public enum Action
     {

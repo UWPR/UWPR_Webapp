@@ -6,7 +6,8 @@
 package org.uwpr.www.scheduler;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -33,7 +34,7 @@ import java.util.*;
  */
 public class RequestProjectInstrumentTimeAjaxAction extends Action{
 
-	private static final Logger log = Logger.getLogger(RequestProjectInstrumentTimeAjaxAction.class);
+	private static final Logger log = LogManager.getLogger(RequestProjectInstrumentTimeAjaxAction.class);
 	
 	private static final DateFormat format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	

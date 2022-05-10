@@ -8,7 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -23,7 +24,7 @@ import org.yeastrc.www.user.UserUtils;
 
 public class InstrumentUsageSummaryAction extends Action {
 
-	private static final Logger log = Logger.getLogger(InstrumentUsageSummaryAction.class);
+	private static final Logger log = LogManager.getLogger(InstrumentUsageSummaryAction.class);
 	
 	/** 
 	 * Method execute

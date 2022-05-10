@@ -1,6 +1,7 @@
 package org.uwpr.www;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsageUtils;
 import org.uwpr.instrumentlog.rawfile.ProjectUsageUpdateErrorEmailer;
@@ -15,7 +16,7 @@ import java.util.*;
 
 public class ScheduledTask implements ServletContextListener {
 
-    private static final Logger log = Logger.getLogger(ScheduledTask.class);
+    private static final Logger log = LogManager.getLogger(ScheduledTask.class);
     
     private volatile boolean notiferRunning = false;
     private Timer timer;

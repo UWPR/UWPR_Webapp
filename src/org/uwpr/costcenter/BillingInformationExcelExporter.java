@@ -6,7 +6,8 @@
 package org.uwpr.costcenter;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -36,7 +37,7 @@ public class BillingInformationExcelExporter {
 
 	private BillingInformationExporterListener listener = null;
 
-	private static final Logger log = Logger.getLogger(BillingInformationExcelExporter.class);
+	private static final Logger log = LogManager.getLogger(BillingInformationExcelExporter.class);
 
 	private int rowNum = 0;
 

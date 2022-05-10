@@ -30,7 +30,7 @@ import org.yeastrc.www.user.UserUtils;
  */
 public class ViewCostCenterHomeAction extends Action {
 
-	//private static final Logger log = Logger.getLogger(ViewCostCenterHomeAction.class);
+	//private static final Logger log = LogManager.getLogger(ViewCostCenterHomeAction.class);
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {

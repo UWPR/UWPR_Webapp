@@ -6,7 +6,8 @@
  */
 package org.yeastrc.project;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.db.DBConnectionManager;
 
@@ -25,7 +26,7 @@ public class ProjectDAO {
 
     private static ProjectDAO instance;
     
-    private static final Logger log = Logger.getLogger(ProjectDAO.class.getName());
+    private static final Logger log = LogManager.getLogger(ProjectDAO.class.getName());
     
     private ProjectDAO() {}
     

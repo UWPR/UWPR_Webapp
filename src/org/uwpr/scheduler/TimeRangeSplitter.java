@@ -6,7 +6,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.costcenter.TimeBlock;
 import org.uwpr.www.util.TimeUtils;
 
@@ -20,7 +21,7 @@ public class TimeRangeSplitter {
 
 	private static final TimeRangeSplitter instance = new TimeRangeSplitter();
 	
-	private static final Logger log = Logger.getLogger(TimeRangeSplitter.class);
+	private static final Logger log = LogManager.getLogger(TimeRangeSplitter.class);
 	
 	private Calendar calendar = Calendar.getInstance();
 	

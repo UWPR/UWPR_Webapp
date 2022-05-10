@@ -1,6 +1,7 @@
 package org.uwpr;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -24,7 +25,7 @@ public class AppProperties
 
     private static String FROM_ADDRESS;
 
-    private static final Logger log = Logger.getLogger(AppProperties.class.getName());
+    private static final Logger log = LogManager.getLogger(AppProperties.class.getName());
 
     static {
         Properties props = new Properties();

@@ -25,7 +25,7 @@ import org.yeastrc.www.user.UserUtils;
  */
 public class ToggleBilledProjectStatus extends Action{
 
-	//private static final Logger log = Logger.getLogger(ToggleBilledProjectStatus.class);
+	//private static final Logger log = LogManager.getLogger(ToggleBilledProjectStatus.class);
     
     public ActionForward execute( ActionMapping mapping,
             ActionForm form,

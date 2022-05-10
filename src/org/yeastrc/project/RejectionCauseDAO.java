@@ -6,7 +6,8 @@
  */
 package org.yeastrc.project;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.Connection;
@@ -23,7 +24,7 @@ public class RejectionCauseDAO {
 
     private static final RejectionCauseDAO instance = new RejectionCauseDAO();
     
-    private static final Logger log = Logger.getLogger(RejectionCauseDAO.class.getName());
+    private static final Logger log = LogManager.getLogger(RejectionCauseDAO.class.getName());
     
     private RejectionCauseDAO() {}
     

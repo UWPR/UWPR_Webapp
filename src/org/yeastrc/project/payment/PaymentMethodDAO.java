@@ -5,7 +5,8 @@
  */
 package org.yeastrc.project.payment;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.UsageBlock;
 import org.uwpr.instrumentlog.UsageBlockBaseFilter;
@@ -25,7 +26,7 @@ public class PaymentMethodDAO {
 
 	private PaymentMethodDAO() {}
 	
-	private static final Logger log = Logger.getLogger(PaymentMethodDAO.class);
+	private static final Logger log = LogManager.getLogger(PaymentMethodDAO.class);
 	
 	private static PaymentMethodDAO instance = new PaymentMethodDAO();
 	

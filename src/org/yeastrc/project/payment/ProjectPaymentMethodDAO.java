@@ -5,7 +5,8 @@
  */
 package org.yeastrc.project.payment;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.*;
@@ -22,7 +23,7 @@ public class ProjectPaymentMethodDAO {
 	
 	private static ProjectPaymentMethodDAO instance = new ProjectPaymentMethodDAO();
 	
-	private static final Logger log = Logger.getLogger(ProjectPaymentMethodDAO.class);
+	private static final Logger log = LogManager.getLogger(ProjectPaymentMethodDAO.class);
 	
 	public static ProjectPaymentMethodDAO getInstance() {
 		return instance;

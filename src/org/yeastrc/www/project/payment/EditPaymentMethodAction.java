@@ -31,7 +31,7 @@ import org.yeastrc.www.user.UserUtils;
  */
 public class EditPaymentMethodAction extends Action {
 
-	//private static final Logger log = Logger.getLogger(EditPaymentMethodAction.class);
+	//private static final Logger log = LogManager.getLogger(EditPaymentMethodAction.class);
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -15,7 +15,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -23,7 +24,7 @@ import org.apache.log4j.Logger;
  */
 public class RawFileUsageParser {
 
-    private static final Logger log = Logger.getLogger(RawFileUsageParser.class.getName());
+    private static final Logger log = LogManager.getLogger(RawFileUsageParser.class.getName());
     
     private static final RawFileUsageParser parser = new RawFileUsageParser();
     

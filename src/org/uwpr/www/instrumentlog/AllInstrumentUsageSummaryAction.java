@@ -12,7 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -38,7 +39,7 @@ public class AllInstrumentUsageSummaryAction extends Action {
 	 * Generated Methods
 	 */
 
-	private static final Logger log = Logger.getLogger(AllInstrumentUsageSummaryAction.class);
+	private static final Logger log = LogManager.getLogger(AllInstrumentUsageSummaryAction.class);
 	
 	/** 
 	 * Method execute

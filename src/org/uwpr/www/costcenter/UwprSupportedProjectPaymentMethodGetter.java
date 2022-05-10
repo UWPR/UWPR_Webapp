@@ -6,7 +6,8 @@ package org.uwpr.www.costcenter;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 
@@ -22,7 +23,7 @@ public class UwprSupportedProjectPaymentMethodGetter {
 	
 	private static final int MAINTENANCE_PROJECT = 42;
 	
-	private static final Logger log = Logger.getLogger(UwprSupportedProjectPaymentMethodGetter.class);
+	private static final Logger log = LogManager.getLogger(UwprSupportedProjectPaymentMethodGetter.class);
 	
 	public static PaymentMethod get(int projectId) {
 		

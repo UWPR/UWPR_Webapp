@@ -4,7 +4,8 @@
 package org.uwpr.htpasswd;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
 import org.yeastrc.project.Project;
@@ -27,7 +28,7 @@ import java.util.Set;
  */
 public class HTAccessFileUtils {
 
-	private static final Logger log = Logger.getLogger(HTAccessFileUtils.class);
+	private static final Logger log = LogManager.getLogger(HTAccessFileUtils.class);
 
 	// private constructor
 	private HTAccessFileUtils() { }

@@ -5,7 +5,8 @@
  */
 package org.uwpr.costcenter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.Affiliation;
 import org.yeastrc.project.Project;
@@ -21,7 +22,7 @@ public class RateTypeDAO {
 
 	private RateTypeDAO() {}
 	
-	private static final Logger log = Logger.getLogger(RateTypeDAO.class);
+	private static final Logger log = LogManager.getLogger(RateTypeDAO.class);
 	
 	private static RateTypeDAO instance = new RateTypeDAO();
 	

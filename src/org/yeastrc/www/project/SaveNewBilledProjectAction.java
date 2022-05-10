@@ -8,7 +8,8 @@
 
 package org.yeastrc.www.project;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.apache.struts.util.MessageResources;
 import org.yeastrc.data.InvalidIDException;
@@ -35,7 +36,7 @@ import java.util.Properties;
  */
 public class SaveNewBilledProjectAction extends Action {
 
-    private static final Logger log = Logger.getLogger(SaveNewBilledProjectAction.class);
+    private static final Logger log = LogManager.getLogger(SaveNewBilledProjectAction.class);
     
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,

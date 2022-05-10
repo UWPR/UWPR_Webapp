@@ -5,7 +5,8 @@
  */
 package org.uwpr.www.costcenter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.www.util.TimeUtils;
@@ -29,7 +30,7 @@ import java.util.Date;
  */
 public class ExportBillingInformationAction extends Action {
 
-	private static final Logger log = Logger.getLogger(ExportBillingInformationAction.class);
+	private static final Logger log = LogManager.getLogger(ExportBillingInformationAction.class);
 	
 	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("MM.dd.yyyy");
 	

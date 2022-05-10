@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+  <Appenders>
+    <!-- Console appender -->
+	<Console name="stdout" target="SYSTEM_OUT"> 
+	    <PatternLayout>
+		    <!-- p=priority d=datetime c=category t=thread m=message n=newline -->
+	        <Pattern>[%-5p] %d{MM-dd-yyyy HH:mm:ss} %c [%t] - %m%n</Pattern>
+	    </PatternLayout>
+  	</Console>
+  	
+	<!-- RollingFileAppender -->
+	<RollingFile name="pr_log" 
+	             fileName="${sys:catalina.base}/logs/pr.log"
+	             filePattern="${sys:catalina.base}/logs/pr.%d{dd-MMM}.log"
+	             append="true">
+	  <PatternLayout>
+	      <Pattern>[%-5p] %d{MM-dd-yyyy HH:mm:ss} %c [%t] - %m%n</Pattern>
+	  </PatternLayout>
+	  <Policies>
+          <SizeBasedTriggeringPolicy size="10MB" />
+      </Policies>
+      <DefaultRolloverStrategy max="10" fileIndex="min"/>
+    </RollingFile>
+
+  </Appenders>
+
+<!-- setup log4j's root logger -->
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="stdout"/>
+			<AppenderRef ref="pr_log"/>
+        </Root>
+    </Loggers>
+</Configuration>

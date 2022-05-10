@@ -6,7 +6,8 @@
 package org.uwpr.instrumentlog;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.costcenter.*;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.www.util.TimeUtils;
@@ -29,7 +30,7 @@ public class InstrumentUsageDAO {
 
 	private static final InstrumentUsageDAO instance = new InstrumentUsageDAO();
 	
-	private static final Logger log = Logger.getLogger(InstrumentUsageDAO.class);
+	private static final Logger log = LogManager.getLogger(InstrumentUsageDAO.class);
 
 	private static final String dateUpdateMsg = "Date changed from {0} - {1} to  {2} - {3}";
 	private static final String adjustingSignup = "Adjusting Signup";

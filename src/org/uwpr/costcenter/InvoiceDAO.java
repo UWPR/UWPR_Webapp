@@ -5,7 +5,8 @@
  */
 package org.uwpr.costcenter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.*;
@@ -17,7 +18,7 @@ import java.util.Date;
  */
 public class InvoiceDAO {
 
-	private static final Logger log = Logger.getLogger(InvoiceDAO.class);
+	private static final Logger log = LogManager.getLogger(InvoiceDAO.class);
 	
 	private static InvoiceDAO instance = new InvoiceDAO();
 	

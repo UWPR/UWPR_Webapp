@@ -14,7 +14,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.AdminUtils;
 import org.uwpr.AppProperties;
 import org.yeastrc.project.Researcher;
@@ -26,7 +27,7 @@ public class ProjectUsageUpdateErrorEmailer {
 
 	private static ProjectUsageUpdateErrorEmailer instance = new ProjectUsageUpdateErrorEmailer();
 	
-	private static final Logger log = Logger.getLogger(ProjectUsageUpdateErrorEmailer.class);
+	private static final Logger log = LogManager.getLogger(ProjectUsageUpdateErrorEmailer.class);
 	
 	private ProjectUsageUpdateErrorEmailer() {}
 	

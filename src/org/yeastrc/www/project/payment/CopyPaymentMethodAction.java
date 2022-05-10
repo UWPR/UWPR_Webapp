@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CopyPaymentMethodAction extends Action {
 
-	//private static final Logger log = Logger.getLogger(CopyPaymentMethodAction.class);
+	//private static final Logger log = LogManager.getLogger(CopyPaymentMethodAction.class);
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {

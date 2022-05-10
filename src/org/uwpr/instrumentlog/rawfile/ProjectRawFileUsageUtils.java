@@ -6,7 +6,8 @@
  */
 package org.uwpr.instrumentlog.rawfile;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.Connection;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 public class ProjectRawFileUsageUtils {
 
-    private static final Logger log = Logger.getLogger(ProjectRawFileUsageUtils.class);
+    private static final Logger log = LogManager.getLogger(ProjectRawFileUsageUtils.class);
     private static final ProjectRawFileUsageUtils instance = new ProjectRawFileUsageUtils();
     
     private static Date lastDateParsed;

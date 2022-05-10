@@ -11,7 +11,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.util.MessageResources;
 import org.uwpr.AppProperties;
 import org.yeastrc.project.Project;
@@ -28,7 +29,7 @@ import org.yeastrc.project.Researcher;
 public class NewProjectUtils {
 
     
-    private static final Logger log = Logger.getLogger(NewProjectUtils.class);
+    private static final Logger log = LogManager.getLogger(NewProjectUtils.class);
 	/**
 	 * Sends an email confirmation of the new project request to the Researcher who
 	 * made the request.  If an exception is encountered in the process, the system does
