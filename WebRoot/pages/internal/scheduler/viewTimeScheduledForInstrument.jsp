@@ -234,10 +234,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				</td>
                 <td style="font-size:10pt;color:red">
                     <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="usageBlock" property="projectID" />)'>[Delete]</a>
-                    <yrcwww:member group="administrator">
-                        <br>
-                        <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="usageBlock" property="projectID" />)'>[Purge]</a>
-                    </yrcwww:member>
                 </td>
 			</tr>
 		</logic:iterate>

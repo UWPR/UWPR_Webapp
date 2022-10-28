@@ -107,7 +107,7 @@ public class UsageBlockDeletableDecider {
 		
 		// Usage block can be deleted by a non-admin user only if the start time is atleast 
 		// 48 hours after the current time
-		// UNLESS it was also created within 48 hours of the start time.
+		// UNLESS it was also created within the last one hour.
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.HOUR_OF_DAY, 48);
 		

@@ -395,9 +395,10 @@ public class EditProjectInstrumentTimeAction extends Action {
 				conn = DBConnectionManager.getMainDbConnection();
 				conn.setAutoCommit(false);
 
-				// Mark the old blocks as deleted
+				// 10.28.2022 - We don't have to keep the blocks in the database since we are no longer billing sign-up fee for deleted blocks.
+				// Delete the old blocks
 				try {
-					instrumentUsageDAO.markDeletedByEditAction(conn, blocksToDelete, user.getResearcher());
+					instrumentUsageDAO.deletedByEditAction(conn, blocksToDelete, user.getResearcher());
 				}
 
 				catch (Exception e) {
@@ -428,7 +429,8 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
 
 				// Delete and/or adjust any sign-up only blocks that overlap with the new usage blocks
-				InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user.getResearcher(), projectId, instrumentId, rateType, rangeStartDate, rangeEndDate);
+				// 10.28.2022 - No longer need this since we the older blocks are fully deleted.
+				// InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user.getResearcher(), projectId, instrumentId, rateType, rangeStartDate, rangeEndDate);
 
 				conn.commit();
 			}

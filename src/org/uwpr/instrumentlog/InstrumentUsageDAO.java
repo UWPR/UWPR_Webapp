@@ -256,9 +256,9 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public int markDeletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
+	public void deletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
 	{
-		return markDeleted(conn, usageBlocks, researcher, deletedByEditAction);
+		delete(conn, usageBlocks, researcher, deletedByEditAction);
 	}
 
 	private int updateSetupStatusForDeletedBlocks(Connection conn, List<UsageBlockBase> deletedBlocks, Researcher researcher) throws SQLException {

@@ -212,6 +212,8 @@ public class ShiftTimeScheduledForInstrument extends Action
                     }
                 }
 
+                // 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee
+                // TODO: remove this?  There should not be any sign-up only blocks in the database.
                 instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user.getResearcher(), project.getID(), instrumentId, projectRateType,
                                                               block.getStartDate(), block.getEndDate());
 

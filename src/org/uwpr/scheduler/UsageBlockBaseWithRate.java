@@ -43,18 +43,18 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 		}
 		if(isDeleted())
 		{
-			return calcSignupCost(cost);
+			return BigDecimal.ZERO; // 10.28.2022 - Sign-up cost no longer charged for deleted blocks
 		}
 		return cost;
 	}
 
 	public BigDecimal getSignupCost()
 	{
-		BigDecimal cost = getCost();
 		if(isDeleted())
 		{
-			return cost; // Only sign-up cost in this case
+			return BigDecimal.ZERO; // 10.28.2022 - Sign-up cost no longer charged for deleted blocks
 		}
+		BigDecimal cost = getCost();
 		return calcSignupCost(cost);
 	}
 

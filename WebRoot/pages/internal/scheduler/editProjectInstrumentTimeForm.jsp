@@ -122,7 +122,6 @@
 </tbody>
 </table>
 </html:form>
-	<span style="font-weight:bold; color:red">Editing instrument time may incur additional, non-refundable, sign-up fee.</span>
 </center>
 </yrcwww:contentbox>
 <%@ include file="/includes/footer.jsp"%>

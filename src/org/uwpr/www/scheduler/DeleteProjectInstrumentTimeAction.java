@@ -129,33 +129,17 @@ public class DeleteProjectInstrumentTimeAction extends Action {
         }
 
 
-		boolean deleteUsageAndSignup = false;
 		boolean emailProjectResearchers = true;
 		if (Groups.getInstance().isAdministrator(user.getResearcher()))
 		{
 			emailProjectResearchers = false;
-			// Delete the block if the user is an admin and 'deleteSignup' attribute is present in the request
-			if(request.getParameter("deleteSignup") != null)
-			{
-				deleteUsageAndSignup = true;
-			}
 		}
 
-		if(deleteUsageAndSignup)
-		{
-			log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
-			InstrumentUsageDAO.getInstance().purge(usageBlock, user.getResearcher());
-		}
-		else
-		{
-			// Mark the usage as deleted but don't delete the rows so that this can be billed as signup
-			log.info("Marking block as deleted: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
-			InstrumentUsageDAO.getInstance().markDeleted(Collections.singletonList(usageBlock), user.getResearcher());
-		}
+		log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
+		InstrumentUsageDAO.getInstance().purge(usageBlock, user.getResearcher());
 
 		// Email admins
-		ProjectInstrumentUsageUpdateEmailer.Action action = deleteUsageAndSignup ? ProjectInstrumentUsageUpdateEmailer.Action.PURGED
-				                                                                 : ProjectInstrumentUsageUpdateEmailer.Action.DELETED;
+		ProjectInstrumentUsageUpdateEmailer.Action action = ProjectInstrumentUsageUpdateEmailer.Action.DELETED;
 		MsInstrument instrument = MsInstrumentUtils.instance().getMsInstrument(usageBlock.getInstrumentID());
 		ProjectInstrumentUsageUpdateEmailer.getInstance().sendEmail(project, instrument, user.getResearcher(),
 				Collections.singletonList(usageBlock), null,
@@ -164,8 +148,6 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 		ActionForward fwd = mapping.findForward("Success");
 		ActionForward newFwd = new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
     	return newFwd;
-        
-        
-        
+
 	}
 }

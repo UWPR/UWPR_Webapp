@@ -361,6 +361,8 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			Date startDate = firstBlock.getStartDate();
 			Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
 
+			// 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee
+			// TODO: remove this?  There should not be any sign-up only blocks in the database.
 			instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user, firstBlock.getProjectID(), firstBlock.getInstrumentID(), rateType, startDate, endDate);
 
 			conn.commit();

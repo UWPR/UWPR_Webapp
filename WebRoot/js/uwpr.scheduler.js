@@ -100,7 +100,7 @@
 		// save_time_confirm_div += '<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span></p>';
 		save_time_confirm_div += '<div>The requested time will incur the following cost:</div>';
         save_time_confirm_div += ' <div style="color:red;font-weight:bold;margin-top:10px;">Setup fee: <span id="setup_fee"></span></div>';
-        save_time_confirm_div += ' <div style="color:red;font-weight:bold;">Sign-up fee: <span id="signup_fee"></span> (non-refundable)</div>';
+        save_time_confirm_div += ' <div style="color:red;font-weight:bold;">Sign-up fee: <span id="signup_fee"></span></div>';
 		save_time_confirm_div += ' <div style="color:darkblue;font-weight:bold;">Instrument fee: <span id="instrument_cost" ></span></div>';
 		save_time_confirm_div += ' <div style="color:darkblue;font-weight:bold;margin-bottom:10px;">Total: <span id="requested_total_cost"></span></div>';
 		save_time_confirm_div += '<div>Are you sure you want to continue?</div>';

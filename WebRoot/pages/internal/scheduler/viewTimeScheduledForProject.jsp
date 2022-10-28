@@ -60,18 +60,10 @@ function submitForm()
     window.location.href = url;
 }
 
-function markBlockDeleted(usageBlockId, projectId) {
-
-	if(confirm("Are you sure you want to delete this time block?")) {
-          document.location.href="/pr/deleteInstrumentTime.do?usageBlockId=" + usageBlockId+"&projectId="+projectId;
-          return true;
-    }
-}
-
 function deleteTimeBlock(usageBlockId, projectId) {
 
-    if(confirm("Are you sure you want to delete this time block and the sign-up?")) {
-        document.location.href="/pr/deleteInstrumentTime.do?deleteSignup=true&usageBlockId=" + usageBlockId+"&projectId="+projectId;
+    if(confirm("Are you sure you want to delete this time block?")) {
+        document.location.href="/pr/deleteInstrumentTime.do?usageBlockId=" + usageBlockId+"&projectId="+projectId;
         return true;
     }
 }
@@ -271,13 +263,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				</td>
 				<td style="font-size:10pt;color:red">
                     <logic:equal name="usageBlock" property="deleted" value="false">
-					  <a href="#" onclick='markBlockDeleted(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
+					  <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
                     </logic:equal>
                     <a href='viewEditBlockDetailsForm.do?projectId=<bean:write name="project" property="ID" />&instrumentId=<bean:write name="usageBlock" property="instrumentID" />&usageBlockIds=<bean:write name="usageBlock" property="ID" />'>[Edit]</a>
-                    <yrcwww:member group="administrator">
-                        <br>
-                        <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Purge]</a>
-                    </yrcwww:member>
 				</td>
 				
 			</tr>
