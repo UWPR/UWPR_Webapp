@@ -188,13 +188,9 @@ function deleteTimeBlock(usageBlockId, projectId) {
     &nbsp;
     Setup cost: $<span style="color:red;"><bean:write name="setupCost"/></span>
     &nbsp;
-    Sign-up cost: $<span style="color:red;"><bean:write name="signupCost"/></span>
-    &nbsp;
     Instrument cost: $<span style="color:red;"><bean:write name="instrumentCost"/></span>
     <br>
     Instrument hours: <span style="color:red;"><bean:write name="instrumentHours"/></span>
-    &nbsp;
-    sign-up hours: <span style="color:red;"><bean:write name="signupHours"/></span>
 </div>
     <div style="margin-top:10px;margin-bottom:10px;">
         Export billing information: <a href="" onclick="return exportBillingInformation()">[Detailed]</a>&nbsp;<a href="" onclick="return exportBillingInformation(true)">[Summarized]</a>
@@ -215,7 +211,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
             <th class="scheduler">Setup</th>
-            <th class="scheduler">SignUp</th>
             <th class="scheduler">Instrument</th>
 			<th class="scheduler">Total</th>
 			<th class="scheduler">Billed</th>
@@ -250,7 +245,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				<td><nobr><bean:write name="usageBlock" property="startDateFormated"/></nobr></td>
 				<td><nobr><bean:write name="usageBlock" property="endDateFormated"/></nobr></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="setupCost"/></span></td>
-                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="signupCost"/></span></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="instrumentCost"/></span></td>
 				<td align="right"><span class="costColumn"><bean:write name="usageBlock" property="totalCost"/></span></td>
 				<td>

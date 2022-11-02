@@ -24,7 +24,6 @@ public class UsageBlockDeletableDecider {
 
 	private static final String NOT_DELETABLE_EXPIRED = "Selected start time is before the current date, and cannot be changed.";
 	private static final String NOT_DELETABLE = "Selected start time is within the next 48 hours.  It cannot be changed or deleted.";
-	private static final String SIGNUP_NOT_DELETABLE = "Sign-up time cannot be deleted";
 
 	private UsageBlockDeletableDecider () {}
 	
@@ -92,13 +91,6 @@ public class UsageBlockDeletableDecider {
 		if (groupsMan.isMember(user.getResearcher().getID(), "administrators"))
 			return true;
 		
-		// If this block is only a signup block it cannot be deleted by non-admins
-		if(block.isDeleted())
-		{
-			errorMessage.append(SIGNUP_NOT_DELETABLE);
-			return false;
-		}
-
 		// If the block was created before the current date it cannot be deleted
 		if(block.getStartDate().before(new Date(System.currentTimeMillis()))) {
 			errorMessage.append(NOT_DELETABLE_EXPIRED);

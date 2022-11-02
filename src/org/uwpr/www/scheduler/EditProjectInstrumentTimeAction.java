@@ -428,9 +428,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 					InstrumentUsageDAO.getInstance().removeSetupFlag(conn, user.getResearcher(), Collections.singletonList(adjBlock.getID()));
 				}
 
-				// Delete and/or adjust any sign-up only blocks that overlap with the new usage blocks
-				// 10.28.2022 - No longer need this since we the older blocks are fully deleted.
-				// InstrumentUsageDAO.getInstance().deleteOrAdjustSignupBlocks(conn, user.getResearcher(), projectId, instrumentId, rateType, rangeStartDate, rangeEndDate);
+				// 10.28.2022 - No longer need this since we the older blocks are fully deleted. No need to delete and/or adjust sign-up only blocks
 
 				conn.commit();
 			}

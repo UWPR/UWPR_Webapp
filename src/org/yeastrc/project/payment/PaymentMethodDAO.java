@@ -9,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.UsageBlock;
-import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 import org.uwpr.instrumentlog.UsageBlockDAO;
 import org.yeastrc.db.DBConnectionManager;
 
@@ -28,7 +27,7 @@ public class PaymentMethodDAO {
 	
 	private static final Logger log = LogManager.getLogger(PaymentMethodDAO.class);
 	
-	private static PaymentMethodDAO instance = new PaymentMethodDAO();
+	private static final PaymentMethodDAO instance = new PaymentMethodDAO();
 	
 	public static PaymentMethodDAO getInstance() {
 		return instance;
@@ -102,7 +101,7 @@ public class PaymentMethodDAO {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(sql);
 			
-			List<PaymentMethod> methods = new ArrayList<PaymentMethod>();
+			List<PaymentMethod> methods = new ArrayList<>();
 			
 			while(rs.next()) {
                 methods.add(makePaymentMethod(rs));
@@ -285,8 +284,7 @@ public class PaymentMethodDAO {
 	public Cost getCost(int paymentMethodId) throws SQLException
 	{
 		// Get the cost for the pre-hourly rates, pre setup fee blocks
-		BigDecimal instrumentCost = getInstrumentCostOld(paymentMethodId);
-		BigDecimal signupCost = getSignupFeeOld(paymentMethodId);
+		BigDecimal instrumentCost = getCostOld(paymentMethodId);
 		BigDecimal setupCost = BigDecimal.ZERO;
 
 		// Get the cost of the hourly blocks (including setup cost)
@@ -294,26 +292,13 @@ public class PaymentMethodDAO {
 		for(UsageBlock block: usageBlocks)
 		{
 			instrumentCost = instrumentCost.add(block.getInstrumentCost());
-			signupCost = signupCost.add(block.getSignupCost());
 			setupCost = setupCost.add(block.getSetupCost());
 		}
 
-		return new Cost(instrumentCost, signupCost, setupCost);
+		return new Cost(instrumentCost, setupCost);
 	}
 
-    private BigDecimal getInstrumentCostOld(int paymentMethodId) throws SQLException
-    {
-        BigDecimal cost = getCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
-        return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
-    }
-
-	private BigDecimal getSignupFeeOld(int paymentMethodId) throws SQLException
-	{
-		BigDecimal cost = getCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
-		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
-	}
-
-	private BigDecimal getCostOld(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException
+	private BigDecimal getCostOld(int paymentMethodId) throws SQLException
 	{
 		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(TimeBlock.HOURLY);
 
@@ -321,14 +306,6 @@ public class PaymentMethodDAO {
 		sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
 		sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir)");
 		sql.append(" WHERE iup.instrumentUsageID = iu.id ");
-		if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
-		{
-			sql.append(" AND iu.deleted=0"); // Get ONLY instrument usage
-		}
-		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
-		{
-			sql.append(" AND iu.deleted=1"); // Get ONLY signup blocks
-		}
 
 		sql.append(" AND iu.instrumentRateID = ir.id");
 		sql.append(" AND paymentMethodID=").append(paymentMethodId);
@@ -362,8 +339,7 @@ public class PaymentMethodDAO {
 	public Cost getInvoicedCost(int paymentMethodId) throws SQLException
     {
     	// Get the cost for the pre-hourly rates, pre setup fee blocks
-		BigDecimal instrumentCost = getInvoicedInstrumentCostOld(paymentMethodId);
-		BigDecimal signupCost = getInvoicedSignupFeeOld(paymentMethodId);
+		BigDecimal instrumentCost = getInvoicedCostOld(paymentMethodId);
 		BigDecimal setupCost = BigDecimal.ZERO;
 
 		// Get the cost of the hourly blocks (including setup cost)
@@ -372,28 +348,15 @@ public class PaymentMethodDAO {
 		{
 			if(block.getInvoiceDate() != null) {
 
-				instrumentCost = instrumentCost.add(block.getInstrumentCost());
-				signupCost = signupCost.add(block.getSignupCost());
+				instrumentCost = instrumentCost.add(block.getCost());
 				setupCost = setupCost.add(block.getSetupCost());
 			}
 		}
 
-		return new Cost(instrumentCost, signupCost, setupCost);
+		return new Cost(instrumentCost, setupCost);
     }
 
-	private BigDecimal getInvoicedInstrumentCostOld(int paymentMethodId) throws SQLException
-	{
-		BigDecimal cost = getInvoicedCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE);
-		return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
-	}
-
-	private BigDecimal getInvoicedSignupFeeOld(int paymentMethodId) throws SQLException
-	{
-		BigDecimal cost = getInvoicedCostOld(paymentMethodId, UsageBlockBaseFilter.BlockType.ALL);
-		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
-	}
-
-	private BigDecimal getInvoicedCostOld(int paymentMethodId, UsageBlockBaseFilter.BlockType blockType) throws SQLException
+	private BigDecimal getInvoicedCostOld(int paymentMethodId /*, UsageBlockBaseFilter.BlockType blockType*/) throws SQLException
 	{
 		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(TimeBlock.HOURLY);
 
@@ -401,14 +364,6 @@ public class PaymentMethodDAO {
 		sql.append(" SELECT iup.paymentMethodID, SUM((iup.percentPayment * ir.fee)/ 100.0) AS cost");
 		sql.append(" FROM (instrumentUsagePayment iup, instrumentUsage iu, instrumentRate ir, invoiceInstrumentUsage invoice)");
 		sql.append(" WHERE iup.instrumentUsageID = iu.id");
-		if(blockType == UsageBlockBaseFilter.BlockType.INSTRUMENT_USAGE)
-		{
-			sql.append(" AND iu.deleted=0"); // Get ONLY instrument usage
-		}
-		else if(blockType == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY)
-		{
-			sql.append(" AND iu.deleted=1"); // Get ONLY signup blocks
-		}
 		sql.append(" AND iu.instrumentRateID = ir.id");
 		sql.append(" AND invoice.instrumentUsageID = iu.id");
 		sql.append(" AND paymentMethodID=").append(paymentMethodId);

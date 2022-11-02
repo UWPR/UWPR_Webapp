@@ -356,14 +356,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 				InstrumentUsageDAO.getInstance().removeSetupFlag(conn, user, Collections.singletonList(adjBlock.getID()));
 			}
 
-			// Update signup
-			UsageBlockBase firstBlock = usageBlocks.get(0);
-			Date startDate = firstBlock.getStartDate();
-			Date endDate = usageBlocks.get(usageBlocks.size() - 1).getEndDate();
-
-			// 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee
-			// TODO: remove this?  There should not be any sign-up only blocks in the database.
-			instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user, firstBlock.getProjectID(), firstBlock.getInstrumentID(), rateType, startDate, endDate);
+			// 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee. No need to delete or adjust old sign-up only blocks.
 
 			conn.commit();
 		}
@@ -403,7 +396,6 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		json.put("blocks", array);
 		BigDecimal cost = BigDecimal.ZERO;
 		BigDecimal instrumentCost = BigDecimal.ZERO;
-		BigDecimal signupCost = BigDecimal.ZERO;
 		BigDecimal setupCost = BigDecimal.ZERO;
 
 
@@ -417,12 +409,10 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 
 			cost = cost.add(block.getTotalCost());
 			instrumentCost = instrumentCost.add(block.getInstrumentCost());
-			signupCost = signupCost.add(block.getSignupCost());
 			setupCost = setupCost.add(block.getSetupCost());
 		}
 
 		json.put("total_cost", cost.doubleValue());
-		json.put("signup_cost", signupCost.doubleValue());
 		json.put("instrument_cost", instrumentCost.doubleValue());
 		json.put("setup_cost", setupCost.doubleValue());
 

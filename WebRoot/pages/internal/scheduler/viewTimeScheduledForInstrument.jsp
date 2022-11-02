@@ -183,7 +183,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 			<th class="scheduler">Payment<br/>Method(s)</th>
 			<th class="scheduler">Start</th>
 			<th class="scheduler">End</th>
-            <th class="scheduler">SignUp</th>
             <th class="scheduler">Instrument</th>
             <th class="scheduler">Total</th>
 			<th class="scheduler">Billed</th>
@@ -221,7 +220,6 @@ function deleteTimeBlock(usageBlockId, projectId) {
 				</td>
 				<td><bean:write name="usageBlock" property="startDateFormated"/></td>
 				<td><bean:write name="usageBlock" property="endDateFormated"/></td>
-                <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="signupCost"/></span></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="instrumentCost"/></span></td>
                 <td align="right"><span class="costColumn"><bean:write name="usageBlock" property="totalCost"/></span></td>
 				<td>

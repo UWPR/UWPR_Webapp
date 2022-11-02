@@ -153,7 +153,6 @@ public class ViewTimeScheduledForProject extends Action {
         filter.setEndDate(endDate);
         filter.setContainedInRange(false);
         filter.setTrimToFit(false);
-        filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL); // We want both types of blocks (sign-up only AND sign-up + instrument usage)
 
         ((TimeScheduledFilterForm)form).setFilterCriteria(filter);
 
@@ -175,10 +174,8 @@ public class ViewTimeScheduledForProject extends Action {
         request.setAttribute("project", project);
         request.setAttribute("usageBlocks", usageBlocks);
 
-        int totalSignupHours = 0;
         int totalInstrumentHours = 0;
-        BigDecimal signupCost = BigDecimal.ZERO;
-        BigDecimal instrumentCost = BigDecimal.ZERO;
+        BigDecimal cost = BigDecimal.ZERO;
         BigDecimal setupCost = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
 
@@ -186,11 +183,8 @@ public class ViewTimeScheduledForProject extends Action {
         {
             int hours = block.getHours();
             totalCost = totalCost.add(block.getTotalCost());
-            signupCost = signupCost.add(block.getSignupCost());
-            instrumentCost = instrumentCost.add(block.getInstrumentCost());
+            cost = cost.add(block.getCost());
             setupCost = setupCost.add(block.getSetupCost());
-
-            totalSignupHours += hours;
 
             if(!block.isDeleted())
             {
@@ -199,9 +193,7 @@ public class ViewTimeScheduledForProject extends Action {
         }
         request.setAttribute("totalCost", totalCost.setScale(2, RoundingMode.HALF_UP));
         request.setAttribute("setupCost", setupCost.setScale(2, RoundingMode.HALF_UP));
-        request.setAttribute("signupCost", signupCost.setScale(2, RoundingMode.HALF_UP));
-        request.setAttribute("instrumentCost", instrumentCost.setScale(2, RoundingMode.HALF_UP));
-        request.setAttribute("signupHours", totalSignupHours);
+        request.setAttribute("instrumentCost", cost.setScale(2, RoundingMode.HALF_UP));
         request.setAttribute("instrumentHours", totalInstrumentHours);
 
         List<MsInstrument> instrumentList = MsInstrumentUtils.instance().getMsInstruments();

@@ -261,7 +261,7 @@ public class EditProjectInstrumentTimeFormAction extends Action {
         request.getSession().setAttribute("endTimeOptions", TimeOption.getEndTimeOptions(user));
         
         List<Researcher> instrumentOperators = Groups.getInstance().getMembers(Groups.INSTRUMENT_OPERATOR);
-        request.setAttribute("instrumentOperators", project.getInstrumentOperators(instrumentOperators));
+        request.getSession().setAttribute("instrumentOperators", project.getInstrumentOperators(instrumentOperators));
 
         return mapping.findForward("Success");
 	}

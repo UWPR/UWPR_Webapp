@@ -146,7 +146,6 @@
                     <th>Current</th>
 					<th>Expires</th>
 					<th>Setup</th>
-					<th>Signup</th>
 					<th>Instrument</th>
                     <th>Total Cost</th>
                     <th>Invoiced</th>
@@ -189,9 +188,6 @@
 						%>
 					<td style="padding:3px">
 						$<%=pmu.getSetupCost()%>
-					</td>
-					<td style="padding:3px">
-						$<%=pmu.getSignupCost()%>
 					</td>
 					<td style="padding:3px">
 						$<%=pmu.getInstrumentCost()%>

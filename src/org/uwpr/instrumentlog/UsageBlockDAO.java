@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,23 +18,6 @@ import java.util.List;
  */
 public class UsageBlockDAO
 {
-    /**
-     * Returns a list of usage blocks for the given instrument ID that have their start OR end dates .
-     * within the given date range.
-     * If trim is true, blocks that have either their start or end dates outside of the range are trimmed.
-     * @param instrumentID
-     * @param startDate
-     * @param endDate
-     * @param trim
-     * @return
-     * @throws SQLException
-     */
-    public static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate,
-                                                        boolean trim) throws SQLException
-    {
-       return getUsageBlocksForInstrument(instrumentID, startDate, endDate, trim,
-               false); // Do not include signup-only blocks
-    }
 
     /**
      * Returns a list of usage blocks for the given instrument ID that have their start OR end dates .
@@ -49,7 +31,7 @@ public class UsageBlockDAO
      * @throws SQLException
      */
     public static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID, java.util.Date startDate, java.util.Date endDate,
-                                                               boolean trim, boolean includeDeleted) throws SQLException
+                                                               boolean trim) throws SQLException
     {
         // Get our connection to the database.
         Connection conn = null;
@@ -57,7 +39,6 @@ public class UsageBlockDAO
         {
             conn = InstrumentUsageDAO.getConnection();
             return getUsageBlocksForInstrument(instrumentID, startDate, endDate, trim, null,
-                    includeDeleted,
                     conn);
 
         }
@@ -73,7 +54,7 @@ public class UsageBlockDAO
 
     static List<UsageBlock> getUsageBlocksForInstrument(int instrumentID,
                                                  java.util.Date startDate, java.util.Date endDate, boolean trim,
-                                                 String sortBy, boolean includeDeleted, Connection conn) throws SQLException
+                                                 String sortBy, Connection conn) throws SQLException
     {
         if (conn == null)
             return null;
@@ -84,10 +65,6 @@ public class UsageBlockDAO
         filter.setEndDate(endDate);
         filter.setSortColumn(sortBy);
         filter.setTrimToFit(trim);
-        if(includeDeleted)
-        {
-            filter.setBlockType(UsageBlockBaseFilter.BlockType.ALL);
-        }
         return getUsageBlocks(filter);
     }
 
@@ -146,13 +123,6 @@ public class UsageBlockDAO
         buf.append(" ON ( invBlk.instrumentUsageID = insUsg.id AND invoice.id=invBlk.invoiceID )");
 
         String joiner = " WHERE ";
-
-        if(filter.getBlockType() != UsageBlockBaseFilter.BlockType.ALL)
-        {
-            buf.append(joiner);
-            buf.append(" deleted = ").append((filter.getBlockType() == UsageBlockBaseFilter.BlockType.SIGNUP_ONLY) ? 1 : 0);
-            joiner = " AND ";
-        }
 
         if(filter.getProjectId() != 0)
         {

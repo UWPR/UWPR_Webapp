@@ -126,7 +126,6 @@ public class ProjectInstrumentUsageUpdateEmailer
             }
 
             BigDecimal setupCost = BigDecimal.ZERO;
-            BigDecimal signupCost = BigDecimal.ZERO;
             BigDecimal instrumentCost = BigDecimal.ZERO;
             boolean hasRate = false;
 
@@ -169,16 +168,13 @@ public class ProjectInstrumentUsageUpdateEmailer
                     hasRate = true;
                     UsageBlockBaseWithRate blkWRate = (UsageBlockBaseWithRate) block;
                     BigDecimal blkSetupCost = blkWRate.getSetupCost();
-                    BigDecimal blkSignupCost = blkWRate.getSignupCost();
                     BigDecimal blkInstrCost = blkWRate.getInstrumentCost();
 
                     setupCost = setupCost.add(blkSetupCost);
-                    signupCost = signupCost.add(blkSignupCost);
                     instrumentCost = instrumentCost.add(blkInstrCost);
 
                     usageBlockDetails.append(", ")
                             .append("setup: $" + blkSetupCost)
-                            .append(" signup: $" + blkSignupCost)
                             .append(" instrument: $").append(blkInstrCost);
                 }
 
@@ -188,11 +184,9 @@ public class ProjectInstrumentUsageUpdateEmailer
             if(hasRate) {
                 usageDetails.append("Setup cost: $").append(setupCost);
                 usageDetails.append("\n");
-                usageDetails.append("Signup cost: $").append(signupCost);
-                usageDetails.append("\n");
                 usageDetails.append("Instrument cost: $").append(instrumentCost);
                 usageDetails.append("\n");
-                usageDetails.append("Total cost: ").append(setupCost.add(signupCost.add(instrumentCost)));
+                usageDetails.append("Total cost: ").append(setupCost.add(instrumentCost));
                 usageDetails.append("\n");
             }
             usageDetails.append("\n");

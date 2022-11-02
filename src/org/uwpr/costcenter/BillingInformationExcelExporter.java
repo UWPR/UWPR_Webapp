@@ -253,7 +253,6 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
 		row.createCell(cellnum++).setCellValue("BilledInstrument");
-		row.createCell(cellnum++).setCellValue("BilledSignup");
 		row.createCell(cellnum++).setCellValue("BilledSetup");
 		row.createCell(cellnum++).setCellValue("ContactFirstName");
 		row.createCell(cellnum++).setCellValue("ContactLastName");
@@ -286,7 +285,6 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
 		row.createCell(cellnum++).setCellValue("BilledInstrument");
-		row.createCell(cellnum++).setCellValue("BilledSignup");
 		row.createCell(cellnum++).setCellValue("BilledSetup");
 		row.createCell(cellnum++).setCellValue("ContactFirstName");
 		row.createCell(cellnum++).setCellValue("ContactLastName");
@@ -421,7 +419,6 @@ public class BillingInformationExcelExporter {
 		}
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getTotalCost(), percent, block.getEndDate()).toString() + flag);
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getInstrumentCost(), percent, block.getEndDate()).toString());
-		row.createCell(cellnum++).setCellValue(getBilledCost(block.getSignupCost(), percent, block.getEndDate()).toString());
 		row.createCell(cellnum++).setCellValue(getBilledCost(block.getSetupCost(), percent, block.getEndDate()).toString());
 
 		// contact details of the person associated with the payment method

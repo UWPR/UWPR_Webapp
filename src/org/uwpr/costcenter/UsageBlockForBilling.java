@@ -30,7 +30,6 @@ public class UsageBlockForBilling {
 	private BigDecimal percent;
 	private int totalHours = -1;
 	private BigDecimal setupCost = null;
-	private BigDecimal signupCost = null;
 	private BigDecimal instrumentCost = null;
 	private BigDecimal totalCost = null;
 	
@@ -121,19 +120,6 @@ public class UsageBlockForBilling {
 			}
 		}
 		return setupCost;
-	}
-
-	public BigDecimal getSignupCost()
-	{
-		if(signupCost == null)
-		{
-			signupCost = BigDecimal.ZERO;
-			for(UsageBlockBaseWithRate blk: blocks)
-			{
-				this.signupCost = signupCost.add(blk.getSignupCost());
-			}
-		}
-		return signupCost;
 	}
 
 	public BigDecimal getInstrumentCost()

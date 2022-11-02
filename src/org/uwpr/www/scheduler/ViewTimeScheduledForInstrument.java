@@ -120,9 +120,7 @@ public class ViewTimeScheduledForInstrument extends Action {
         filterForm.setStartDateString(startDateString);
         filterForm.setEndDateString(endDateString);
 
-        // Only getting instrument blocks; no sign-up only blocks
-        List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentId, startDate, endDate, false,
-                true); // Include signup-only blocks
+        List<UsageBlock> usageBlocks = UsageBlockDAO.getUsageBlocksForInstrument(instrumentId, startDate, endDate, false);
 
         // sort the blocks by start date, descending
         Collections.sort(usageBlocks, new Comparator<UsageBlock>() {

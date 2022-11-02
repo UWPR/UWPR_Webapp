@@ -134,8 +134,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
 		// This action is called via the calendar.  The requested blocks will be deleted.
 		// 10.28.2022 - We don't have to keep the deleted blocks in the database since we are no longer billing
 		// sign-up cost for deleted blocks.
-		InstrumentUsageDAO.getInstance().markDeleted(usageBlocks, user.getResearcher());
-        for (UsageBlockBase usageBlock: usageBlocks)
+		for (UsageBlockBase usageBlock: usageBlocks)
 		{
 			log.info("Deleting usage block: Researcher: " + user.getIdAndName() + "; " + usageBlock.toString());
 			InstrumentUsageDAO.getInstance().purge(usageBlock, user.getResearcher());

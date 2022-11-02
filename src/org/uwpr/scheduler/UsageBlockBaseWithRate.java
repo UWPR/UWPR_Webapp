@@ -36,41 +36,22 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 
 	public BigDecimal getCost()
 	{
+		if(isDeleted())
+		{
+			return BigDecimal.ZERO; // 10.28.2022 - Sign-up cost no longer charged for deleted blocks
+		}
+
 		BigDecimal cost = rate.getRate();
 		if(rate.isHourly())
 		{
 			cost = cost.multiply(new BigDecimal(getHours()));
 		}
-		if(isDeleted())
-		{
-			return BigDecimal.ZERO; // 10.28.2022 - Sign-up cost no longer charged for deleted blocks
-		}
 		return cost;
-	}
-
-	public BigDecimal getSignupCost()
-	{
-		if(isDeleted())
-		{
-			return BigDecimal.ZERO; // 10.28.2022 - Sign-up cost no longer charged for deleted blocks
-		}
-		BigDecimal cost = getCost();
-		return calcSignupCost(cost);
-	}
-
-	private static BigDecimal calcSignupCost(BigDecimal cost)
-	{
-		return CostUtils.calcCost(cost, InstrumentRate.SIGNUP_PERC);
 	}
 
 	public BigDecimal getInstrumentCost()
 	{
-		if(this.isDeleted())
-		{
-			return BigDecimal.ZERO;
-		}
-		BigDecimal cost = getCost();
-		return CostUtils.calcCost(cost, InstrumentRate.INSTRUMENT_PERC);
+		return getCost();
 	}
 
 	public BigDecimal getSetupCost()

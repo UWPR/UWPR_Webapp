@@ -180,44 +180,7 @@ public class ShiftTimeScheduledForInstrument extends Action
             log.info("Shifting usage blocks on instrument: " + instrumentId);
             instrumentUsageDAO.updateBlocksDates(conn, usageBlocksToShift, logMessages);
 
-            // If we are going over some previously existing signup-only blocks, adjust / delete them
-            // Sort the blocks by project and then by start date
-            Collections.sort(usageBlocksToShift, new Comparator<UsageBlock>() {
-                @Override
-                public int compare(UsageBlock o1, UsageBlock o2) {
-                    if(o1.getProjectID() == o2.getProjectID())
-                    {
-                        return o1.getStartDate().compareTo(o2.getStartDate());
-                    }
-                    return o1.getProjectID() < o2.getProjectID() ? -1 : 1;
-                }
-            });
-
-            Project project = null;
-            RateType projectRateType = null;
-            for(UsageBlock block: usageBlocksToShift)
-            {
-                if(project == null || block.getProjectID() != project.getID())
-                {
-                    try {
-                        project = ProjectFactory.getProject(block.getProjectID());
-                        projectRateType = project.getRateType();
-                    }
-                    catch(Exception e)
-                    {
-                        ActionErrors errors = new ActionErrors();
-                        errors.add("scheduler", new ActionMessage("error.scheduler.general", "Error loading project " + block.getProjectID() + ". " + e.getMessage()));
-                        saveErrors(request, errors);
-                        return mapping.findForward("Failure");
-                    }
-                }
-
-                // 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee
-                // TODO: remove this?  There should not be any sign-up only blocks in the database.
-                instrumentUsageDAO.deleteOrAdjustSignupBlocks(conn, user.getResearcher(), project.getID(), instrumentId, projectRateType,
-                                                              block.getStartDate(), block.getEndDate());
-
-            }
+            // 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee. No need to delete or adjust old sign-up only blocks.
 
             conn.commit();
         }

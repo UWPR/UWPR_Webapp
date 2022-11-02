@@ -33,7 +33,6 @@ public class InstrumentUsageDAO {
 	private static final Logger log = LogManager.getLogger(InstrumentUsageDAO.class);
 
 	private static final String dateUpdateMsg = "Date changed from {0} - {1} to  {2} - {3}";
-	private static final String adjustingSignup = "Adjusting Signup";
 	private static final String deletedByEditAction = "Deleted by edit action";
 	private static final String addedByEditAction = "Added by edit action";
 
@@ -233,29 +232,6 @@ public class InstrumentUsageDAO {
 		}
 	}
 
-	public void markDeleted(List<UsageBlockBase> usageBlocks, Researcher user) throws Exception {
-
-		if (usageBlocks == null || usageBlocks.size() == 0)
-			return;
-
-		log.info("Marking blocks as deleted.");
-
-		Connection conn = null;
-		try
-		{
-			conn = getConnection();
-			conn.setAutoCommit(false);
-			markDeleted(conn, usageBlocks, user, null);
-			// If any of the blocks we are deleting are setup blocks, make the next contiguous block (if found) the setup block.
-			updateSetupStatusForDeletedBlocks(conn, usageBlocks, user);
-			conn.commit();
-
-		} finally {
-
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
 	public void deletedByEditAction(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher) throws SQLException
 	{
 		delete(conn, usageBlocks, researcher, deletedByEditAction);
@@ -317,48 +293,6 @@ public class InstrumentUsageDAO {
 			stmt.setInt(2, researcher.getID());
 
 			int numUpdated = stmt.executeUpdate();
-
-			return numUpdated;
-
-		} finally {
-
-			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
-		}
-	}
-
-	private int markDeleted(Connection conn, List<UsageBlockBase> usageBlocks, Researcher researcher, String message) throws SQLException {
-
-		if (usageBlocks == null || usageBlocks.size() == 0)
-			return 0;
-
-		InstrumentLogDao logDao = InstrumentLogDao.getInstance();
-
-		log.info("Marking blocks as deleted.");
-
-		List<Integer> usageBlockIds = new ArrayList<>(usageBlocks.size());
-		for(UsageBlockBase block: usageBlocks)
-		{
-			usageBlockIds.add(block.getID());
-		}
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-
-		StringBuilder sql = new StringBuilder("Update instrumentUsage SET");
-		sql.append(" deleted = ?, ");
-		sql.append(" setupBlock = ?, ");
-		sql.append(" updatedBy = ? ");
-		sql.append(" WHERE id in (").append(StringUtils.join(usageBlockIds, ",")).append(") ");
-		try
-		{
-			stmt = conn.prepareStatement(sql.toString());
-			stmt.setBoolean(1, Boolean.TRUE);
-			stmt.setBoolean(2, Boolean.FALSE);
-			stmt.setInt(3, researcher.getID());
-
-			int numUpdated = stmt.executeUpdate();
-
-			logDao.logSignupDeleted(conn, usageBlocks, researcher.getID(), message);
 
 			return numUpdated;
 
@@ -487,116 +421,6 @@ public class InstrumentUsageDAO {
 				try { stmt.close(); } catch (SQLException ignored) { ; }
 			}
 		}
-	}
-
-	public void deleteOrAdjustSignupBlocks(Connection conn, Researcher researcher, int projectId, int instrumentId, RateType rateType,
-										   Date startDate, Date endDate) throws Exception
-	{
-		List<UsageBlockBase> signupBlocks = UsageBlockBaseDAO.getSignupBlocks(conn, projectId, instrumentId, startDate, endDate);
-
-		if(signupBlocks.size() == 0)
-			return;
-
-		List<UsageBlockBase> toDelete = new ArrayList<>();
-		List<UsageBlockBase> toUpdate = new ArrayList<>();
-		List<String> updateMsgs = new ArrayList<>();
-		List<UsageBlock> newBlocks = new ArrayList<>();
-
-		InstrumentUsagePaymentDAO iupDao = InstrumentUsagePaymentDAO.getInstance();
-
-		for(UsageBlockBase block: signupBlocks)
-		{
-			Date sStartDate = block.getStartDate();
-			Date sEndDate = block.getEndDate();
-
-			if((sStartDate.equals(startDate) || sStartDate.after(startDate)) &&
-					(sEndDate.equals(endDate) || sEndDate.before(endDate)))
-			{
-				// delete this signup (it is contained in the new signup request)
-				toDelete.add(block);
-			}
-
-			else if(sStartDate.before(startDate))
-			{
-				if(sEndDate.after(endDate))
-				{
-					// Create a new block
-					UsageBlock newBlock = new UsageBlock();
-					block.copyTo(newBlock);
-					newBlock.setID(0);
-					newBlock.setStartDate(endDate);
-					newBlock.setEndDate(sEndDate);
-					newBlock.setDeleted(true);
-					newBlock.setUpdaterResearcherID(researcher.getID());
-					updateRateId(conn, rateType, newBlock); // TODO: Can be removed once we have migrated all blocks to hourly rates.
-					newBlocks.add(newBlock);
-					newBlock.setPayments(iupDao.getPaymentsForUsage(block.getID()));
-				}
-				if(!sEndDate.equals(startDate))
-				{
-					// Update the block end date only if it is overlapping
-					String updateMsg = getUpdateMessage(block, block.getStartDate(), startDate);
-					block.setEndDate(startDate);
-					block.setUpdaterResearcherID(researcher.getID());
-					// Get the new rateId
-					updateRateId(conn, rateType, block); // TODO: Can be removed once we have migrated all blocks to hourly rates.
-					toUpdate.add(block);
-					updateMsgs.add(adjustingSignup + ": " + updateMsg);
-				}
-			}
-
-			else if(sEndDate.after(endDate))
-			{
-				if(!sStartDate.equals(endDate))
-				{
-					// Update the block end date only if it is overlapping
-					String updateMsg = getUpdateMessage(block, endDate, block.getEndDate());
-					block.setStartDate(endDate);
-					// Get the new rateId
-					updateRateId(conn, rateType, block); // TODO: Can be removed once we have migrated all blocks to hourly rates.
-					toUpdate.add(block);
-					updateMsgs.add(adjustingSignup + ": " + updateMsg);
-				}
-			}
-			else
-			{
-				// We should not be here
-				throw new Exception("Cannot handle existing overlapping signup: " + sStartDate + " to " + sEndDate
-						+ ". Requested signup was from " + startDate + " to " + endDate);
-			}
-		}
-
-		delete(conn, toDelete, researcher, adjustingSignup);
-
-		log.info("Updating usage blocks on instrument: " + instrumentId);
-		updateBlocksDates(conn, toUpdate, updateMsgs);
-		save(conn, newBlocks, adjustingSignup);
-		for(UsageBlock block: newBlocks)
-		{
-			for(InstrumentUsagePayment payment: block.getPayments())
-			{
-				payment.setInstrumentUsageId(block.getID());
-				iupDao.savePayment(conn, payment);
-			}
-
-		}
-	}
-
-	// TODO: This may only be required until we migrate all scheduled time to the new hourly rate.
-	//       We should no longer have to update the rateID since we are using the same "hourly" block for everything.
-	private void updateRateId(Connection conn, RateType rateType, UsageBlockBase block) throws Exception
-	{
-		TimeBlock timeBlock = TimeBlockDAO.getInstance().getTimeBlockForName(conn, TimeBlock.HOURLY);
-		if(timeBlock == null)
-        {
-            throw new Exception("Could not find a time block for numHours: " + block.getHours() + ". Attempting to adjust signup block: " + block.toString());
-        }
-		InstrumentRate rate = InstrumentRateDAO.getInstance().getInstrumentCurrentRate(block.getInstrumentID(), timeBlock.getId(), rateType.getId());
-		if(rate == null)
-		{
-			throw new Exception("Could not find a rate for timeBlock: " + timeBlock.toString() + ". Attempting to adjust signup block: " + block.toString());
-		}
-		block.setInstrumentRateID(rate.getId());
 	}
 
 	public String saveUsageBlocks(

@@ -34,11 +34,6 @@ public class PaymentMethodUsage
 		return cost == null ? BigDecimal.ZERO : cost.instrumentCost;
 	}
 
-	public BigDecimal getSignupCost()
-	{
-		return cost == null ? BigDecimal.ZERO : cost.signupCost;
-	}
-
 	public BigDecimal getSetupCost()
 	{
 		return cost == null ? BigDecimal.ZERO : cost.setupCost;
