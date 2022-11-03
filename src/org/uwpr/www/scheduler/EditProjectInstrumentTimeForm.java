@@ -62,12 +62,6 @@ public class EditProjectInstrumentTimeForm extends ActionForm{
 			errors.add("costcenter", new ActionMessage("error.costcenter.invaliddata", "Invalid end date: "+endDate));
 		}
 		
-		if(startDateDate != null && endDateDate != null) {
-			if(!endDateDate.after(startDateDate)) {
-				errors.add("costcenter", new ActionMessage("error.costcenter.invaliddata", "End date has to be after start date."));
-			}
-		}
-		
 		return errors;
 	}
 

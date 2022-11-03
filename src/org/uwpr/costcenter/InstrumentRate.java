@@ -24,8 +24,8 @@ public class InstrumentRate {
 	private Date createDate;
 	private boolean isCurrent = false;
 	
-	public static BigDecimal SIGNUP_PERC = new BigDecimal("0.10");
-	public static BigDecimal INSTRUMENT_PERC = new BigDecimal("0.90");
+	// public static BigDecimal SIGNUP_PERC = new BigDecimal("0.10");
+	// public static BigDecimal INSTRUMENT_PERC = new BigDecimal("0.90");
 	
 	public int getId() {
 		return id;

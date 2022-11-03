@@ -259,7 +259,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 			msg += "Selected end date was: "+format.format(rangeEndDate);
 			return returnError(mapping, request, "scheduler",
 								new ActionMessage("error.costcenter.invaliddata", msg),
-						       "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+					"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId + "&usageBlockIds=" + editForm.getUsageBlockIdsToEdit());
 		}
 
 		// Make sure the start date is on or after the current date
@@ -267,7 +267,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 			return returnError(mapping, request, "scheduler",
 					new ActionMessage("error.costcenter.invaliddata",
 							"Cannot schedule instrument time in the past!"),
-					"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+					"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId + "&usageBlockIds=" + editForm.getUsageBlockIdsToEdit());
 		}
 
 		UsageBlockBase oldBlock = blocksToDelete.get(0);
@@ -330,7 +330,7 @@ public class EditProjectInstrumentTimeAction extends Action {
             			new ActionMessage("error.costcenter.invaliddata", 
             					"Instrument is busy at the requested time between "
             					+block.getStartDateFormated() + " and "+block.getEndDateFormated()),
-    							"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+						"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId + "&usageBlockIds=" + editForm.getUsageBlockIdsToEdit());
     		}
     	}
 
