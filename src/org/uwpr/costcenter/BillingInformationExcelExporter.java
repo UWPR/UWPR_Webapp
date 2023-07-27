@@ -249,6 +249,12 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("TimeBlock_Rate");
 		row.createCell(cellnum++).setCellValue("Payment_Method");
 		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
+		row.createCell(cellnum++).setCellValue("Resource_Worktag");
+		row.createCell(cellnum++).setCellValue("Resource_Worktag_Descr");
+		row.createCell(cellnum++).setCellValue("Assignee_Worktag");
+		row.createCell(cellnum++).setCellValue("Assignee_Worktag_Descr");
+		row.createCell(cellnum++).setCellValue("Activity_Worktag");
+		row.createCell(cellnum++).setCellValue("Activity_Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Federal_Funding");
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
@@ -281,6 +287,12 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("Hours_Used");
 		row.createCell(cellnum++).setCellValue("Payment_Method");
 		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
+		row.createCell(cellnum++).setCellValue("Resource_Worktag");
+		row.createCell(cellnum++).setCellValue("Resource_Worktag_Descr");
+		row.createCell(cellnum++).setCellValue("Assignee_Worktag");
+		row.createCell(cellnum++).setCellValue("Assignee_Worktag_Descr");
+		row.createCell(cellnum++).setCellValue("Activity_Worktag");
+		row.createCell(cellnum++).setCellValue("Activity_Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Federal_Funding");
 		row.createCell(cellnum++).setCellValue("%Billed");
 		row.createCell(cellnum++).setCellValue("AmountBilled");
@@ -389,14 +401,18 @@ public class BillingInformationExcelExporter {
 		
 		String uwBudgetNumber = paymentMethod.getUwbudgetNumber();
 		String ponumber = paymentMethod.getPonumber();
+		String worktag = paymentMethod.getWorktag();
 		if(uwBudgetNumber != null && uwBudgetNumber.trim().length() > 0) {
 			row.createCell(cellnum++).setCellValue(uwBudgetNumber);
 		}
 		else if(ponumber != null && ponumber.trim().length() > 0) {
 			row.createCell(cellnum++).setCellValue(ponumber);
 		}
+		else if(worktag != null && worktag.trim().length() > 0) {
+			row.createCell(cellnum++).setCellValue(worktag);
+		}
 		else {
-			throw new BillingInformationExporterException("Did not find a UW Budget number or a PO numer for payment method ID: "
+			throw new BillingInformationExporterException("Did not find a Worktag / UW Budget number / PO number for payment method ID: "
 					+paymentMethod.getId());
 		}
 		String paymentMethodName = paymentMethod.getPaymentMethodName();
@@ -405,6 +421,12 @@ public class BillingInformationExcelExporter {
 			paymentMethodName = "";
 		}
 		row.createCell(cellnum++).setCellValue(paymentMethodName);
+		row.createCell(cellnum++).setCellValue(paymentMethod.getResourceWorktagNotNull());
+		row.createCell(cellnum++).setCellValue(paymentMethod.getResourceWorktagDescrNotNull());
+		row.createCell(cellnum++).setCellValue(paymentMethod.getAssigneeWorktagNotNull());
+		row.createCell(cellnum++).setCellValue(paymentMethod.getAssigneeWorktagDescrNotNull());
+		row.createCell(cellnum++).setCellValue(paymentMethod.getActivityWorktagNotNull());
+		row.createCell(cellnum++).setCellValue(paymentMethod.getActivityWorktagDescrNotNull());
 		
 		row.createCell(cellnum++).setCellValue(String.valueOf(paymentMethod.isFederalFunding()));
 		

@@ -90,12 +90,14 @@ public class NewPaymentMethodAction extends Action {
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
         paymentMethodForm.setUwBudgetNumber(""); // Reset Budget number and PO number fields, otherwise cached values get sent in the request.
         paymentMethodForm.setPoNumber("");
+        paymentMethodForm.clearWorktags();
         paymentMethodForm.setProjectId(projectId);
         
         // Only non-UW affiliated projects are not allowed a PO number
-        paymentMethodForm.setPonumberAllowed(!(((BilledProject)project).getAffiliation() == Affiliation.UW));
-        // Only UW affiliated projects are allowed a UW Budget number.
-        paymentMethodForm.setUwbudgetAllowed(((BilledProject)project).getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setPonumberAllowed(!(project.getAffiliation() == Affiliation.UW));
+		// Only UW affiliated projects are allowed a Worktag.
+		paymentMethodForm.setWorktagAllowed(project.getAffiliation() == Affiliation.UW);
+		paymentMethodForm.setUwbudgetAllowed(false); // No longer allow budget numbers for UW projects
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

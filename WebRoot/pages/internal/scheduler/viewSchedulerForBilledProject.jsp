@@ -449,7 +449,7 @@ Select payment method(s):
 <table>
 <tr>
 <td>
-UW Budget # / PO Number:
+Payment method:
 <select id="paymentMethodSelector_1">
 <option value='0'>Select</option>
 <logic:iterate name="paymentMethods" id="paymentMethod">

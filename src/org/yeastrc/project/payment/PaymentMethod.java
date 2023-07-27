@@ -22,7 +22,7 @@ public class PaymentMethod {
 	private String uwbudgetNumber;
 	private Date budgetExpirationDate;
 	private String ponumber;
-	public String paymentMethodName;
+	public String paymentMethodName; // This will also be the worktag description
 	private String contactFirstName;
 	private String contactLastName;
 	private String contactEmail;
@@ -40,6 +40,14 @@ public class PaymentMethod {
 	private boolean isCurrent;
 	private boolean federalFunding;
     private BigDecimal poAmount;
+
+	private String worktag; // Required. Format: [GR|GF|PG|CC|SAG]######
+	private String resourceWorktag; // Required for PG, CC GR, and some SAG worktags. Format: RS######
+	private String resourceWorktagDescr;
+	private String assigneeWorktag; // Format: AS######
+	private String assigneeWorktagDescr;
+	private String activityWorktag; // Format: AC######
+	private String activityWorktagDescr;
 
 	public int getId() {
 		return id;
@@ -187,7 +195,87 @@ public class PaymentMethod {
         this.poAmount = poAmount;
     }
 
-    public String getDisplayString()
+	public String getWorktag() {
+		return worktag;
+	}
+
+	public void setWorktag(String worktag) {
+		this.worktag = worktag;
+	}
+
+	public String getResourceWorktag() {
+		return resourceWorktag;
+	}
+
+	public String getResourceWorktagNotNull() {
+		return !StringUtils.isBlank(resourceWorktag) ? resourceWorktag : "";
+	}
+
+	public void setResourceWorktag(String resourceWorktag) {
+		this.resourceWorktag = resourceWorktag;
+	}
+
+	public String getResourceWorktagDescr() {
+		return resourceWorktagDescr;
+	}
+
+	public String getResourceWorktagDescrNotNull() {
+		return !StringUtils.isBlank(resourceWorktagDescr) ? resourceWorktagDescr : "";
+	}
+
+	public void setResourceWorktagDescr(String resourceWorktagDescr) {
+		this.resourceWorktagDescr = resourceWorktagDescr;
+	}
+
+	public String getAssigneeWorktag() {
+		return assigneeWorktag;
+	}
+
+	public String getAssigneeWorktagNotNull() {
+		return !StringUtils.isBlank(assigneeWorktag) ? assigneeWorktag : "";
+	}
+
+	public void setAssigneeWorktag(String assigneeWorktag) {
+		this.assigneeWorktag = assigneeWorktag;
+	}
+
+	public String getAssigneeWorktagDescr() {
+		return assigneeWorktagDescr;
+	}
+
+	public String getAssigneeWorktagDescrNotNull() {
+		return !StringUtils.isBlank(assigneeWorktagDescr) ? assigneeWorktagDescr : "";
+	}
+
+	public void setAssigneeWorktagDescr(String assigneeWorktagDescr) {
+		this.assigneeWorktagDescr = assigneeWorktagDescr;
+	}
+
+	public String getActivityWorktag() {
+		return activityWorktag;
+	}
+
+	public String getActivityWorktagNotNull() {
+		return !StringUtils.isBlank(activityWorktag) ? activityWorktag : "";
+	}
+
+	public void setActivityWorktag(String activityWorktag) {
+		this.activityWorktag = activityWorktag;
+	}
+
+	public String getActivityWorktagDescr() {
+		return activityWorktagDescr;
+	}
+
+	public String getActivityWorktagDescrNotNull() {
+		return !StringUtils.isBlank(activityWorktagDescr) ? activityWorktagDescr : "";
+	}
+
+	public void setActivityWorktagDescr(String activityWorktagDescr) {
+		this.activityWorktagDescr = activityWorktagDescr;
+	}
+
+	public String getDisplayString()
     {
 		StringBuilder displayString = new StringBuilder();
 		displayString.append(getShortDisplayString());
@@ -216,9 +304,13 @@ public class PaymentMethod {
 		{
 			displayString.append("PO: ").append(getPonumber());
 		}
+		else if (!StringUtils.isBlank(getWorktag()))
+		{
+			displayString.append("Worktag: ").append(getWorktag());
+		}
 		else
 		{
-			return "BUDGET NUMBER OR PO NUMBER NOT FOUND";
+			return "WORKTAG, BUDGET NUMBER OR PO NUMBER NOT FOUND";
 		}
 
 		return displayString.toString();

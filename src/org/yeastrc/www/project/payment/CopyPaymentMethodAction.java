@@ -1,14 +1,12 @@
 /**
- * EditPaymentMethodAction.java
+ * CopyPaymentMethodAction.java
  * @author Vagisha Sharma
  * May 20, 2011
  */
 package org.yeastrc.www.project.payment;
 
 import org.apache.struts.action.*;
-import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
 import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -117,6 +115,7 @@ public class CopyPaymentMethodAction extends Action {
         paymentMethodForm.setPoNumber("");
         paymentMethodForm.setBudgetExpirationDateStr("");
         paymentMethodForm.setPaymentMethodName("");
+        paymentMethodForm.clearWorktags();
         paymentMethodForm.setContactFirstName(paymentMethod.getContactFirstName());
         paymentMethodForm.setContactLastName(paymentMethod.getContactLastName());
         paymentMethodForm.setContactEmail(paymentMethod.getContactEmail());
@@ -134,9 +133,10 @@ public class CopyPaymentMethodAction extends Action {
         paymentMethodForm.setPoBigDecimalValue(paymentMethod.getPoAmount());
         
         // Only non-UW affiliated projects are not allowed a PO number
-        paymentMethodForm.setPonumberAllowed(!(((BilledProject)project).getAffiliation() == Affiliation.UW));
-        // Only UW affiliated projects are allowed a UW Budget number.
-        paymentMethodForm.setUwbudgetAllowed(((BilledProject)project).getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setPonumberAllowed(!(project.getAffiliation() == Affiliation.UW));
+        // Only UW affiliated projects are allowed a Worktag.
+        paymentMethodForm.setWorktagAllowed(project.getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setUwbudgetAllowed(false); // No longer allow budget numbers for UW projects
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

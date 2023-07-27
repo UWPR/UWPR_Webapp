@@ -99,6 +99,9 @@ public class NewPaymentMethodAddedEmailer {
 			if(!StringUtils.isBlank(paymentMethod.getPonumber())) {
 				text.append("PO number: "+paymentMethod.getPonumber()+"\n");
 			}
+			if(!StringUtils.isBlank(paymentMethod.getWorktag())) {
+				text.append("Worktag: "+paymentMethod.getWorktag()+"\n");
+			}
 			text.append("Contact information: \n");
 			text.append("Name: "+paymentMethod.getContactFirstName()+" ");
 			text.append(paymentMethod.getContactLastName()+"\n");

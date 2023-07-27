@@ -230,7 +230,16 @@ public class ViewSchedulerAction extends Action {
         if(project instanceof BilledProject) {
 	        // get a list of payment methods for this project
 	        List<PaymentMethod> paymentMethods = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
-	        request.setAttribute("paymentMethods", paymentMethods);
+	        List<PaymentMethod> notExpired = new ArrayList<>(paymentMethods.size());
+			Date currentDate = new Date();
+	        for (PaymentMethod pm : paymentMethods)
+			{
+				if (pm.getBudgetExpirationDate() == null || currentDate.after(pm.getBudgetExpirationDate()))
+				{
+					notExpired.add(pm);
+				}
+			}
+	        request.setAttribute("paymentMethods", notExpired);
         }
         
         // If the user making the request is an admin put a list of projects 
