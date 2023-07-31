@@ -100,7 +100,7 @@ public class PaymentMethodForm extends ActionForm {
 			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid UW budget number."));
 		}
 
-		else if (!StringUtils.isBlank(uwBudgetNumber) && !checker.isValidWorktag(worktag))
+		else if (!StringUtils.isBlank(worktag) && !checker.isValidWorktag(worktag))
 		{
 			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid worktag. " + PaymentMethodChecker.getWorktagFormatMessage()));
 		}
@@ -124,7 +124,7 @@ public class PaymentMethodForm extends ActionForm {
 			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid Activity worktag. " + PaymentMethodChecker.getActivityWorktagFormatMessage()));
 		}
 
-		if(!StringUtils.isBlank(worktag) || !StringUtils.isBlank(uwBudgetNumber)) {
+		if(isUwbudgetAllowed() || isWorktagAllowed()) {
 			if(StringUtils.isBlank(budgetExpirationDateStr))
 			{
 				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Expiration date is required."));
@@ -518,9 +518,39 @@ public class PaymentMethodForm extends ActionForm {
 		this.activityWorktagDescr = activityWorktagDescr;
 	}
 
-	public void clearWorktags()
+	public void clearAllFields()
 	{
+		clearAllWorktags();
+		clearUwBudgetNumber();
+		clearPoNumber();
+	}
+
+	public void clearPoNumber()
+	{
+		this.paymentMethodName = null;
+		this.poNumber = null;
+		this.poAmount = null;
+	}
+
+	public void clearUwBudgetNumber()
+	{
+		this.uwBudgetNumber = null;
+		this.budgetExpirationDate = null;
+		this.budgetExpirationDateStr = null;
+		this.paymentMethodName = null;
+	}
+
+	public void clearWorktag()
+	{
+		this.budgetExpirationDate = null;
+		this.budgetExpirationDateStr = null;
+		this.paymentMethodName = null;
 		this.worktag = null;
+	}
+
+	public void clearAllWorktags()
+	{
+		this.clearWorktag();
 		this.resourceWorktag = null;
 		this.resourceWorktagDescr = null;
 		this.assigneeWorktag = null;

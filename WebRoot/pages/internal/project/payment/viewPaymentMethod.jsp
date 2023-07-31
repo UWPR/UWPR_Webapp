@@ -87,9 +87,9 @@ function backToProject(projectId) {
 			</td>
 		</tr>
 		<tr>
-			<td>Description:</td>
+			<td>Worktag Name:</td>
 			<td>
-				<bean:write name="paymentMethod"  property="worktagDescr"/>
+				<bean:write name="paymentMethod"  property="paymentMethodName"/>
 			</td>
 		</tr>
 		<tr>
@@ -144,6 +144,12 @@ function backToProject(projectId) {
 	    	</td>
 	   </tr>
 		<tr>
+			<td>Budget Name:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="paymentMethodName" />
+			</td>
+		</tr>
+		<tr>
 			<td>Expiration Date:</td>
 			<td>
 				<bean:write name="paymentMethod"  property="budgetExpirationDate"/>
@@ -164,21 +170,14 @@ function backToProject(projectId) {
                 <bean:write name="paymentMethod"  property="poAmount"/>
             </td>
        </tr>
+	   <tr>
+		   <td>PO Name:</td>
+		   <td>
+			   <bean:write name="paymentMethod"  property="paymentMethodName" />
+		   </td>
+	   </tr>
    </logic:notEmpty>
-	<tr>
-		<td>
-			<logic:notEmpty name="paymentMethod" property="uwbudgetNumber">
-				Budget
-			</logic:notEmpty>
-			<logic:notEmpty name="paymentMethod" property="ponumber">
-				PO
-			</logic:notEmpty>
-			Name:
-		</td>
-		<td>
-			<bean:write name="paymentMethod"  property="paymentMethodName" />
-		</td>
-	</tr>
+
    <tr>
 	   	<td>Federal Funding:</td>
 	   	<td>

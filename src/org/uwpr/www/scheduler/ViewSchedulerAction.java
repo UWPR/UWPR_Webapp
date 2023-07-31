@@ -22,6 +22,7 @@ import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.costcenter.InstrumentRateDAO;
 import org.uwpr.costcenter.RateType;
 import org.uwpr.costcenter.TimeBlock;
+import org.uwpr.instrumentlog.DateUtils;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.scheduler.ProjectInstrumentTimeApprover;
@@ -231,10 +232,10 @@ public class ViewSchedulerAction extends Action {
 	        // get a list of payment methods for this project
 	        List<PaymentMethod> paymentMethods = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
 	        List<PaymentMethod> notExpired = new ArrayList<>(paymentMethods.size());
-			Date currentDate = new Date();
+			Date today12am = DateUtils.today();
 	        for (PaymentMethod pm : paymentMethods)
 			{
-				if (pm.getBudgetExpirationDate() == null || currentDate.after(pm.getBudgetExpirationDate()))
+				if (pm.getBudgetExpirationDate() == null || !today12am.after(pm.getBudgetExpirationDate()))
 				{
 					notExpired.add(pm);
 				}

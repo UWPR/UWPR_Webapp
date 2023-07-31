@@ -161,9 +161,8 @@ public class EditPaymentMethodAction extends Action {
         paymentMethodForm.setActivityWorktagDescr(paymentMethod.getActivityWorktagDescr());
 
         paymentMethodForm.setPonumberAllowed(!StringUtils.isBlank(paymentMethod.getPonumber()));
-        boolean hasUWBudgetNumber = !StringUtils.isBlank(paymentMethod.getUwbudgetNumber());
-        paymentMethodForm.setUwbudgetAllowed(hasUWBudgetNumber);
-        paymentMethodForm.setWorktagAllowed(!hasUWBudgetNumber);
+        paymentMethodForm.setUwbudgetAllowed(!StringUtils.isBlank(paymentMethod.getUwbudgetNumber()));
+        paymentMethodForm.setWorktagAllowed(!StringUtils.isBlank(paymentMethod.getWorktag()));
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

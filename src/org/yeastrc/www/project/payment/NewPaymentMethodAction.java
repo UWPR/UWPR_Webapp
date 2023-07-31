@@ -17,7 +17,6 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.utils.CountriesBean;
@@ -88,9 +87,7 @@ public class NewPaymentMethodAction extends Action {
         
         // set the projectID in the form
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
-        paymentMethodForm.setUwBudgetNumber(""); // Reset Budget number and PO number fields, otherwise cached values get sent in the request.
-        paymentMethodForm.setPoNumber("");
-        paymentMethodForm.clearWorktags();
+        paymentMethodForm.clearAllFields(); // Clear Worktags, Budget number and PO number fields, otherwise cached values get sent in the request.
         paymentMethodForm.setProjectId(projectId);
         
         // Only non-UW affiliated projects are not allowed a PO number
