@@ -35,15 +35,6 @@
 <html:hidden name="paymentMethodForm" property="uwbudgetAllowed"/>
 <html:hidden name="paymentMethodForm" property="ponumberAllowed"/>
 
-<logic:equal name="paymentMethodForm" property="worktagAllowed" value="true">
-	<bean:define id="paymentMethodFormTitle">Worktag</bean:define>
-</logic:equal>
-<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
-	<bean:define id="paymentMethodFormTitle">Budget Name</bean:define>
-</logic:equal>
-<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
-	<bean:define id="paymentMethodFormTitle">PO Name</bean:define>
-</logic:equal>
 
 <table border="0" cellpadding="7" class="striped">
 
@@ -72,7 +63,7 @@
 		<tr>
 			<td>Worktag Name:</td>
 			<td>
-				<html:text  property="paymentMethodName"/>
+				<html:text  property="paymentMethodName" size="40"/>
 			</td>
 		</tr>
 		<tr>
@@ -130,7 +121,7 @@
 
 		<tr>
 			<td>Budget Name:</td>
-			<td colspan="4">
+			<td>
 				<html:text  property="paymentMethodName" size="40" />
 			</td>
 		</tr>
@@ -167,7 +158,7 @@
 		</tr>
 		<tr>
 			<td>PO Name:</td>
-			<td colspan="4">
+			<td>
 				<html:text  property="paymentMethodName" size="40" />
 			</td>
 		</tr>

@@ -74,7 +74,7 @@ public class UsageBlockPaymentInformation {
         	throw new SchedulerException("Payment method selected: "+method.getDisplayString()+" is not associated with the project");
         }
 
-		// If this is a UW budget number and has an expiration date make sure it does not expire before the given endDate
+		// If this payment method has an expiration date make sure it does not expire before the given endDate
 		if(paymentMethod.getBudgetExpirationDate() != null)
 		{
 			try
@@ -82,8 +82,8 @@ public class UsageBlockPaymentInformation {
 				Date endDateOnly = TimeUtils.shortDate.parse(TimeUtils.shortDate.format(endDate)); // Get just the date component
 				if(endDateOnly.after(paymentMethod.getBudgetExpirationDate()))
 				{
-					throw new SchedulerException("UW Budget number " + paymentMethod.getUwbudgetNumber() + " expires on " +
-							TimeUtils.shortDate.format(paymentMethod.getBudgetExpirationDate()) + ". Please select a different budget or adjust the end date (" +
+					throw new SchedulerException(paymentMethod.getShortDisplayString() + " expires on " +
+							TimeUtils.shortDate.format(paymentMethod.getBudgetExpirationDate()) + ". Please select a different payment method or adjust the end date (" +
 							TimeUtils.shortDate.format(endDate) + ") of the requested time. ");
 				}
 			} catch (ParseException e)

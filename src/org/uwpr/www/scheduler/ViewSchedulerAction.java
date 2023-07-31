@@ -232,13 +232,14 @@ public class ViewSchedulerAction extends Action {
 	        // get a list of payment methods for this project
 	        List<PaymentMethod> paymentMethods = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
 	        List<PaymentMethod> notExpired = new ArrayList<>(paymentMethods.size());
-			Date today12am = DateUtils.today();
+	        Date today12am = DateUtils.today();
 	        for (PaymentMethod pm : paymentMethods)
 			{
-				if (pm.getBudgetExpirationDate() == null || !today12am.after(pm.getBudgetExpirationDate()))
-				{
-					notExpired.add(pm);
-				}
+			    if (pm.getBudgetExpirationDate() != null && today12am.after(pm.getBudgetExpirationDate()))
+                {
+                    continue;
+                }
+                notExpired.add(pm);
 			}
 	        request.setAttribute("paymentMethods", notExpired);
         }

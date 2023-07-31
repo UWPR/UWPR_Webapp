@@ -69,11 +69,7 @@ public class PaymentMethodChecker {
 	public boolean isValidResourceWorktag(String worktag)
 	{
 		Matcher m = resourceWorktagPattern.matcher(worktag.trim());
-		if (m.matches())
-		{
-			return true;
-		}
-		return false;
+		return m.matches();
 	}
 
 	public static String getResourceWorktagFormatMessage()
@@ -84,11 +80,7 @@ public class PaymentMethodChecker {
 	public boolean isValidAssigneeWorktag(String worktag)
 	{
 		Matcher m = assigneeWorktagPattern.matcher(worktag.trim());
-		if (m.matches())
-		{
-			return true;
-		}
-		return false;
+		return m.matches();
 	}
 
 	public static String getAssigneeWorktagFormatMessage()
@@ -99,11 +91,7 @@ public class PaymentMethodChecker {
 	public boolean isValidActivityWorktag(String worktag)
 	{
 		Matcher m = activityWorktagPattern.matcher(worktag.trim());
-		if (m.matches())
-		{
-			return true;
-		}
-		return false;
+		return m.matches();
 	}
 
 	public static String getActivityWorktagFormatMessage()
