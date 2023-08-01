@@ -16,7 +16,6 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.www.costcenter.PaymentMethodChecker;
 import org.uwpr.www.util.TimeUtils;
-import org.yeastrc.project.payment.PaymentMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -31,8 +30,18 @@ public class PaymentMethodForm extends ActionForm {
 	private String uwBudgetNumber;
 	private Date budgetExpirationDate;
 	private String budgetExpirationDateStr;
+
+	// Worktags
+	private String worktag; // Required. Format: [GR|GF|PG|CC|SAG]######
+	private String resourceWorktag; // Required for PG, CC GR, and some SAG worktags. Format: RS######
+	private String resourceWorktagDescr;
+	private String assigneeWorktag; // Format: AS######
+	private String assigneeWorktagDescr;
+	private String activityWorktag; // Format: AC######
+	private String activityWorktagDescr;
+
 	private String poNumber;
-	private String paymentMethodName;
+	private String paymentMethodName; // Also used for worktag description
 	private String contactFirstName;
 	private String contactLastName;
 	private String contactEmail;
@@ -51,8 +60,9 @@ public class PaymentMethodForm extends ActionForm {
 
     private String poAmount;
 	
-	private boolean ponumberAllowed = true; // Only Non-UW affiliated projects are allowed a PO number.
-	private boolean uwbudgetAllowed = false; // Only UW affiliated are allowed a UW Budget number.
+	private boolean ponumberAllowed; // Only Non-UW affiliated projects are allowed a PO number.
+	private boolean uwbudgetAllowed; // Only UW affiliated projects are allowed a UW Budget number.
+	private boolean worktagAllowed; // Worktags are allowed only for UW affiliated projects.
 
 	@Override
 	public void	reset(ActionMapping mapping, HttpServletRequest request)  {
@@ -69,24 +79,55 @@ public class PaymentMethodForm extends ActionForm {
 	public ActionErrors validate(ActionMapping mapping, HttpServletRequest request) {
 		
 		ActionErrors errors = new ActionErrors();
-		
-		
-		// We need atleast a UW budget number OR a PO number
-		if (StringUtils.isBlank(uwBudgetNumber) && StringUtils.isBlank(poNumber)) {
-			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "At least UW budget number or a PO number is required"));
+
+		// We need atleast a Worktag or UW budget number OR a PO number
+		if (isWorktagAllowed() && StringUtils.isBlank(worktag))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Worktag is required"));
 		}
-		
-		if (StringUtils.isNotBlank(uwBudgetNumber) && StringUtils.isNotBlank(poNumber)) {
-			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Only ONE of UW budget number or PO number should be entered"));
+		if (isUwbudgetAllowed() && StringUtils.isBlank(uwBudgetNumber))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "UW budget number is required"));
 		}
-		
-		if(!StringUtils.isBlank(uwBudgetNumber)) {
-			if(!PaymentMethodChecker.getInstance().checkUwbudgetNumber(uwBudgetNumber)) {
-				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid UW budget number."));
-			}
+		if (isPonumberAllowed() && StringUtils.isBlank(poNumber))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "PO number is required"));
+		}
+
+		PaymentMethodChecker checker = PaymentMethodChecker.getInstance();
+		if(!StringUtils.isBlank(uwBudgetNumber) && !checker.checkUwbudgetNumber(uwBudgetNumber))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid UW budget number."));
+		}
+
+		else if (!StringUtils.isBlank(worktag) && !checker.isValidWorktag(worktag))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid worktag. " + PaymentMethodChecker.getWorktagFormatMessage()));
+		}
+
+		if (StringUtils.isBlank(resourceWorktag) && !StringUtils.isBlank(worktag) && checker.requiresResourceTag(worktag))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Resource worktag is required for PG, CC and some SAG, GR worktags."));
+		}
+		if (!(StringUtils.isBlank(resourceWorktag) || checker.isValidResourceWorktag(resourceWorktag)))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid Resource worktag. " + PaymentMethodChecker.getResourceWorktagFormatMessage()));
+		}
+
+		if (!(StringUtils.isBlank(assigneeWorktag) || checker.isValidAssigneeWorktag(assigneeWorktag)))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid Assignee worktag. " + PaymentMethodChecker.getAssigneeWorktagFormatMessage()));
+		}
+
+		if (!(StringUtils.isBlank(activityWorktag) || checker.isValidActivityWorktag(activityWorktag)))
+		{
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Invalid Activity worktag. " + PaymentMethodChecker.getActivityWorktagFormatMessage()));
+		}
+
+		if(isUwbudgetAllowed() || isWorktagAllowed()) {
 			if(StringUtils.isBlank(budgetExpirationDateStr))
 			{
-				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Budget expiration date is required."));
+				errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Expiration date is required."));
 			}
 			else
 			{
@@ -99,6 +140,7 @@ public class PaymentMethodForm extends ActionForm {
 				}
 			}
 		}
+
 		if(!StringUtils.isBlank(poNumber)) {
 			// remove any spaces
 			poNumber = poNumber.trim().replaceAll("\\s", "");
@@ -387,7 +429,15 @@ public class PaymentMethodForm extends ActionForm {
 		this.uwbudgetAllowed = uwbudgetAllowed;
 	}
 
-    public String getPoAmount() {
+	public boolean isWorktagAllowed() {
+		return worktagAllowed;
+	}
+
+	public void setWorktagAllowed(boolean worktagAllowed) {
+		this.worktagAllowed = worktagAllowed;
+	}
+
+	public String getPoAmount() {
         return poAmount;
     }
 
@@ -411,4 +461,101 @@ public class PaymentMethodForm extends ActionForm {
             poAmount = value.toString();
         }
     }
+
+	public String getWorktag() {
+		return worktag;
+	}
+
+	public void setWorktag(String worktag) {
+		this.worktag = worktag;
+	}
+
+	public String getResourceWorktag() {
+		return resourceWorktag;
+	}
+
+	public void setResourceWorktag(String resourceWorktag) {
+		this.resourceWorktag = resourceWorktag;
+	}
+
+	public String getResourceWorktagDescr() {
+		return resourceWorktagDescr;
+	}
+
+	public void setResourceWorktagDescr(String resourceWorktagDescr) {
+		this.resourceWorktagDescr = resourceWorktagDescr;
+	}
+
+	public String getAssigneeWorktag() {
+		return assigneeWorktag;
+	}
+
+	public void setAssigneeWorktag(String assigneeWorktag) {
+		this.assigneeWorktag = assigneeWorktag;
+	}
+
+	public String getAssigneeWorktagDescr() {
+		return assigneeWorktagDescr;
+	}
+
+	public void setAssigneeWorktagDescr(String assigneeWorktagDescr) {
+		this.assigneeWorktagDescr = assigneeWorktagDescr;
+	}
+
+	public String getActivityWorktag() {
+		return activityWorktag;
+	}
+
+	public void setActivityWorktag(String activityWorktag) {
+		this.activityWorktag = activityWorktag;
+	}
+
+	public String getActivityWorktagDescr() {
+		return activityWorktagDescr;
+	}
+
+	public void setActivityWorktagDescr(String activityWorktagDescr) {
+		this.activityWorktagDescr = activityWorktagDescr;
+	}
+
+	public void clearAllFields()
+	{
+		clearAllWorktags();
+		clearUwBudgetNumber();
+		clearPoNumber();
+	}
+
+	public void clearPoNumber()
+	{
+		this.paymentMethodName = null;
+		this.poNumber = null;
+		this.poAmount = null;
+	}
+
+	public void clearUwBudgetNumber()
+	{
+		this.uwBudgetNumber = null;
+		this.budgetExpirationDate = null;
+		this.budgetExpirationDateStr = null;
+		this.paymentMethodName = null;
+	}
+
+	public void clearWorktag()
+	{
+		this.budgetExpirationDate = null;
+		this.budgetExpirationDateStr = null;
+		this.paymentMethodName = null;
+		this.worktag = null;
+	}
+
+	public void clearAllWorktags()
+	{
+		this.clearWorktag();
+		this.resourceWorktag = null;
+		this.resourceWorktagDescr = null;
+		this.assigneeWorktag = null;
+		this.assigneeWorktagDescr = null;
+		this.activityWorktag = null;
+		this.activityWorktagDescr = null;
+	}
 }

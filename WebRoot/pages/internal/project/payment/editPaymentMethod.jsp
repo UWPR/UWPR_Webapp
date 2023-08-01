@@ -24,23 +24,20 @@
 <logic:equal name="paymentMethodForm" property="editable" value="false">
 	<div style="font-size:8pt; font-weight:bold; color:red; margin:10px 0 10px 0;">
 	
-		This payment method is already in use. You may not change the budget number / PO number at this time.
+		This payment method is already in use. You may not change the worktag / budget number / PO number at this time.
 	</div>
 </logic:equal>
 
 
 <html:form action="savePaymentMethod.do" method="POST">
 
-<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
-	<bean:define id="paymentMethodFormTitle">Budget Name</bean:define>
-</logic:equal>
-<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
-	<bean:define id="paymentMethodFormTitle">PO Name</bean:define>
-</logic:equal>
+<html:hidden name="paymentMethodForm" property="worktagAllowed"/>
+<html:hidden name="paymentMethodForm" property="uwbudgetAllowed"/>
+<html:hidden name="paymentMethodForm" property="ponumberAllowed"/>
+
 
 <table border="0" cellpadding="7" class="striped">
 
-	<lo>
 	<tr>
 		<td><b>Project ID:</b></td>
 		<td>
@@ -49,68 +46,131 @@
 			<html:hidden property="paymentMethodId"/>
 		</td>
 	</tr>
-	<tr>
-    	
-    	<logic:equal name="paymentMethodForm" property="editable" value="true">
-    		<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
-				<td>UW Budget Number:</td>
-		    	<td>
-		    		<html:text  property="uwBudgetNumber" /> <span style="font-size:10px;">format: 00-0000</span>
-		    	</td>
-			</logic:equal>
-    	
-	    	<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
-		    	<td>PO Number:</td>
-		    	<td>
-		    		<html:text  property="poNumber"/>
-		    		<br/>
-	    			<span style="font-weight:bold;">
-	    				<html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment Information</html:link>
-	    			</span>
-	    		</td>
-                <td>
-                    Amount:
-                    <html:text property="poAmount"/>
-                </td>
-	    	</logic:equal>
-    	</logic:equal>
-    	
-    	<logic:equal name="paymentMethodForm" property="editable" value="false">
-    		<logic:notEmpty name="paymentMethodForm" property="uwBudgetNumber">
-    			<td>UW Budget Number:</td>
-	    		<td>
-				<bean:write name="paymentMethodForm" property="uwBudgetNumber" />
-				<html:hidden  name="paymentMethodForm" property="uwBudgetNumber" />
-	    	</td>
-    		</logic:notEmpty>
-    		<logic:notEmpty name="paymentMethodForm" property="poNumber">
-    			<td>PO Number:</td>
-	    		<td>
+
+		<logic:notEmpty name="paymentMethodForm" property="worktag">
+			<tr>
+				<td><bold>Worktag <span style="color:red;">(required)</span>:</bold></td>
+				<td>
+				<logic:equal name="paymentMethodForm" property="editable" value="true">
+					<html:text  property="worktag"/> <span style="font-size:10px;">format: [GR|GF|PG|CC|SAG]#####. Example: GF101001</span>
+				</logic:equal>
+				<logic:equal name="paymentMethodForm" property="editable" value="false">
+					<bean:write name="paymentMethodForm" property="worktag" />
+					<html:hidden  name="paymentMethodForm" property="worktag" />
+				</logic:equal>
+				</td>
+			</tr>
+		<tr>
+			<td>Worktag Name:</td>
+			<td>
+				<html:text  property="paymentMethodName" size="40"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Resource Worktag:</td>
+			<td>
+				<html:text  property="resourceWorktag"/> <span style="font-size:10px;">format: RS######. <span style="color:red;">Required for PG, CC and some SAG, GR worktags</span></span>
+			</td>
+		</tr>
+		<tr>
+			<td>Resource Worktag Description:</td>
+			<td>
+				<html:text  property="resourceWorktagDescr"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Assignee Worktag:</td>
+			<td>
+				<html:text  property="assigneeWorktag"/> <span style="font-size:10px;">format: AS######</span>
+			</td>
+		</tr>
+		<tr>
+			<td>Assignee Worktag Description:</td>
+			<td>
+				<html:text  property="assigneeWorktagDescr"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Activity Worktag:</td>
+			<td>
+				<html:text  property="activityWorktag"/> <span style="font-size:10px;">format: AC######</span>
+			</td>
+		</tr>
+		<tr>
+			<td>Activity Worktag Description:</td>
+			<td>
+				<html:text  property="activityWorktagDescr"/>
+			</td>
+		</tr>
+		</logic:notEmpty>
+
+
+		<logic:notEmpty name="paymentMethodForm" property="uwBudgetNumber">
+		<tr>
+			<td>UW Budget Number:</td>
+			<td>
+			    <logic:equal name="paymentMethodForm" property="editable" value="true">
+					<html:text  property="uwBudgetNumber" /> <span style="font-size:10px;">format: 00-0000</span>
+				</logic:equal>
+			    <logic:equal name="paymentMethodForm" property="editable" value="false">
+					<bean:write name="paymentMethodForm" property="uwBudgetNumber" />
+					<html:hidden  name="paymentMethodForm" property="uwBudgetNumber" />
+				</logic:equal>
+			</td>
+		</tr>
+
+		<tr>
+			<td>Budget Name:</td>
+			<td>
+				<html:text  property="paymentMethodName" size="40" />
+			</td>
+		</tr>
+		</logic:notEmpty>
+
+	    <logic:notEmpty name="paymentMethodForm" property="poNumber">
+		<tr>
+			<td>PO Number:</td>
+			<td>
+				<logic:equal name="paymentMethodForm" property="editable" value="true">
+					<html:text  property="poNumber"/>
+				</logic:equal>
+				<logic:equal name="paymentMethodForm" property="editable" value="false">
 					<bean:write name="paymentMethodForm" property="poNumber" />
 					<html:hidden  name="paymentMethodForm" property="poNumber" />
-	    		</td>
-                <td>
-                    Amount:
-                    <html:text property="poAmount"/>
-                </td>
-    		</logic:notEmpty>
-    	</logic:equal>
-    	
-   </tr>
+				</logic:equal>
+				<br/>
+				<span style="font-weight:bold;">
+					<html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment Information</html:link>
+				</span>
+			</td>
+		</tr>
+		<tr>
+			<td>Amount: </td>
+			<td>
+				<logic:equal name="paymentMethodForm" property="editable" value="true">
+					<html:text property="poAmount"/>
+				</logic:equal>
+				<logic:equal name="paymentMethodForm" property="editable" value="false">
+					<bean:write name="paymentMethodForm" property="poAmount" />
+					<html:hidden  name="paymentMethodForm" property="poAmount" />
+				</logic:equal>
+			</td>
+		</tr>
+		<tr>
+			<td>PO Name:</td>
+			<td>
+				<html:text  property="paymentMethodName" size="40" />
+			</td>
+		</tr>
+		</logic:notEmpty>
 
-	<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
+
+	<logic:equal name="paymentMethodForm" property="ponumberAllowed" value="false">
 	<tr>
-		<td>Expiration Date:</td>
+		<td>Expiration Date:<span style="color:red;">(required)</span></td>
 		<td><html:text  property="budgetExpirationDateStr" styleClass="datepicker"/> <span style="font-size:10px;">format: MM/dd/yyyy</span></td>
 	</tr>
 	</logic:equal>
-
-	<tr>
-		<td><bean:write name="paymentMethodFormTitle"/></td>
-		<td colspan="4">
-			<html:text  property="paymentMethodName" size="40" />
-		</td>
-	</tr>
 
 	<tr>
 		<td>Federal Funding:</td>

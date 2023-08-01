@@ -17,6 +17,9 @@
 <yrcwww:contentbox title="Add New Payment Method">
 <center>
 <html:form action="saveNewPaymentMethod.do" method="POST">
+<html:hidden name="paymentMethodForm" property="worktagAllowed"/>
+<html:hidden name="paymentMethodForm" property="uwbudgetAllowed"/>
+<html:hidden name="paymentMethodForm" property="ponumberAllowed"/>
 
 <table border="0" cellpadding="7" class="striped">
 
@@ -28,6 +31,62 @@
 			<html:hidden property="projectId"/>
 		</td>
 	</tr>
+
+	<logic:equal name="paymentMethodForm" property="worktagAllowed" value="true">
+	<tr>
+		<td><bold>Worktag <span style="color:red;">(required)</span>:</bold></td>
+		<td>
+			<html:text  property="worktag"/> <span style="font-size:10px;">format: [GR|GF|PG|CC|SAG]#####. Example: GF101001</span>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Worktag Name:
+		</td>
+		<td><html:text  property="paymentMethodName" size="40" /></td>
+	</tr>
+	<tr>
+		<td>Resource Worktag:</td>
+		<td>
+			<html:text  property="resourceWorktag"/> <span style="font-size:10px;">format: RS######. <span style="color:red;">Required for PG, CC and some SAG, GR worktags</span></span>
+		</td>
+	</tr>
+	<tr>
+		<td>Resource Worktag Description:</td>
+		<td>
+			<html:text  property="resourceWorktagDescr"/>
+		</td>
+	</tr>
+	<tr>
+		<td>Assignee Worktag:</td>
+		<td>
+			<html:text  property="assigneeWorktag"/> <span style="font-size:10px;">format: AS######</span>
+		</td>
+	</tr>
+	<tr>
+		<td>Assignee Worktag Description:</td>
+		<td>
+			<html:text  property="assigneeWorktagDescr"/>
+		</td>
+	</tr>
+	<tr>
+		<td>Activity Worktag:</td>
+		<td>
+			<html:text  property="activityWorktag"/> <span style="font-size:10px;">format: AC######</span>
+		</td>
+	</tr>
+	<tr>
+		<td>Activity Worktag Description:</td>
+		<td>
+			<html:text  property="activityWorktagDescr"/>
+		</td>
+	</tr>
+	<tr>
+		<td><bold>Expiration Date: <span style="color:red;">(required)</span></bold></td>
+		<td><html:text  property="budgetExpirationDateStr" styleClass="datepicker"/> <span style="font-size:10px;">format: MM/dd/yyyy</span></td>
+	</tr>
+	</logic:equal>
+
 	<logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
 	<tr>
 		<td>UW Budget Number:</td>
@@ -36,7 +95,13 @@
 		</td>
 	</tr>
 	<tr>
-		<td>Expiration Date:</td>
+		<td>
+			Budget Name:
+		</td>
+		<td><html:text  property="paymentMethodName" size="40" /></td>
+	</tr>
+	<tr>
+		<td><bold>Expiration Date: <span style="color:red;">(required)</span></bold></td>
 		<td><html:text  property="budgetExpirationDateStr" styleClass="datepicker"/> <span style="font-size:10px;">format: MM/dd/yyyy</span></td>
 	</tr>
 	</logic:equal>
@@ -51,24 +116,19 @@
 				<html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment Information</html:link>
 			</span>
 		</td>
+	</tr>
+	<tr>
+		<td>Amount:</td>
+		<td><html:text property="poAmount"/></td>
+	</tr>
+	<tr>
 		<td>
-			Amount:
-			<html:text property="poAmount"/>
+			Payment Method Name:
 		</td>
+		<td><html:text  property="paymentMethodName" size="40" /></td>
 	</tr>
 	</logic:equal>
-   <tr>
-	   <td>
-		   <logic:equal name="paymentMethodForm" property="uwbudgetAllowed" value="true">
-			   Budget
-		   </logic:equal>
-		   <logic:equal name="paymentMethodForm" property="ponumberAllowed" value="true">
-			   PO
-		   </logic:equal>
-		   Name
-	   </td>
-	   <td><html:text  property="paymentMethodName" size="40" /></td>
-   </tr>
+
    <tr>
    		<td>Federal Funding:</td>
    		<td colspan="4">

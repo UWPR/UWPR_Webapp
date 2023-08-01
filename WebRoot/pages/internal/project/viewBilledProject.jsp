@@ -154,6 +154,10 @@
 				<tbody>
 				<logic:iterate name="project" property="paymentMethods" id="paymentMethod">
 					<tr>
+					<logic:notEmpty name="paymentMethod" property="worktag">
+						<td style="padding:3px;">Worktag</td>
+						<td style="padding:3px;font-weight:bold"><bean:write name="paymentMethod" property="worktag"/></td>
+					</logic:notEmpty>
 					<logic:notEmpty name="paymentMethod" property="uwbudgetNumber">
 						<td style="padding:3px;">UW Budget Number</td>
 						<td style="padding:3px;font-weight:bold"><bean:write name="paymentMethod" property="uwbudgetNumber"/></td>

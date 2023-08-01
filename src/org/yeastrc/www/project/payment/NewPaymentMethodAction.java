@@ -17,7 +17,6 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.utils.CountriesBean;
@@ -88,14 +87,14 @@ public class NewPaymentMethodAction extends Action {
         
         // set the projectID in the form
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
-        paymentMethodForm.setUwBudgetNumber(""); // Reset Budget number and PO number fields, otherwise cached values get sent in the request.
-        paymentMethodForm.setPoNumber("");
+        paymentMethodForm.clearAllFields(); // Clear Worktags, Budget number and PO number fields, otherwise cached values get sent in the request.
         paymentMethodForm.setProjectId(projectId);
         
         // Only non-UW affiliated projects are not allowed a PO number
-        paymentMethodForm.setPonumberAllowed(!(((BilledProject)project).getAffiliation() == Affiliation.UW));
-        // Only UW affiliated projects are allowed a UW Budget number.
-        paymentMethodForm.setUwbudgetAllowed(((BilledProject)project).getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setPonumberAllowed(!(project.getAffiliation() == Affiliation.UW));
+		// Only UW affiliated projects are allowed a Worktag.
+		paymentMethodForm.setWorktagAllowed(project.getAffiliation() == Affiliation.UW);
+		paymentMethodForm.setUwbudgetAllowed(false); // No longer allow budget numbers for UW projects
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

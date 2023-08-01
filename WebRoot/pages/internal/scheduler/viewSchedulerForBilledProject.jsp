@@ -449,7 +449,12 @@ Select payment method(s):
 <table>
 <tr>
 <td>
-UW Budget # / PO Number:
+Payment method:
+<logic:empty name="paymentMethods">
+	<span style="color:red;">No valid payment methods were found. Expired payment methods cannot be used.</span>
+</logic:empty>
+
+<logic:notEmpty name="paymentMethods">
 <select id="paymentMethodSelector_1">
 <option value='0'>Select</option>
 <logic:iterate name="paymentMethods" id="paymentMethod">
@@ -486,6 +491,7 @@ UW Budget # / PO Number:
 	<a href="#" onclick="hideSecondPaymentMethod(); return false;" style="color:red;font-size:8pt;text-decoration:underline;">[Remove]</a>
 </td>
 </tr>
+</logic:notEmpty>
 
 </table>
 </div>

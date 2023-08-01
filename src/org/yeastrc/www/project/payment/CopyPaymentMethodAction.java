@@ -1,14 +1,12 @@
 /**
- * EditPaymentMethodAction.java
+ * CopyPaymentMethodAction.java
  * @author Vagisha Sharma
  * May 20, 2011
  */
 package org.yeastrc.www.project.payment;
 
 import org.apache.struts.action.*;
-import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
 import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -113,10 +111,15 @@ public class CopyPaymentMethodAction extends Action {
         // set the projectID in the form
         PaymentMethodForm paymentMethodForm = (PaymentMethodForm) form;
         paymentMethodForm.setProjectId(projectId);
-        paymentMethodForm.setUwBudgetNumber("");
-        paymentMethodForm.setPoNumber("");
-        paymentMethodForm.setBudgetExpirationDateStr("");
-        paymentMethodForm.setPaymentMethodName("");
+        paymentMethodForm.clearPoNumber();
+        paymentMethodForm.clearUwBudgetNumber();
+        paymentMethodForm.clearWorktag(); // Clear only the main worktag
+        paymentMethodForm.setResourceWorktag(paymentMethod.getResourceWorktag());
+        paymentMethodForm.setResourceWorktagDescr(paymentMethod.getResourceWorktagDescr());
+        paymentMethodForm.setAssigneeWorktag(paymentMethod.getAssigneeWorktag());
+        paymentMethodForm.setAssigneeWorktagDescr(paymentMethod.getAssigneeWorktagDescr());
+        paymentMethodForm.setActivityWorktag(paymentMethod.getActivityWorktag());
+        paymentMethodForm.setActivityWorktagDescr(paymentMethod.getActivityWorktagDescr());
         paymentMethodForm.setContactFirstName(paymentMethod.getContactFirstName());
         paymentMethodForm.setContactLastName(paymentMethod.getContactLastName());
         paymentMethodForm.setContactEmail(paymentMethod.getContactEmail());
@@ -131,12 +134,12 @@ public class CopyPaymentMethodAction extends Action {
         paymentMethodForm.setCurrent(paymentMethod.isCurrent());
         paymentMethodForm.setEditable(true); // is the form editable
         paymentMethodForm.setFederalFunding(false);
-        paymentMethodForm.setPoBigDecimalValue(paymentMethod.getPoAmount());
-        
+
         // Only non-UW affiliated projects are not allowed a PO number
-        paymentMethodForm.setPonumberAllowed(!(((BilledProject)project).getAffiliation() == Affiliation.UW));
-        // Only UW affiliated projects are allowed a UW Budget number.
-        paymentMethodForm.setUwbudgetAllowed(((BilledProject)project).getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setPonumberAllowed(!(project.getAffiliation() == Affiliation.UW));
+        // Only UW affiliated projects are allowed a Worktag.
+        paymentMethodForm.setWorktagAllowed(project.getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setUwbudgetAllowed(false); // No longer allow budget numbers for UW projects
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

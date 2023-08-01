@@ -519,7 +519,16 @@ public class DateUtils {
 		return new Date(calendar.getTimeInMillis());
 	}
 	
-	
+	public static Date today()
+	{
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		calendar.set(Calendar.AM_PM, Calendar.AM);
+		return  new Date(calendar.getTimeInMillis());
+	}
 	
 	/**
 	 * Returns the later date

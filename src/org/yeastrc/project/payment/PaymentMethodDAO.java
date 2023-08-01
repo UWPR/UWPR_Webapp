@@ -86,6 +86,14 @@ public class PaymentMethodDAO {
         paymentMethod.setFederalFunding(rs.getBoolean("federalFunding"));
         paymentMethod.setPoAmount(rs.getBigDecimal("POAmount"));
 
+		paymentMethod.setWorktag(rs.getString("worktag"));
+		paymentMethod.setResourceWorktag(rs.getString("resourceWorktag"));
+		paymentMethod.setResourceWorktagDescr(rs.getString("resourceWorktagDescr"));
+		paymentMethod.setAssigneeWorktag(rs.getString("assigneeWorktag"));
+		paymentMethod.setAssigneeWorktagDescr(rs.getString("assigneeWorktagDescr"));
+		paymentMethod.setActivityWorktag(rs.getString("activityWorktag"));
+		paymentMethod.setActivityWorktagDescr(rs.getString("activityWorktagDescr"));
+
         return paymentMethod;
     }
 
@@ -121,7 +129,9 @@ public class PaymentMethodDAO {
 		
 		String sql = "INSERT INTO paymentMethod (UWBudgetNumber, PONumber, budgetExpirationDate, paymentMethodName, contactNameFirst, contactLastName, contactEmail,";
 		sql += " contactPhone, organization, addressLine1, addressLine2, city, state, zip, country, ";
-		sql += " dateCreated,  createdBy, isCurrent, federalFunding, POAmount) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		sql += " dateCreated,  createdBy, isCurrent, federalFunding, POAmount, ";
+		sql += " worktag, resourceWorktag, resourceWorktagDescr, assigneeWorktag, assigneeWorktagDescr, activityWorktag, activityWorktagDescr ";
+		sql += ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
@@ -155,6 +165,14 @@ public class PaymentMethodDAO {
 				stmt.setInt(i, 0);
 			}
 			stmt.setBigDecimal(++i, paymentMethod.getPoAmount());
+			stmt.setString(++i, paymentMethod.getWorktag());
+			stmt.setString(++i, paymentMethod.getResourceWorktag());
+			stmt.setString(++i, paymentMethod.getResourceWorktagDescr());
+			stmt.setString(++i, paymentMethod.getAssigneeWorktag());
+			stmt.setString(++i, paymentMethod.getAssigneeWorktagDescr());
+			stmt.setString(++i, paymentMethod.getActivityWorktag());
+			stmt.setString(++i, paymentMethod.getActivityWorktagDescr());
+
 
 			int numRowsInserted = stmt.executeUpdate();
 			if(numRowsInserted == 0) {
@@ -199,6 +217,14 @@ public class PaymentMethodDAO {
 		sql += ", isCurrent = ?";
 		sql += ", federalFunding = ?";
         sql += ", POAmount = ?";
+        sql += ", worktag = ?";
+		sql += ", resourceWorktag = ?";
+		sql += ", resourceWorktagDescr = ?";
+		sql += ", assigneeWorktag = ?";
+		sql += ", assigneeWorktagDescr = ?";
+		sql += ", activityWorktag = ?";
+		sql += ", activityWorktagDescr = ?";
+
 		sql += " WHERE id=?";
 		
 		Connection conn = null;
@@ -239,8 +265,17 @@ public class PaymentMethodDAO {
 				stmt.setInt(i, 0);
 
             stmt.setBigDecimal(++i, paymentMethod.getPoAmount());
+
+			stmt.setString(++i, paymentMethod.getWorktag());
+			stmt.setString(++i, paymentMethod.getResourceWorktag());
+			stmt.setString(++i, paymentMethod.getResourceWorktagDescr());
+			stmt.setString(++i, paymentMethod.getAssigneeWorktag());
+			stmt.setString(++i, paymentMethod.getAssigneeWorktagDescr());
+			stmt.setString(++i, paymentMethod.getActivityWorktag());
+			stmt.setString(++i, paymentMethod.getActivityWorktagDescr());
+
 			stmt.setInt(++i,paymentMethod.getId());
-			
+
 			int numRowsInserted = stmt.executeUpdate();
 			if(numRowsInserted == 0) {
 				throw new SQLException("Updating payment method failed, no rows affected.");

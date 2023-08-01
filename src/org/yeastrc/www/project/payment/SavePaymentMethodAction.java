@@ -137,6 +137,13 @@ public class SavePaymentMethodAction extends Action {
         paymentMethod.setCurrent(pmForm.isCurrent());
         paymentMethod.setFederalFunding(pmForm.isFederalFunding());
         paymentMethod.setPoAmount(pmForm.getPoBigDecimalValue());
+		paymentMethod.setWorktag(pmForm.getWorktag());
+		paymentMethod.setResourceWorktag(pmForm.getResourceWorktag());
+		paymentMethod.setResourceWorktagDescr(pmForm.getResourceWorktagDescr());
+		paymentMethod.setAssigneeWorktag(pmForm.getAssigneeWorktag());
+		paymentMethod.setAssigneeWorktagDescr(pmForm.getAssigneeWorktagDescr());
+		paymentMethod.setActivityWorktag(pmForm.getActivityWorktag());
+		paymentMethod.setActivityWorktagDescr(pmForm.getActivityWorktagDescr());
         
         // update the payment method
         try {

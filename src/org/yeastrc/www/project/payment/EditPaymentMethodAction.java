@@ -8,6 +8,7 @@ package org.yeastrc.www.project.payment;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
@@ -16,7 +17,6 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
 import org.yeastrc.project.Affiliation;
-import org.yeastrc.project.BilledProject;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -123,6 +123,7 @@ public class EditPaymentMethodAction extends Action {
         	isEditable = false;
         }
         else
+            // TODO: Users are allowed to edit existing UW budget numbers. Disable this later.
         	isEditable = true;
         
         
@@ -151,11 +152,17 @@ public class EditPaymentMethodAction extends Action {
         paymentMethodForm.setEditable(isEditable); // is the form editable
         paymentMethodForm.setFederalFunding(paymentMethod.isFederalFunding());
         paymentMethodForm.setPoBigDecimalValue(paymentMethod.getPoAmount());
-        
-        // Only non-UW affiliated projects are not allowed a PO number
-        paymentMethodForm.setPonumberAllowed(!(((BilledProject)project).getAffiliation() == Affiliation.UW));
-        // Only UW affiliated projects are allowed a UW Budget number.
-        paymentMethodForm.setUwbudgetAllowed(((BilledProject)project).getAffiliation() == Affiliation.UW);
+        paymentMethodForm.setWorktag(paymentMethod.getWorktag());
+        paymentMethodForm.setResourceWorktag(paymentMethod.getResourceWorktag());
+        paymentMethodForm.setResourceWorktagDescr(paymentMethod.getResourceWorktagDescr());
+        paymentMethodForm.setAssigneeWorktag(paymentMethod.getAssigneeWorktag());
+        paymentMethodForm.setAssigneeWorktagDescr(paymentMethod.getAssigneeWorktagDescr());
+        paymentMethodForm.setActivityWorktag(paymentMethod.getActivityWorktag());
+        paymentMethodForm.setActivityWorktagDescr(paymentMethod.getActivityWorktagDescr());
+
+        paymentMethodForm.setPonumberAllowed(!StringUtils.isBlank(paymentMethod.getPonumber()));
+        paymentMethodForm.setUwbudgetAllowed(!StringUtils.isBlank(paymentMethod.getUwbudgetNumber()));
+        paymentMethodForm.setWorktagAllowed(!StringUtils.isBlank(paymentMethod.getWorktag()));
         
         // Save our states bean
 		StatesBean sb = StatesBean.getInstance();

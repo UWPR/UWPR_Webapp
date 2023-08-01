@@ -78,6 +78,64 @@ function backToProject(projectId) {
 			<b><html:link action="viewProject.do" paramId="ID" paramName="projectId"><bean:write name="projectId"/></html:link></b>
 		</td>
 	</tr>
+
+	<logic:notEmpty name="paymentMethod" property="worktag">
+		<tr>
+			<td>Worktag:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="worktag"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Worktag Name:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="paymentMethodName"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Resource worktag:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="resourceWorktag"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Resource worktag description:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="resourceWorktagDescr"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Assignee worktag:</td>
+			<td>
+				<bean:write name="paymentMethod" property="assigneeWorktag"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Assignee worktag description:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="assigneeWorktagDescr"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Activity worktag:</td>
+			<td>
+				<bean:write name="paymentMethod" property="activityWorktag"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Activity worktag description:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="activityWorktagDescr"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Expiration Date:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="budgetExpirationDate"/>
+			</td>
+		</tr>
+	</logic:notEmpty>
+
 	<logic:notEmpty name="paymentMethod" property="uwbudgetNumber">
 		<tr>
 	    	<td>UW Budget Number:</td>
@@ -85,6 +143,12 @@ function backToProject(projectId) {
 	    		<bean:write name="paymentMethod"  property="uwbudgetNumber"/>
 	    	</td>
 	   </tr>
+		<tr>
+			<td>Budget Name:</td>
+			<td>
+				<bean:write name="paymentMethod"  property="paymentMethodName" />
+			</td>
+		</tr>
 		<tr>
 			<td>Expiration Date:</td>
 			<td>
@@ -106,21 +170,14 @@ function backToProject(projectId) {
                 <bean:write name="paymentMethod"  property="poAmount"/>
             </td>
        </tr>
+	   <tr>
+		   <td>PO Name:</td>
+		   <td>
+			   <bean:write name="paymentMethod"  property="paymentMethodName" />
+		   </td>
+	   </tr>
    </logic:notEmpty>
-	<tr>
-		<td>
-			<logic:notEmpty name="paymentMethod" property="uwbudgetNumber">
-				Budget
-			</logic:notEmpty>
-			<logic:notEmpty name="paymentMethod" property="ponumber">
-				PO
-			</logic:notEmpty>
-			Name:
-		</td>
-		<td>
-			<bean:write name="paymentMethod"  property="paymentMethodName" />
-		</td>
-	</tr>
+
    <tr>
 	   	<td>Federal Funding:</td>
 	   	<td>

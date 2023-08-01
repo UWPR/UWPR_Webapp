@@ -22,6 +22,7 @@ import org.uwpr.costcenter.InstrumentRate;
 import org.uwpr.costcenter.InstrumentRateDAO;
 import org.uwpr.costcenter.RateType;
 import org.uwpr.costcenter.TimeBlock;
+import org.uwpr.instrumentlog.DateUtils;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.scheduler.ProjectInstrumentTimeApprover;
@@ -230,7 +231,17 @@ public class ViewSchedulerAction extends Action {
         if(project instanceof BilledProject) {
 	        // get a list of payment methods for this project
 	        List<PaymentMethod> paymentMethods = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
-	        request.setAttribute("paymentMethods", paymentMethods);
+	        List<PaymentMethod> notExpired = new ArrayList<>(paymentMethods.size());
+	        Date today12am = DateUtils.today();
+	        for (PaymentMethod pm : paymentMethods)
+			{
+			    if (pm.getBudgetExpirationDate() != null && today12am.after(pm.getBudgetExpirationDate()))
+                {
+                    continue;
+                }
+                notExpired.add(pm);
+			}
+	        request.setAttribute("paymentMethods", notExpired);
         }
         
         // If the user making the request is an admin put a list of projects 
