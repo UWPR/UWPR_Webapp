@@ -107,7 +107,7 @@ public class PaymentMethodForm extends ActionForm {
 
 		if (StringUtils.isBlank(resourceWorktag) && !StringUtils.isBlank(worktag) && checker.requiresResourceTag(worktag))
 		{
-			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Resource worktag is required for PG, CC and some SAG, GR worktags."));
+			errors.add("payment", new ActionMessage("error.payment.infoincomplete", "Resource worktag is required for CC worktags."));
 		}
 		if (!(StringUtils.isBlank(resourceWorktag) || checker.isValidResourceWorktag(resourceWorktag)))
 		{

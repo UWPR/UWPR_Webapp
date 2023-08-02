@@ -247,8 +247,10 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("End");
 		row.createCell(cellnum++).setCellValue("TimeBlock_Hours");
 		row.createCell(cellnum++).setCellValue("TimeBlock_Rate");
-		row.createCell(cellnum++).setCellValue("Payment_Method");
-		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
+		row.createCell(cellnum++).setCellValue("PO_Number");
+		row.createCell(cellnum++).setCellValue("PO_Name");
+		row.createCell(cellnum++).setCellValue("Worktag");
+		row.createCell(cellnum++).setCellValue("Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Resource_Worktag");
 		row.createCell(cellnum++).setCellValue("Resource_Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Assignee_Worktag");
@@ -285,8 +287,10 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue("Start");
 		row.createCell(cellnum++).setCellValue("End");
 		row.createCell(cellnum++).setCellValue("Hours_Used");
-		row.createCell(cellnum++).setCellValue("Payment_Method");
-		row.createCell(cellnum++).setCellValue("Payment_Method_Name");
+		row.createCell(cellnum++).setCellValue("PO_Number");
+		row.createCell(cellnum++).setCellValue("PO_Name");
+		row.createCell(cellnum++).setCellValue("Worktag");
+		row.createCell(cellnum++).setCellValue("Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Resource_Worktag");
 		row.createCell(cellnum++).setCellValue("Resource_Worktag_Descr");
 		row.createCell(cellnum++).setCellValue("Assignee_Worktag");
@@ -347,7 +351,6 @@ public class BillingInformationExcelExporter {
 	}
 	
 	private boolean writeBlockPaymentMethodDetails(Sheet sheet, UsageBlockForBilling block, boolean summarize)
-
 	throws BillingInformationExporterException {
 
 		PaymentMethod paymentMethod = block.getPaymentMethod();
@@ -397,30 +400,54 @@ public class BillingInformationExcelExporter {
 			// Hourly rate
 			row.createCell(cellnum++).setCellValue(blk.getRate().getRate().toString());
 		}
-		
-		
+
+		String poNumber = paymentMethod.getPonumber();
 		String uwBudgetNumber = paymentMethod.getUwbudgetNumber();
-		String ponumber = paymentMethod.getPonumber();
 		String worktag = paymentMethod.getWorktag();
-		if(uwBudgetNumber != null && uwBudgetNumber.trim().length() > 0) {
-			row.createCell(cellnum++).setCellValue(uwBudgetNumber);
-		}
-		else if(ponumber != null && ponumber.trim().length() > 0) {
-			row.createCell(cellnum++).setCellValue(ponumber);
-		}
-		else if(worktag != null && worktag.trim().length() > 0) {
-			row.createCell(cellnum++).setCellValue(worktag);
-		}
-		else {
+
+		if (StringUtils.isBlank(poNumber) && StringUtils.isBlank(worktag) && StringUtils.isBlank(uwBudgetNumber)) {
 			throw new BillingInformationExporterException("Did not find a Worktag / UW Budget number / PO number for payment method ID: "
-					+paymentMethod.getId());
+					+ paymentMethod.getId());
 		}
-		String paymentMethodName = paymentMethod.getPaymentMethodName();
-		if(StringUtils.isBlank(paymentMethodName))
+		if (!StringUtils.isBlank(worktag) && !StringUtils.isBlank(uwBudgetNumber))
 		{
-			paymentMethodName = "";
+			throw new BillingInformationExporterException("Expected only one of Worktag or UW Budget number."
+					+ " Found both for payment method Id: " + paymentMethod.getId()
+					+ " Worktag: " + worktag + ", Budget number: " + uwBudgetNumber);
 		}
-		row.createCell(cellnum++).setCellValue(paymentMethodName);
+
+		if (!StringUtils.isBlank(poNumber))
+		{
+			row.createCell(cellnum++).setCellValue(poNumber);
+			String poName = paymentMethod.getPaymentMethodName();
+			row.createCell(cellnum++).setCellValue(StringUtils.isBlank(poName) ? "" : poName);
+		}
+		else
+		{
+			row.createCell(cellnum++).setCellValue(""); // Empty PO Number
+			row.createCell(cellnum++).setCellValue(""); // Empty PO Name
+		}
+
+
+		if (!StringUtils.isBlank(worktag))
+		{
+			row.createCell(cellnum++).setCellValue(worktag);
+			String worktagDescr = paymentMethod.getPaymentMethodName();
+			row.createCell(cellnum++).setCellValue(StringUtils.isBlank(worktagDescr) ? "" : worktagDescr);
+		}
+		else if (!StringUtils.isBlank(uwBudgetNumber))
+		{
+			row.createCell(cellnum++).setCellValue(uwBudgetNumber);
+			String budgetName = paymentMethod.getPaymentMethodName();
+			row.createCell(cellnum++).setCellValue(StringUtils.isBlank(budgetName) ? "" : budgetName);
+		}
+		else
+		{
+			row.createCell(cellnum++).setCellValue(""); // Empty Worktag
+			row.createCell(cellnum++).setCellValue(""); // Empty Worktag description
+		}
+
+
 		row.createCell(cellnum++).setCellValue(paymentMethod.getResourceWorktagNotNull());
 		row.createCell(cellnum++).setCellValue(paymentMethod.getResourceWorktagDescrNotNull());
 		row.createCell(cellnum++).setCellValue(paymentMethod.getAssigneeWorktagNotNull());
