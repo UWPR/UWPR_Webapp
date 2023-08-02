@@ -62,8 +62,8 @@ public class PaymentMethodChecker {
 
 	public boolean requiresResourceTag(String worktag)
 	{
-		// Required for PG, CC and some SAG, GR worktags
-		return worktag.startsWith("PG") || worktag.startsWith("CC");
+		// Required for CC (cost center) worktags
+		return worktag.startsWith("CC");
 	}
 
 	public boolean isValidResourceWorktag(String worktag)
