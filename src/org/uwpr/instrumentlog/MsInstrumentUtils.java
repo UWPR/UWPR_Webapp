@@ -66,6 +66,18 @@ public class MsInstrumentUtils {
 		}
 		return null;
 	}
+
+	public List<Integer> getAccessoryInstrumentIds()
+	{
+		List<MsInstrument> instruments = MsInstrumentUtils.instance().getMsInstruments(true);
+		List<Integer> accessories = new ArrayList<>();
+		for (MsInstrument instrument : instruments)
+		{
+			if (instrument.isMassSpec()) continue;
+			accessories.add(instrument.getID()); // Add-ons such as HPLC
+		}
+		return accessories;
+	}
 	
 	public List <MsInstrument> getMsInstruments(Connection conn, boolean activeOnly) {
 		
@@ -171,8 +183,9 @@ public class MsInstrumentUtils {
 		String name = rs.getString("name");
 		String desc = rs.getString("description");
 		boolean active = rs.getBoolean("active");
+		boolean isMassSpec = rs.getBoolean("massSpec");
 		String color = rs.getString("color");
-		return new MsInstrument(id, name, desc, active, color);
+		return new MsInstrument(id, name, desc, active, isMassSpec, color);
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -378,7 +391,7 @@ public class MsInstrumentUtils {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
-		String sql = "INSERT INTO " + DBConnectionManager.getInstrumentsTableSQL() + " (name, description, active, color) VALUES(?,?,?,?)";
+		String sql = "INSERT INTO " + DBConnectionManager.getInstrumentsTableSQL() + " (name, description, active, massSpec, color) VALUES(?,?,?,?,?)";
 		try
 		{
 			conn = getConnection();
@@ -386,7 +399,8 @@ public class MsInstrumentUtils {
 			stmt.setString(1, instrument.getNameOnly());
 			stmt.setString(2, instrument.getDescription());
 			stmt.setInt(3, instrument.isActive() ? 1 : 0);
-			stmt.setString(4, instrument.getColor());
+			stmt.setInt(4, instrument.isMassSpec() ? 1 : 0);
+			stmt.setString(5, instrument.getColor());
 			stmt.executeUpdate();
 		}
 		catch (SQLException e)
@@ -409,7 +423,7 @@ public class MsInstrumentUtils {
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 
-		String sql = "UPDATE " + DBConnectionManager.getInstrumentsTableSQL() + " SET name=?, description=?, active=?, color=? WHERE id=?";
+		String sql = "UPDATE " + DBConnectionManager.getInstrumentsTableSQL() + " SET name=?, description=?, active=?, massSpec=?, color=? WHERE id=?";
 		try
 		{
 			conn = getConnection();
@@ -417,8 +431,9 @@ public class MsInstrumentUtils {
 			stmt.setString(1, instrument.getNameOnly());
 			stmt.setString(2, instrument.getDescription());
 			stmt.setInt(3, instrument.isActive() ? 1 : 0);
-			stmt.setString(4, instrument.getColor());
-			stmt.setInt(5, instrument.getID());
+			stmt.setInt(4, instrument.isMassSpec() ? 1 : 0);
+			stmt.setString(5, instrument.getColor());
+			stmt.setInt(6, instrument.getID());
 			stmt.executeUpdate();
 		}
 		catch (SQLException e)

@@ -44,11 +44,11 @@ function backToProject(projectId) {
                 </logic:notEmpty>
                 <tr>
                     <td>Total used: </td>
-                    <td>$<bean:write name="paymentMethodUsage" property="totalCost"/></td>
+                    <td>$<bean:write name="paymentMethodUsage" property="totalCostFormatted"/></td>
                 </tr>
                 <tr>
                     <td>Invoiced: </td>
-                    <td>$<bean:write name="paymentMethodUsage" property="invoicedCost"/></td>
+                    <td>$<bean:write name="paymentMethodUsage" property="invoicedCostFormatted"/></td>
                 </tr>
                 <logic:notEmpty name="paymentMethod" property="ponumber">
                     <tr>

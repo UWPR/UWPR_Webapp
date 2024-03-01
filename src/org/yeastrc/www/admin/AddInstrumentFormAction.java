@@ -50,7 +50,10 @@ public class AddInstrumentFormAction extends Action {
             return mapping.findForward("Failure");
         }
 
-        request.setAttribute("addInstrumentForm", new AddInstrumentForm());
+        AddInstrumentForm newForm = new AddInstrumentForm();
+        newForm.setActive(true);
+        newForm.setMassSpec(true);
+        request.setAttribute("addInstrumentForm", newForm);
         // Kick it to the view page
         return mapping.findForward("Success");
 

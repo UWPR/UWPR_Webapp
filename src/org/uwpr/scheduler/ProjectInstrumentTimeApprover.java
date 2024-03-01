@@ -7,6 +7,7 @@ package org.uwpr.scheduler;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.project.Researcher;
@@ -52,8 +53,9 @@ public class ProjectInstrumentTimeApprover {
 			return APPROVED;
 		}
 
-		int unusedHours = getUnusedInstrumentTimeForOperator(instrumentOperator, oldBlocksToIgnore);
-		int totalRequested = getTotalHours(blocksBeingScheduled);
+		List<Integer> accessoryInstrumentIds = MsInstrumentUtils.instance().getAccessoryInstrumentIds();
+		int unusedHours = getUnusedInstrumentTimeForOperator(instrumentOperator, oldBlocksToIgnore, accessoryInstrumentIds);
+		int totalRequested = getTotalHours(blocksBeingScheduled, accessoryInstrumentIds);
 
 		log.info("Total hours requested for instrument operator (" + instrumentOperator.getID() + ", " + instrumentOperator.getFullName() + "): " + totalRequested);
 		return new TimeRequest(unusedHours, totalRequested);
@@ -61,12 +63,13 @@ public class ProjectInstrumentTimeApprover {
 
 	public static int getRemainingInstrumentTimeForOperator(Researcher researcher) throws SQLException
 	{
-		int timeUsed = getUnusedInstrumentTimeForOperator(researcher, Collections.<UsageBlockBase>emptyList());
+		List<Integer> accessoryInstrumentIds = MsInstrumentUtils.instance().getAccessoryInstrumentIds();
+		int timeUsed = getUnusedInstrumentTimeForOperator(researcher, Collections.<UsageBlockBase>emptyList(), accessoryInstrumentIds);
 		TimeRequest request = new TimeRequest(timeUsed, 0);
 		return request.getTimeRemaining();
 	}
 
-	private static int getUnusedInstrumentTimeForOperator(Researcher operator, List<UsageBlockBase> blocksToIgnore) throws SQLException
+	private static int getUnusedInstrumentTimeForOperator(Researcher operator, List<UsageBlockBase> blocksToIgnore, List<Integer> accessoryInstrumentIds) throws SQLException
 	{
 		if(Groups.getInstance().isAdministrator(operator))
 		{
@@ -93,18 +96,19 @@ public class ProjectInstrumentTimeApprover {
 				}
 			}
 		}
-		int totalHours = getTotalHours(usageBlocks);
+
+		int totalHours = getTotalHours(usageBlocks, accessoryInstrumentIds);
 
 		log.info("Total unused hours scheduled for instrumentOperator (" + operator.getID() + ", " + operator.getFullName() + ")  at " + now + ": " + totalHours);
 		return totalHours;
 	}
 
-	private static int getTotalHours(List<? extends UsageBlockBase> blocksBeingScheduled)
+	private static int getTotalHours(List<? extends UsageBlockBase> blocksBeingScheduled, List<Integer> accessoryInstrumentIds)
 	{
 		int totalHours = 0;
 		for(UsageBlockBase block: blocksBeingScheduled) {
 
-			totalHours += block.getHours();
+			totalHours += UsageBlockBase.getHours(block, accessoryInstrumentIds);
 		}
 		return totalHours;
 	}
@@ -174,17 +178,18 @@ public class ProjectInstrumentTimeApprover {
 		// get all the time scheduled for this project
 		List<UsageBlockBase> usageBlocks = UsageBlockBaseDAO.getUsageBlocksForProject(projectId, null, null, false);
 		int totalhours = 0;
+		List<Integer> accessoryInstrumentIds = MsInstrumentUtils.instance().getAccessoryInstrumentIds();
 		for(UsageBlockBase block: usageBlocks)
 		{
 			if(ignoreBlockIds.contains(block.getID()))
 				continue;
-			totalhours += block.getHours();
+			totalhours += UsageBlockBase.getHours(block, accessoryInstrumentIds);
 		}
 		
 		// add up the time for the blocks being scheduled now
 		for(UsageBlockBase block: blocksBeingScheduled)
 		{
-			totalhours += block.getHours();
+			totalhours += UsageBlockBase.getHours(block, accessoryInstrumentIds);
 		}
 		
 		log.info("Total hours scheduled for free project: "+totalhours);

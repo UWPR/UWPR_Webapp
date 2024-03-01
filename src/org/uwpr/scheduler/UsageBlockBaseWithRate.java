@@ -3,13 +3,12 @@
  */
 package org.uwpr.scheduler;
 
-import org.uwpr.costcenter.CostUtils;
+
 import org.uwpr.costcenter.InstrumentRate;
+import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
-import org.uwpr.instrumentlog.UsageBlockBaseFilter;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 /**
  * UsageBlockBaseWithRate.java
@@ -65,5 +64,16 @@ public class UsageBlockBaseWithRate extends UsageBlockBase {
 		{
 			return BigDecimal.ZERO;
 		}
+	}
+
+	@Override
+	public int getHours()
+	{
+		// If this instrument is an add-on (e.g. HPLC) then we do not want the hours
+		// the instrument was used to count towards the total quota available to the user.
+		// HPLC will always be used with a mass spec instrument. Only the total mass spec
+		// instrument hours should count towards the quota.
+		MsInstrument instrument = rate!= null ? rate.getInstrument() : null;
+		return instrument != null && instrument.isMassSpec() ? super.getHours() : 0;
 	}
 }

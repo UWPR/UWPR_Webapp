@@ -7,6 +7,7 @@ import org.uwpr.costcenter.Cost;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.text.NumberFormat;
 
 /**
  * PaymentMethod.java
@@ -25,9 +26,10 @@ public class PaymentMethodUsage
 		invoicedCost = PaymentMethodDAO.getInstance().getInvoicedCost(paymentMethodId);
 	}
 
-    public BigDecimal getTotalCost() {
+    public BigDecimal getTotalCost()
+	{
 		return cost == null ? BigDecimal.ZERO : cost.getTotal();
-    }
+	}
 
 	public BigDecimal getInstrumentCost()
 	{
@@ -39,7 +41,33 @@ public class PaymentMethodUsage
 		return cost == null ? BigDecimal.ZERO : cost.setupCost;
 	}
 
-    public BigDecimal getInvoicedCost() {
-        return invoicedCost == null ? BigDecimal.ZERO : invoicedCost.getTotal();
-    }
+	public BigDecimal getInvoicedCost()
+	{
+		return invoicedCost == null ? BigDecimal.ZERO : invoicedCost.getTotal();
+	}
+
+	public String getTotalCostFormatted()
+	{
+		return format(getTotalCost());
+	}
+
+	public String getInstrumentCostFormatted()
+	{
+		return format(getInstrumentCost());
+	}
+
+	public String getSetupCostFormatted()
+	{
+		return format(getSetupCost());
+	}
+
+	public String getInvoicedCostFormatted()
+	{
+		return format(getInvoicedCost());
+	}
+
+	private String format(BigDecimal cost)
+	{
+		return NumberFormat.getCurrencyInstance().format(cost);
+	}
 }

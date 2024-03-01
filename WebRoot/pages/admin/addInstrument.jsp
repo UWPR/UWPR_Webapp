@@ -61,6 +61,13 @@
                 </td>
             </tr>
             <tr>
+                <td class="left_align"><b>Mass Spectrometer:</b></td>
+                <td class="left_align">
+                    <html:radio name="addInstrumentForm" property="massSpec" value="true">Yes</html:radio>
+                    <html:radio name="addInstrumentForm" property="massSpec" value="false">No</html:radio>
+                </td>
+            </tr>
+            <tr>
                 <td class="left_align"><b>Color:</b></td>
                 <td class="left_align">
                     <input id="colorPicker"/> <span id="chosenColor" style="padding:5px;"></span>

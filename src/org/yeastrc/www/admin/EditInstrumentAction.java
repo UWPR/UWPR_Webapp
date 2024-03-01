@@ -79,6 +79,7 @@ public class EditInstrumentAction extends Action {
         myForm.setName(instrument.getNameOnly());
         myForm.setDescription(instrument.getDescription());
         myForm.setActive(instrument.isActive());
+        myForm.setMassSpec(instrument.isMassSpec());
         String color = instrument.getHexColor(); // Colors stored in the database do not start with #.
         myForm.setColor(color == null ? InstrumentColors.getColor(instrument.getID()) : color);
         request.setAttribute("addInstrumentForm", myForm);

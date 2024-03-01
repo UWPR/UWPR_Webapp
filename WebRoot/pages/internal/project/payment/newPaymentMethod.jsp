@@ -48,7 +48,7 @@
 	<tr>
 		<td>Resource Worktag:</td>
 		<td>
-			<html:text  property="resourceWorktag"/> <span style="font-size:10px;">format: RS######. <span style="color:red;">Required for PG, CC and some SAG, GR worktags</span></span>
+			<html:text  property="resourceWorktag"/> <span style="font-size:10px;">format: RS######. <span style="color:red;">Required for CC worktags</span></span>
 		</td>
 	</tr>
 	<tr>

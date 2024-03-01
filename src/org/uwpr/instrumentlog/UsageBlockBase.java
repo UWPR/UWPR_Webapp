@@ -193,6 +193,11 @@ public class UsageBlockBase implements Block
 		return TimeUtils.getHours(getStartDate(), getEndDate());
 	}
 
+	public static int getHours(UsageBlockBase block, List<Integer> accessoryInstrumentIds)
+	{
+		return accessoryInstrumentIds.contains(block.getInstrumentID()) ? 0 : block.getHours();
+	}
+
     public String toString() {
         StringBuilder buf = new StringBuilder();
         buf.append("Block ");
