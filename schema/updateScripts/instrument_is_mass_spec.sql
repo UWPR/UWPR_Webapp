@@ -1,0 +1,1 @@
+ALTER TABLE msData.msInstrument ADD COLUMN massSpec boolean default true;

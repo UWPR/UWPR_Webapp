@@ -38,6 +38,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th>Active</th>
+                <th>Mass Spec</th>
                 <th></th>
                 <th></th>
             </tr>
@@ -52,8 +53,12 @@
                     </td>
                     <td class="left_align"><bean:write name="instrument" property="description"/></td>
                     <td class="left_align">
-                        <logic:equal name="instrument" property="active" value="true"><span style="color:green; font-style:bold;">YES</span></logic:equal>
+                        <logic:equal name="instrument" property="active" value="true"><span style="color:green; font-weight:bold;">YES</span></logic:equal>
                         <logic:equal name="instrument" property="active" value="false"><span style="color:red;">NO</span></logic:equal>
+                    </td>
+                    <td class="left_align">
+                        <logic:equal name="instrument" property="massSpec" value="true">YES</logic:equal>
+                        <logic:equal name="instrument" property="massSpec" value="false">NO</logic:equal>
                     </td>
                     <td><font color="green">
                         <html:link action="/editInstrument.do" paramId="instrumentId" paramName="instrument" paramProperty="ID">Edit</html:link>

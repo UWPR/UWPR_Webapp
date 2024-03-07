@@ -7,13 +7,11 @@
 package org.yeastrc.www.admin;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sound.midi.Instrument;
 
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
-import org.uwpr.instrumentlog.InstrumentColors;
 
 import java.util.regex.Pattern;
 
@@ -26,6 +24,7 @@ public class AddInstrumentForm extends ActionForm {
     private String name;
     private String description;
     private boolean active;
+    private boolean massSpec;
     private String color;
 
     private static final Pattern HEX_PATTERN = Pattern.compile("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
@@ -82,6 +81,14 @@ public class AddInstrumentForm extends ActionForm {
     public void setActive(boolean active)
     {
         this.active = active;
+    }
+
+    public boolean isMassSpec() {
+        return massSpec;
+    }
+
+    public void setMassSpec(boolean massSpec) {
+        this.massSpec = massSpec;
     }
 
     public String getColor()

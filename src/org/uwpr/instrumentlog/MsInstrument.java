@@ -7,18 +7,20 @@ public class MsInstrument {
 	private String description;
 	private boolean active;
 	private String color;
+	private boolean isMassSpec;
 
 	public MsInstrument(){}
 
-	public MsInstrument(int id, String name, String description, boolean active) {
+	public MsInstrument(int id, String name, String description, boolean active, boolean isMassSpec) {
 		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.active = active;
+		this.isMassSpec = isMassSpec;
 	}
 
-	public MsInstrument(int id, String name, String description, boolean active, String color) {
-		this(id, name, description, active);
+	public MsInstrument(int id, String name, String description, boolean active, boolean isMassSpec, String color) {
+		this(id, name, description, active, isMassSpec);
 		this.color = color;
 	}
 
@@ -45,6 +47,11 @@ public class MsInstrument {
 	
 	public boolean isActive() {
 		return active;
+	}
+
+	public boolean isMassSpec()
+	{
+		return isMassSpec;
 	}
 
 	public String getColor()
@@ -74,6 +81,11 @@ public class MsInstrument {
 	public void setActive(boolean active)
 	{
 		this.active = active;
+	}
+
+	public void setMassSpec(boolean massSpec)
+	{
+		this.isMassSpec = massSpec;
 	}
 
 	public void setColor(String color)

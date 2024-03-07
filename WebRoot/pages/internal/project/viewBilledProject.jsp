@@ -191,16 +191,16 @@
 							PaymentMethodUsage pmu = new PaymentMethodUsage(((PaymentMethod)paymentMethod).getId());
 						%>
 					<td style="padding:3px">
-						$<%=pmu.getSetupCost()%>
+						<%=pmu.getSetupCostFormatted()%>
 					</td>
 					<td style="padding:3px">
-						$<%=pmu.getInstrumentCost()%>
+						<%=pmu.getInstrumentCostFormatted()%>
 					</td>
                     <td style="padding:3px">
-                        $<%=pmu.getTotalCost()%>
+                        <%=pmu.getTotalCostFormatted()%>
                     </td>
                     <td style="padding:3px">
-                        $<%=pmu.getInvoicedCost()%>
+                        <%=pmu.getInvoicedCostFormatted()%>
                     </td>
 					<td style="padding:3px">
 						<nobr>

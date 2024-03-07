@@ -70,6 +70,7 @@ public class SaveInstrumentAction extends Action
         instrument.setDescription(myForm.getDescription());
         instrument.setColor(color);
         instrument.setActive(myForm.isActive());
+        instrument.setMassSpec(myForm.isMassSpec());
         instrUtils.saveInstrument(instrument);
 
         // Kick it to the view page
