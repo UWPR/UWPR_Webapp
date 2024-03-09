@@ -115,9 +115,10 @@ public class AppProperties
                 String propValue = rs.getString("config_value");
                 propMap.put(propName, propValue);
             }
-        } catch (SQLException e)
+        }
+        catch (SQLException e)
         {
-            log.error("Error reading properties from the database table mainDb.config_msdapl_webapp", e);
+            log.error("Error reading properties from table mainDb.config_msdapl_webapp", e);
         }
         finally
         {

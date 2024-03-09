@@ -60,7 +60,7 @@ public class ProjectUsageUpdateErrorEmailer {
 		}
 		catch (Exception e)
 		{
-			log.error("Error sending email about instrument usage update error." , e);
+			log.error("Could not send email about error encountered while updating project usage." , e);
 		}
 		
 	}
