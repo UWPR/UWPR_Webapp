@@ -8,14 +8,13 @@ import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.UsageBlockBase;
 import org.uwpr.scheduler.UsageBlockBaseWithRate;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
+import org.uwpr.www.EmailUtils;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
 
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Transport;
+import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.math.BigDecimal;
@@ -35,7 +34,7 @@ public class ProjectInstrumentUsageUpdateEmailer
         ADDED,
         EDITED,
         DELETED,
-        PURGED;
+        PURGED
     }
 
     private ProjectInstrumentUsageUpdateEmailer() {}
@@ -54,21 +53,8 @@ public class ProjectInstrumentUsageUpdateEmailer
 
         List<Researcher> admins = AdminUtils.getNotifyAdmins();
 
-        try {
-            // set the SMTP host property value
-            Properties properties = System.getProperties();
-            properties.put("mail.smtp.host", "localhost");
-
-            // create a JavaMail session
-            javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-
-            // create a new MIME message
-            MimeMessage message = new MimeMessage(mSession);
-
-            // set the from address
-            Address fromAddress = AppProperties.getFromAddress();
-            message.setFrom(fromAddress);
-
+         try
+         {
             // set the bcc address
             String emailStr = "";
             for(Researcher r: admins) {
@@ -77,8 +63,7 @@ public class ProjectInstrumentUsageUpdateEmailer
             if(emailStr.length() > 0) emailStr = emailStr.substring(1); // remove first comma
 
             Address[] bccAddress = InternetAddress.parse(emailStr);
-            message.setRecipients(Message.RecipientType.BCC, bccAddress);
-
+            Address[] toAddresses = null;
             if(includeProjectResearchers)
             {
                 List<Researcher> projectResearchers = project.getResearchers();
@@ -87,16 +72,13 @@ public class ProjectInstrumentUsageUpdateEmailer
                 for (Researcher r : projectResearchers) {
                     emailStr += "," + r.getEmail();
                 }
-                Address[] toAddress = InternetAddress.parse(emailStr);
-                message.setRecipients(Message.RecipientType.TO, toAddress);
+                toAddresses = InternetAddress.parse(emailStr);
             }
 
             // set the subject
             StringBuilder subject = new StringBuilder("UWPR - Instrument usage ");
             subject.append(action);
             subject.append(" on ").append(instrument.getName());
-
-            message.setSubject(subject.toString());
 
             // set the message body
             StringBuilder usageDetails = new StringBuilder();
@@ -195,12 +177,12 @@ public class ProjectInstrumentUsageUpdateEmailer
             usageDetails.append("\n\nThank you,\nThe UW Proteomics Resource\n");
 
             System.out.println(usageDetails);
-            message.setText(usageDetails.toString());
+
 
             // send the message
-            Transport.send(message);
+             EmailUtils.sendMail(subject.toString(), usageDetails.toString(), toAddresses, bccAddress);
 
-        } catch (Exception e) { log.error("Error sending email" , e); }
+        } catch (Exception e) { log.error("Error sending email about instrument usage update" , e); }
 
     }
 }

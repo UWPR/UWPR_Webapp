@@ -5,30 +5,18 @@
 
 package org.yeastrc.www.project;
 
-import java.util.Properties;
-
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.SendFailedException;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.struts.action.Action;
-import org.apache.struts.action.ActionErrors;
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.*;
 import org.uwpr.AppProperties;
 import org.uwpr.htpasswd.HTPasswdUserUtils;
+import org.uwpr.www.EmailUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
+
+import javax.mail.Address;
+import javax.mail.internet.InternetAddress;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Controller class for editing a project.
@@ -119,26 +107,9 @@ public class SaveResearcherAction extends Action {
 			
 			// Generate and send the email to the user.
 			try {
-			   // set the SMTP host property value
-			   Properties properties = System.getProperties();
-			   properties.put("mail.smtp.host", "localhost");
-
-			   // create a JavaMail session
-			   javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-
-			   // create a new MIME message
-			   MimeMessage message = new MimeMessage(mSession);
-
-			   // set the from address
-			   Address fromAddress = AppProperties.getFromAddress();
-			   message.setFrom(fromAddress);
 
 			   // set the to address
 				Address[] toAddress = InternetAddress.parse(email);
-				message.setRecipients(Message.RecipientType.TO, toAddress);
-
-			   // set the subject
-			   message.setSubject("UWPR Registration Info");
 
 			   // set the message body
 				String text = "Greetings " + firstName + " " + lastName + ",\n\n";
@@ -155,33 +126,16 @@ public class SaveResearcherAction extends Action {
 				text += "Password: " + newPassword + "\n\n";
 				text += "Thank you,\nThe UW Proteomics Resource\n";
 
-				message.setText(text);
-
 			   // send the message
-			   Transport.send(message);
-
+				EmailUtils.sendMail("UWPR Registration Information", text, toAddress);
 		   }
-			catch (AddressException e) {
-				// Invalid email address format
+			catch (Exception e)
+			{
 				ActionErrors errors = new ActionErrors();
-				errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
+				errors.add("email", new ActionMessage("error.email.message", "new account", e.toString()));
 				saveErrors( request, errors );
 				return mapping.findForward("Failure");
 			}
-			catch (SendFailedException e) {
-				// Invalid email address format
-				ActionErrors errors = new ActionErrors();
-				errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
-				saveErrors( request, errors );
-				return mapping.findForward("Failure");
-			}
-			catch (MessagingException e) {
-				// Invalid email address format
-				ActionErrors errors = new ActionErrors();
-				errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
-				saveErrors( request, errors );
-				return mapping.findForward("Failure");
-			}		
 		}
 
 
