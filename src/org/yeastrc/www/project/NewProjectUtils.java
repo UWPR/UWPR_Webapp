@@ -3,20 +3,15 @@
  */
 package org.yeastrc.www.project;
 
-import java.util.Properties;
-
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.struts.util.MessageResources;
-import org.uwpr.AppProperties;
+import org.uwpr.www.EmailUtils;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.Researcher;
+
+import javax.mail.Address;
+import javax.mail.internet.InternetAddress;
 
 /**
  * Add one sentence class summary here.
@@ -40,27 +35,9 @@ public class NewProjectUtils {
 	public static void sendEmailConfirmation(Researcher r, Project p, MessageResources mr) {
 		
 		try {
-			// set the SMTP host property value
-			Properties properties = System.getProperties();
-			properties.put("mail.smtp.host", "localhost");
-			
-			// create a JavaMail session
-			javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-			
-			// create a new MIME message
-			MimeMessage message = new MimeMessage(mSession);
-			
-			// set the from address
-			Address fromAddress = AppProperties.getFromAddress();
-			message.setFrom(fromAddress);
-			
 			// set the to address
 			Address[] toAddress = InternetAddress.parse(r.getEmail());
-			message.setRecipients(Message.RecipientType.TO, toAddress);
 
-			// set the subject
-			message.setSubject("UWPR - New " + p.getLongType() + " confirmation.");
-			
 			// set the message body
 			String text = r.getFirstName() + " " + r.getLastName() + ",\n\n";
 			text += "Your " + p.getLongType() + " request has been successfully submitted to the UW Proteomics Resource.\n\n";
@@ -76,10 +53,8 @@ public class NewProjectUtils {
 			
 			text += "\nThank you,\nThe UW Proteomics Resource\n";
 
-			message.setText(text);
-
 			// send the message
-			Transport.send(message);
+			EmailUtils.sendMail("UWPR - New " + p.getLongType() + " confirmation.", text, toAddress);
 
 		} catch (Exception e) { log.error("Error sending confirmation email to researcher.", e); }
 	}

@@ -11,19 +11,17 @@ package org.yeastrc.www.login;
 
 import org.apache.struts.action.*;
 import org.uwpr.AppProperties;
+import org.uwpr.www.EmailUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.NoSuchUserException;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
-import javax.mail.*;
-import javax.mail.internet.AddressException;
+import javax.mail.Address;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Properties;
 
 
 /**
@@ -97,59 +95,25 @@ public class ForgotPasswordAction extends Action {
 		user.save();
 		
 		// Generate and send the email to the user.
-        try {
-           // set the SMTP host property value
-           Properties properties = System.getProperties();
-           properties.put("mail.smtp.host", "localhost");
-
-           // create a JavaMail session
-           javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-
-           // create a new MIME message
-           MimeMessage message = new MimeMessage(mSession);
-
-           // set the from address
-           Address fromAddress = AppProperties.getFromAddress();
-           message.setFrom(fromAddress);
-
-           // set the to address
+        try
+		{
+			// set the to address
 			Address[] toAddress = InternetAddress.parse(user.getResearcher().getEmail());
-			message.setRecipients(Message.RecipientType.TO, toAddress);
 
-           // set the subject
-           message.setSubject("UWPR Registration Info");
-
-           // set the message body
-			String text = "Here is your login information for " + AppProperties.getHost() + " :\n\n";
+			// set the message body
+			String text = "Your password on " + AppProperties.getHost() + " has been reset. Here is your login information :\n\n";
 			text += "Username: " + user.getUsername() + "\n";
 			text += "Password: " + password + "\n\n";
 			text += "Thank you,\nThe UW Proteomics Resource\n";
-			
-           message.setText(text);
 
-           // send the message
-           Transport.send(message);
-
-       }
-		catch (AddressException e) {
-			// Invalid email address format
-			ActionErrors errors = new ActionErrors();
-			errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
-			saveErrors( request, errors );
-			return mapping.findForward("Failure");
+			// send the message
+			EmailUtils.sendMail("UWPR Login Information", text, toAddress);
 		}
-		catch (SendFailedException e) {
-			// Invalid email address format
+		catch (Exception e)
+		{
 			ActionErrors errors = new ActionErrors();
-			errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
-			saveErrors( request, errors );
-			return mapping.findForward("Failure");
-		}
-		catch (MessagingException e) {
-			// Invalid email address format
-			ActionErrors errors = new ActionErrors();
-			errors.add("email", new ActionMessage("error.forgotpassword.sendmailerror"));
-			saveErrors( request, errors );
+			errors.add("email", new ActionMessage("error.email.message", "password reset", e.toString()));
+			saveErrors( request, errors );e.toString();
 			return mapping.findForward("Failure");
 		}
 

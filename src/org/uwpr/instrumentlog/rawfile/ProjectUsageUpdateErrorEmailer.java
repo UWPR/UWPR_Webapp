@@ -5,20 +5,15 @@
  */
 package org.uwpr.instrumentlog.rawfile;
 
-import java.util.List;
-import java.util.Properties;
-
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uwpr.AdminUtils;
-import org.uwpr.AppProperties;
+import org.uwpr.www.EmailUtils;
 import org.yeastrc.project.Researcher;
+
+import javax.mail.Address;
+import javax.mail.internet.InternetAddress;
+import java.util.List;
 
 /**
  * 
@@ -42,21 +37,6 @@ public class ProjectUsageUpdateErrorEmailer {
 		List<Researcher> researchers = AdminUtils.getNotifyAdmins();
 
 		try {
-			// set the SMTP host property value
-			Properties properties = System.getProperties();
-			properties.put("mail.smtp.host", "localhost");
-
-			// create a JavaMail session
-			javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-
-			// create a new MIME message
-			MimeMessage message = new MimeMessage(mSession);
-
-			// set the from address
-			Address fromAddress = AppProperties.getFromAddress();
-			message.setFrom(fromAddress);
-
-			// set the to address
 			String emailStr = "";
 			for(Researcher r: researchers) {
 				emailStr += ","+r.getEmail();
@@ -64,11 +44,6 @@ public class ProjectUsageUpdateErrorEmailer {
 			if(emailStr.length() > 0) emailStr = emailStr.substring(1); // remove first comma
 
 			Address[] toAddress = InternetAddress.parse(emailStr);
-			message.setRecipients(Message.RecipientType.TO, toAddress);
-
-
-			// set the subject
-			message.setSubject("UWPR - Project usage update error!!! ");
 
 			// set the message body
 			StringBuilder text = new StringBuilder();
@@ -79,12 +54,14 @@ public class ProjectUsageUpdateErrorEmailer {
 			text.append("\n\nThank you,\nThe UW Proteomics Resource\n");
 
 			System.out.println(text);
-			message.setText(text.toString());
 
 			// send the message
-			Transport.send(message);
-
-		} catch (Exception e) { log.error("Error sending email" , e); }
+			EmailUtils.sendMail("UWPR - Project usage update error!!!", text.toString(), toAddress);
+		}
+		catch (Exception e)
+		{
+			log.error("Could not send email about error encountered while updating project usage." , e);
+		}
 		
 	}
 }
