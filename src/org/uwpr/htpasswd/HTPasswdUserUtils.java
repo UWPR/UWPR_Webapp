@@ -27,7 +27,7 @@ public class HTPasswdUserUtils {
 	 * @throws Exception If there is a problem.
 	 */
 	public void removeUser( String user ) throws Exception {
-		Runtime.getRuntime().exec( HTPasswdUtils.HTPASSWD_PROGRAM + " -D" + HTPasswdUtils.PASSWORD_FILE + " " + user ); 
+		Runtime.getRuntime().exec( HTPasswdUtils.HTPASSWD_PROGRAM + " -D " + HTPasswdUtils.PASSWORD_FILE + " " + user );
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class HTPasswdUserUtils {
 	 * @throws Exception
 	 */
 	public void addUser( String user, String password ) throws Exception {
-		this.removeUser( user );
+		// this.removeUser( user );
 		Runtime.getRuntime().exec( HTPasswdUtils.HTPASSWD_PROGRAM + " -b " + HTPasswdUtils.PASSWORD_FILE + " " + user + " " + password );
 	}
 
