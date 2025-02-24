@@ -71,7 +71,8 @@ public class ScheduledTask implements ServletContextListener {
             log.info("RUNNING ScheduledTask ........");
 
             // Update project usage (# raw files, disk space used etc.)
-            updateProjectUsage();
+            // TODO: Remove this ScheduledTask? We are no longer populating project raw file usage.
+            // updateProjectUsage();
             
             log.info("ScheduledTask done.........");
             notiferRunning = false;
