@@ -9,8 +9,12 @@
 
 package org.yeastrc.www.login;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.uwpr.AppProperties;
+import org.uwpr.htpasswd.HTPasswdUserUtils;
+import org.uwpr.htpasswd.HTPasswdUtils;
 import org.uwpr.www.EmailUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.NoSuchUserException;
@@ -28,6 +32,8 @@ import javax.servlet.http.HttpSession;
  * Implements the logic to register a user
  */
 public class ForgotPasswordAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(ForgotPasswordAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -93,7 +99,16 @@ public class ForgotPasswordAction extends Action {
 		// Set the password in the user and save it.
 		user.setPassword(password);
 		user.save();
-		
+
+		// update this password in the htpasswd file
+		try
+		{
+			HTPasswdUserUtils.getInstance().addUser( user.getUsername(), password );
+		}
+		catch (Exception e)
+		{
+			log.error("Password could not be saved to " + HTPasswdUtils.PASSWORD_FILE, e);
+		}
 		// Generate and send the email to the user.
         try
 		{

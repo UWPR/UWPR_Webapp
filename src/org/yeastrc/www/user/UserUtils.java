@@ -9,10 +9,15 @@
 
 package org.yeastrc.www.user;
 
+import java.security.SecureRandom;
 import java.sql.*;
 import org.yeastrc.data.*;
 import org.yeastrc.db.*;
-import java.util.Random;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.servlet.http.*;
 
 
@@ -286,30 +291,61 @@ public class UserUtils {
         return DBConnectionManager.getMainDbConnection();
     }
 
-    /**
-	 * Generate and return a random password.
-	 * @return A randomly generated password.
-	 */
-	public static String generatePassword() {
-		// The list of possible characters to use in the password.
-		String[] chars = {"2","3","4","5","6","7","8","9","a","b","c","d","e","f","g","h","i","j","k","m","n","p","q","r","s","t","u","v","w","x","y","z"};
-		
-		// The size of the password to generate
-		int pSize = 6;
-		
-		// The password to return.
-		String password = "";
-		
-		// Random number generator
-		Random rand = new Random();
-		
-		// Create the password
-		for (int i = 0; i < pSize; i++) {
-		   int ind = rand.nextInt(chars.length);
-		   password = password + chars[ind];
+
+
+	private static final List<Character> LOWERCASE = "abcdefghijklmnopqrstuvwxyz".chars().mapToObj(c -> (char)c).collect(Collectors.toList());
+	private static final List<Character> UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().mapToObj(c -> (char)c).collect(Collectors.toList());
+	private static final List<Character> DIGITS = "0123456789".chars().mapToObj(c -> (char)c).collect(Collectors.toList());
+	private static final List<Character> SYMBOLS = "!@#$%^&*+=?".chars().mapToObj(c -> (char)c).collect(Collectors.toList());
+
+	private static final List<Character> ALL_CHARS = new ArrayList<Character>() {{
+		addAll(LOWERCASE);
+		addAll(UPPERCASE);
+		addAll(DIGITS);
+		addAll(SYMBOLS);
+	}};
+
+	private static final int PASSWORD_LEN = 12;
+
+	public static String generatePassword()
+	{
+		SecureRandom random = new SecureRandom();
+
+		List<Character> passwordChars = new ArrayList<>(PASSWORD_LEN);
+
+		// Ensure that there is at least one character from each character category.
+		addRandomChar(LOWERCASE, passwordChars, random);
+		addRandomChar(UPPERCASE, passwordChars, random);
+		addRandomChar(DIGITS, passwordChars, random);
+		addRandomChar(SYMBOLS, passwordChars, random);
+
+		// Create a copy of ALL_CHARS for this password generation
+		List<Character> allChars = new ArrayList<>(ALL_CHARS);
+		// Shuffle it to ensure randomness for this particular password
+		Collections.shuffle(allChars, random);
+
+		// Add more characters until we are at the desired password length
+		while (passwordChars.size() < PASSWORD_LEN)
+		{
+			addRandomChar(allChars, passwordChars, random);
 		}
-		
-		return password;	
+
+		// Final shuffle to randomize character positions
+		Collections.shuffle(passwordChars, random);
+
+		StringBuilder password = new StringBuilder(PASSWORD_LEN);
+		for (Character c : passwordChars) {
+			password.append(c);
+		}
+		return password.toString();
 	}
 
+	/**
+	 * Adds a random character from the given category to the password
+	 */
+	private static void addRandomChar(List<Character> category, List<Character> passwordChars, SecureRandom random)
+	{
+		int randomIdx = random.nextInt(category.size());
+		passwordChars.add(category.get(randomIdx));
+	}
 }
