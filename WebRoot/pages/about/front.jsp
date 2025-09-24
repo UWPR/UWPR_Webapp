@@ -23,9 +23,7 @@
 
 		<p>
 		The UWPR is located at the UW's <a href='http://depts.washington.edu/somslu/'>South Lake Union campus</a>
-		and provides access to state of the art instrumentation and computational support for Resource members and their collaborators. 
-		The UWPR is governed by a Resource Advisory group that is currently composed of Bob Waterson, Mike MacCoss, Dave Goodlett, 
-		Jay Heinecke, Trisha Davis, Stan Fields, Jim Bruce, Judit Villen, Alejandro Wolf-Yadlin, Shao-En Ong, and Andy Hoofnagle. 
+		and provides access to state of the art instrumentation and computational support for Resource members and their collaborators.
 		</p>
 
 		<p>

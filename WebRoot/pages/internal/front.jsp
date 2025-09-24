@@ -58,8 +58,8 @@ There is a 30 minute setup time required at the beginning of your scheduled inst
 </p>
 
 <p>
-Non UW collaborators will have to coordinate sample analysis with UWPR personnel. 
-Contact Priska von Haller (priska@uw.edu) for more details. The <b><a href="/pr/costcenter_resources/UWPR sample submission form.xlsx">Sample Submission Form</a></b>
+	UW collaborators interested in fee for service analyses will have to coordinate sample analysis with UWPR personnel.
+	Contact Michael Hoopmann (hoopmann@uw.edu) for more details. The <b><a href="/pr/costcenter_resources/UWPR sample submission form.xlsx">Sample Submission Form</a></b>
 can be downloaded <a href="/pr/costcenter_resources/UWPR sample submission form.xlsx">here</a>.
 </p>
 
@@ -69,10 +69,7 @@ The UWPR reserves the right to cancel a collaboration at any time for any reason
 
 <p>
 The UW Proteomics Resource should be acknowledged as follows in publications: 
-<b>This work is supported in part by the University of Washington's Proteomics Resource (UWPR95794).</b> 
-Please report significant progress and publications for each project.  
-This can be done by navigating to the appropriate project page, clicking on the "Edit Project" link and
-filling out the fields labeled as "Progress" and "Publications". 
+<b>This work is supported in part by the University of Washington's Proteomics Resource (UWPR95794).</b>
 </p>
 
 <div style="color:red; margin-bottom:20px">
