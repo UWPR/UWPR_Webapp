@@ -122,6 +122,7 @@
     <form-bean name="dateRangeForm" type="org.uwpr.www.instrumentlog.DateRangeForm"></form-bean>
     <form-bean name="instrumentSelectorForm" type="org.uwpr.www.instrumentlog.InstrumentSelectorForm"></form-bean>
     <form-bean name="timeBlockForm" type="org.uwpr.www.costcenter.TimeBlockForm" />
+    <form-bean name="noticeForm" type="org.uwpr.www.notice.NoticeForm" />
     <form-bean name="instrumentRateForm" type="org.uwpr.www.costcenter.InstrumentRateForm" />
     <form-bean name="paymentMethodForm" type="org.yeastrc.www.project.payment.PaymentMethodForm" />
     <form-bean name="exportBillingInformationForm" type="org.uwpr.www.costcenter.ExportBillingInformationForm" />
@@ -788,8 +789,49 @@
       <forward name="Success" path="/viewTimeBlocks.do" redirect="true" />
       <forward name="Failure" path="/viewTimeBlocks.do" redirect="false" />
     </action>
-    
-    
+
+    <action
+      path="/manageNotices"
+      type="org.uwpr.www.notice.ManageNoticesAction"
+      >
+      <forward name="Success" path="/pages/admin/notice/manageNotices.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false" />
+    </action>
+
+    <action
+      path="/editNotice"
+      type="org.uwpr.www.notice.EditNoticeAction"
+      name="noticeForm"
+      scope="request"
+      validate="false"
+      >
+      <forward name="Success" path="/pages/admin/notice/noticeForm.jsp" redirect="false" />
+      <forward name="Failure" path="/pages/internal/front.jsp" redirect="false" />
+      <forward name="NotFound" path="/pages/admin/notice/manageNotices.jsp" redirect="false" />
+    </action>
+
+    <action
+      path="/saveNotice"
+      type="org.uwpr.www.notice.SaveNoticeAction"
+      name="noticeForm"
+      scope="request"
+      input="/pages/admin/notice/noticeForm.jsp"
+      validate="true"
+      >
+      <forward name="Success" path="/manageNotices.do" redirect="true" />
+      <forward name="Failure" path="/pages/admin/notice/noticeForm.jsp" redirect="false" />
+      <forward name="NotFound" path="/pages/admin/notice/manageNotices.jsp" redirect="false" />
+    </action>
+
+    <action
+      path="/deleteNotice"
+      type="org.uwpr.www.notice.DeleteNoticeAction"
+      >
+      <forward name="Success" path="/manageNotices.do" redirect="true" />
+      <forward name="Failure" path="/manageNotices.do" redirect="false" />
+    </action>
+
+
     <action
       path="/viewInstrumentRates"
       type="org.uwpr.www.costcenter.ViewInstrumentRatesAction"

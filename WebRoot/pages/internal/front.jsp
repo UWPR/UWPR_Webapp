@@ -15,6 +15,22 @@
 <%@ include file="/includes/header.jsp" %>
 <%@ include file="/includes/errors.jsp" %>
 
+<logic:notEmpty name="notices" scope="request">
+<yrcwww:contentbox title="Notices">
+	<logic:iterate id="notice" name="notices">
+		<div style="margin: 6px 0; padding: 8px 12px; border-left: 4px solid #d9822b; background-color: #fff7e6;">
+			<div style="white-space: pre-wrap;"><bean:write name="notice" property="message"/></div>
+			<div style="font-size: 8pt; color: #888; margin-top: 4px;">
+				Posted for
+				<bean:write name="notice" property="startDateString"/>
+				&ndash;
+				<bean:write name="notice" property="endDateString"/>
+			</div>
+		</div>
+	</logic:iterate>
+</yrcwww:contentbox>
+</logic:notEmpty>
+
 <yrcwww:contentbox title="Welcome">
 
 <P>Welcome to the internal Proteomics Resource web site.</P>

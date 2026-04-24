@@ -7,3 +7,5 @@
 <html:link action="allInstrumentUsageSummary">Instrument Log</html:link>
 &nbsp;&nbsp;.&nbsp;&nbsp;
 <html:link action="costCenterHome">Cost Center</html:link>
+&nbsp;&nbsp;.&nbsp;&nbsp;
+<html:link action="manageNotices.do">Manage Notices</html:link>

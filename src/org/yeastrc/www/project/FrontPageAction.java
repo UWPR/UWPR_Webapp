@@ -4,17 +4,21 @@
 package org.yeastrc.www.project;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionErrors;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.uwpr.notice.NoticeDAO;
 import org.yeastrc.project.Collaboration;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
@@ -25,6 +29,8 @@ import org.yeastrc.www.user.UserUtils;
  * Controller class for viewing all highlights.
  */
 public class FrontPageAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(FrontPageAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -53,7 +59,15 @@ public class FrontPageAction extends Action {
 		if (groupMan.isMember(user.getResearcher().getID(), "administrators")) {
 
 		}
-        
+
+		// Active home-page notices. Don't let a query failure break the home page.
+		try {
+			request.setAttribute("notices", NoticeDAO.getInstance().getActiveNotices(new Date()));
+		}
+		catch (Exception e) {
+			log.error("Failed to load active notices for the home page", e);
+		}
+
 		// Go!
 		return mapping.findForward("Success");
 	}	
