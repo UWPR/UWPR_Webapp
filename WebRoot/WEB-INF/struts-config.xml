@@ -182,6 +182,7 @@
 	<forward name="adminHome" path="/pages/admin/search/searchProjects.jsp"/>
 	<forward name="projectSearchForm" path="/pages/admin/search/searchProjects.jsp"/>
 	<forward name="standardHome" path="/viewFrontPage.do"/>
+	<forward name="welcome" path="/viewFrontPage.do" redirect="true"/>
 	<forward name="adminSearch" path="/pages/admin/search/searchProjects.jsp"/>
 	<forward name="viewResearcher" path="/viewResearcher.do" />
 	<forward name="projectUsageList" path="/viewProjectUsage.do" />
