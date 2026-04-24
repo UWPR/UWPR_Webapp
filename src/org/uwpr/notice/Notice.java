@@ -30,7 +30,7 @@ public class Notice {
     }
 
     public String getStartDateString() {
-        return startDate == null ? "" : TimeUtils.shortDate.format(startDate);
+        return startDate == null ? "" : TimeUtils.isoDate.format(startDate);
     }
 
     public Date getEndDate() {
@@ -42,7 +42,7 @@ public class Notice {
     }
 
     public String getEndDateString() {
-        return endDate == null ? "" : TimeUtils.shortDate.format(endDate);
+        return endDate == null ? "" : TimeUtils.isoDate.format(endDate);
     }
 
     public String getMessage() {
@@ -70,6 +70,6 @@ public class Notice {
     }
 
     public String getCreateDateString() {
-        return createDate == null ? "" : TimeUtils.shortDate.format(createDate);
+        return createDate == null ? "" : TimeUtils.isoDate.format(createDate);
     }
 }

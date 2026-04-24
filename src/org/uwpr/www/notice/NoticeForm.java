@@ -85,11 +85,11 @@ public class NoticeForm extends ActionForm {
     }
 
     public Date getStartDate() throws ParseException {
-        return TimeUtils.shortDate.parse(startDateString);
+        return TimeUtils.isoDate.parse(startDateString);
     }
 
     public void setStartDate(Date startDate) {
-        this.startDateString = TimeUtils.shortDate.format(startDate);
+        this.startDateString = TimeUtils.isoDate.format(startDate);
     }
 
     public String getEndDateString() {
@@ -101,11 +101,11 @@ public class NoticeForm extends ActionForm {
     }
 
     public Date getEndDate() throws ParseException {
-        return TimeUtils.shortDate.parse(endDateString);
+        return TimeUtils.isoDate.parse(endDateString);
     }
 
     public void setEndDate(Date endDate) {
-        this.endDateString = TimeUtils.shortDate.format(endDate);
+        this.endDateString = TimeUtils.isoDate.format(endDate);
     }
 
     public String getMessage() {

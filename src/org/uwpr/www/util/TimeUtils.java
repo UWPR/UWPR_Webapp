@@ -15,6 +15,7 @@ public class TimeUtils
 
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
     public static final SimpleDateFormat shortDate = new SimpleDateFormat("MM/dd/yyyy");
+    public static final SimpleDateFormat isoDate = new SimpleDateFormat("yyyy-MM-dd");
     public static final DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
 
     private TimeUtils(){}

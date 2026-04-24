@@ -13,7 +13,7 @@
 
 <script>
     $(function() {
-        $(".datepicker").datepicker();
+        $(".datepicker").datepicker({ dateFormat: "yy-mm-dd" });
     });
 </script>
 
@@ -29,7 +29,7 @@
             <td>Start Date:</td>
             <td>
                 <html:text property="startDateString" styleClass="datepicker"/>
-                <span style="font-size:8pt;">MM/DD/YYYY</span>
+                <span style="font-size:8pt;">YYYY-MM-DD</span>
             </td>
         </tr>
         <tr>
