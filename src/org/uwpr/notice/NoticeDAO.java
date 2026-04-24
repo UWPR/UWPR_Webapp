@@ -35,6 +35,7 @@ public class NoticeDAO {
             if (rs.next()) {
                 return makeNotice(rs);
             }
+            log.error("No entry found in table notice for id: " + noticeId);
             return null;
         }
         finally {

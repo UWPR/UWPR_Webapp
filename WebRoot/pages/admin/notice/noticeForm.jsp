@@ -29,7 +29,7 @@
             <td>Start Date:</td>
             <td>
                 <html:text property="startDateString" styleClass="datepicker"/>
-                <span style="font-size:8pt;">e.g. 04/29/2026</span>
+                <span style="font-size:8pt;">MM/DD/YYYY</span>
             </td>
         </tr>
         <tr>

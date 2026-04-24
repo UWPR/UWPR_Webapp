@@ -51,7 +51,8 @@ public class SaveNoticeAction extends Action {
             saveErrors(request, errors);
             return mapping.findForward("Failure");
         }
-        notice.setMessage(noticeForm.getMessage().trim());
+        String msg = noticeForm.getMessage();
+        notice.setMessage(msg == null ? "" : msg.trim());
 
         try {
             int existingId = noticeForm.getId();
