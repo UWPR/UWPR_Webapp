@@ -55,13 +55,25 @@ $(document).ready(function() {
 		var text = $(this).text();
 		if(text == '[Deselect All]') {
 			$(this).text('[Select Al]l');
-			$(".instrument_cb").attr('checked', '');
+			$(".instrument_cb:visible").attr('checked', '');
 		}
 		else {
 			$(this).text('[Deselect All]');
-			$(".instrument_cb").attr('checked', 'checked');
+			$(".instrument_cb:visible").attr('checked', 'checked');
 		}
 	});
+		$("#retired_toggle").click(function() {
+
+			var text = $(this).text();
+			if(text == '[Show retired instruments]') {
+				$(this).text('[Hide retired instruments]');
+				$(".retired_row").show();
+			}
+			else {
+				$(this).text('[Show retired instruments]');
+				$(".retired_row").hide();
+			}
+		});
 });
 
 var currentEventSourceUrl;
@@ -159,23 +171,23 @@ function goToScheduler() {
 						</tr>
 						</logic:equal>
 					</logic:iterate>
-					<tr><td colspan="3"><hr/></td></tr>
-					<logic:iterate name="instruments" id="instrument">
-						<logic:equal name="instrument" property="active" value="false">
-						<tr>
-							<td>
-								<input type="checkbox" class="instrument_cb" id='<bean:write name="instrument" property="instrumentId" />' checked="checked"/>
-							</td>
-							<td>
-								<span style="width:20px; height:20px; background-color:#<bean:write name='instrument' property='color'/>;" >&nbsp;&nbsp;&nbsp;</span>
-							</td>
-							<td style="font-size:8pt;">
-								<bean:write name="instrument" property="name"/>
-							</td>
-						</tr>
-						</logic:equal>
-					</logic:iterate>
+						<logic:iterate name="instruments" id="instrument">
+							<logic:equal name="instrument" property="active" value="false">
+							<tr class="retired_row" style="display:none;">
+								<td>
+									<input type="checkbox" class="instrument_cb" id='<bean:write name="instrument" property="instrumentId" />'/>
+								</td>
+								<td>
+									<span style="width:20px; height:20px; background-color:#<bean:write name='instrument' property='color'/>;" >&nbsp;&nbsp;&nbsp;</span>
+								</td>
+								<td style="font-size:8pt;">
+									<bean:write name="instrument" property="name"/>
+								</td>
+							</tr>
+							</logic:equal>
+						</logic:iterate>
 				</table>
+					<div id="retired_toggle" style="margin:10px 0 0 0; text-align:left;font-size:8pt;text-decoration:underline;cursor:pointer;">[Show retired instruments]</div>
 				
 				<div id="cb_select_toggle" style="margin:10px 0 10px 0; text-align:left;font-size:8pt;text-decoration:underline;cursor:pointer;">[Deselect All]</div>
 				
