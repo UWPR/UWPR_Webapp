@@ -15,6 +15,48 @@
 <%@ include file="/includes/header.jsp" %>
 <%@ include file="/includes/errors.jsp" %>
 
+<script type='text/javascript' src='/pr/js/jquery-1.5.min.js'></script>
+<script type='text/javascript' src='/pr/js/jquery.tablesorter.min.js'></script>
+
+<style>
+	/* Sort arrows and the pointer cursor for the projects table.
+	   These mirror the rules in css/tablesorter.css, but scoped to table.striped.  We do not put
+	   the "tablesorter" class on this table because those styles also force 8pt text, left-aligned
+	   headers, and a white cell background, which would restyle the table and hide the row stripes.
+	   Image paths are absolute because this block is inlined in the page, not in css/. */
+	table.striped thead tr .header {
+		background-image: url(/pr/images/tablesorter/bg.gif);
+		background-repeat: no-repeat;
+		background-position: center right;
+		cursor: pointer;
+	}
+	table.striped thead tr .headerSortUp {
+		background-image: url(/pr/images/tablesorter/asc.gif);
+	}
+	table.striped thead tr .headerSortDown {
+		background-image: url(/pr/images/tablesorter/desc.gif);
+	}
+	table.striped thead tr .headerSortDown, table.striped thead tr .headerSortUp {
+		background-color: #B0C4DE;
+	}
+</style>
+
+<script>
+$(document).ready(function() {
+
+	// Column indexes are 0-based and must be kept in step with the header row below:
+	//   0 View link, 1 ID, 2 Title, 3 Type, 4 Submit Date, 5 Status, 6 report-overdue marker
+	// Columns 0 and 6 hold no sortable content.
+	$("#your_projects_table").tablesorter({
+		sortList: [[1,1]],          // newest project first, matching the order from the database
+		headers: {
+			0: { sorter: false },
+			6: { sorter: false }
+		}
+	});
+});
+</script>
+
 <logic:notEmpty name="notices" scope="request">
 <yrcwww:contentbox title="Notices">
 	<logic:iterate id="notice" name="notices">
@@ -97,9 +139,10 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 <yrcwww:contentbox title="Your Projects" innerBox="true">
 
 <logic:notEmpty name="userProjects" scope="request">
- <TABLE BORDER="0" WIDTH="100%" class="striped">
- 
+ <TABLE BORDER="0" WIDTH="100%" id="your_projects_table" class="striped">
+
  <thead>
+  <TR>
    <TH>&nbsp;</TH>
    <TH><U>ID</U></TH>
    <TH><U>Title</U></TH>
@@ -107,6 +150,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
    <TH><U>Submit Date</U></TH>
    <TH><U>Collaboration<br>Status</U></TH>
    <TH>&nbsp;</TH>
+  </TR>
 </thead>
 
 <tbody>

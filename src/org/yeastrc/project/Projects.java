@@ -108,7 +108,10 @@ public class Projects {
             "LEFT OUTER JOIN projectResearcher AS pr "+
             "ON p.projectID = pr.projectID "+
             "WHERE (p.projectPI = ? OR pr.researcherID = ?) "+
-            "ORDER BY p.projectID";
+            // Newest project first.  projectID is auto-increment, so it is a reliable proxy for
+            // creation order.  projectSubmitDate is not, because older rows can hold the
+            // '0000-00-00' default.  Callers display this list, so none depend on ascending order.
+            "ORDER BY p.projectID DESC";
 
             stmt = conn.prepareStatement(sqlStr);
             stmt.setInt(1, researcherID);
