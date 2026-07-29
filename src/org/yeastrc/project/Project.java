@@ -873,6 +873,37 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 				conn = null;
 			}
 		}
+
+		// Nothing in the database cleans up rows that reference this project.  There are no
+		// foreign keys on projectID, and the triggers in schema/cost_center_tables.sql only
+		// fire on deletes from invoice, paymentMethod and instrumentUsage.  Clear the rows
+		// this webapp writes itself.
+		deleteRowsForProject(getConnection(), "projectResearcher", this.id);
+		deleteRowsForProject(DBConnectionManager.getPrConnection(), "externalDataLocations", this.id);
+	}
+
+	/**
+	 * Delete every row of the given table that belongs to the given project.  The table must
+	 * have a projectID column, and must not have other rows depending on the ones removed.
+	 * Closes the supplied connection.
+	 */
+	private static void deleteRowsForProject(Connection conn, String table, int projectId) throws SQLException {
+
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement("DELETE FROM " + table + " WHERE projectID = ?");
+			stmt.setInt(1, projectId);
+			stmt.executeUpdate();
+		}
+		finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (SQLException e) { ; }
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { ; }
+			}
+		}
 	}
 
 

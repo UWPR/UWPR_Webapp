@@ -253,7 +253,9 @@
  <div style="margin-top:15px;">
 
  <yrcwww:member group="administrators">
-  <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  <logic:equal name="canDelete" value="true">
+   <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  </logic:equal>
  </yrcwww:member>
  </div>
 

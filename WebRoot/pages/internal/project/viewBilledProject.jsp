@@ -314,8 +314,10 @@
  <html:link action="/editProject.do" paramId="ID" paramName="project" paramProperty="ID"><B>[EDIT PROJECT]</B></html:link>
  
  <yrcwww:member group="administrators">
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  <logic:equal name="canDelete" value="true">
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  </logic:equal>
  </yrcwww:member>
 
  <div style="margin-top:20px;font-weight:bold; font-size: larger;">

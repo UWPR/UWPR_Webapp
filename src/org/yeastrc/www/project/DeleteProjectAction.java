@@ -6,6 +6,7 @@ package org.yeastrc.www.project;
 import javax.servlet.http.*;
 import org.apache.struts.action.*;
 
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.*;
 
@@ -60,9 +61,26 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
+		// A project that has instrument time scheduled cannot be deleted.  Deleting it would leave
+		// rows in instrumentUsage pointing at a project that no longer exists, which breaks the
+		// monthly billing export and the instrument calendar for every period containing that usage.
+		try {
+			if (InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(projectID) > 0) {
+				ActionErrors errors = new ActionErrors();
+				errors.add("project", new ActionMessage("error.project.hasinstrumenttime"));
+				saveErrors( request, errors );
+				return mapping.findForward("standardHome");
+			}
+		} catch (Exception e) {
+			ActionErrors errors = new ActionErrors();
+			errors.add("project", new ActionMessage("error.project.projectnotfound"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
+		}
+
 		// Load our project
 		Project project;
-		
+
 		try {
 			project = ProjectFactory.getProject(projectID);
 			project.delete();

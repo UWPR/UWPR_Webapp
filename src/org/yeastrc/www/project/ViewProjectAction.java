@@ -12,6 +12,7 @@ import org.apache.struts.action.*;
 import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
 import org.uwpr.data.MSDaPlExperimentSearcher;
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsageUtils;
 import org.yeastrc.project.*;
@@ -100,6 +101,16 @@ public class ViewProjectAction extends Action {
 			request.setAttribute("projectAndReview", projAndRev);
 		}
 		
+		// A project can only be deleted if no instrument time has been scheduled for it.
+		// This only hides the link.  DeleteProjectAction enforces the same check.
+		try {
+			request.setAttribute("canDelete",
+					InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID()) == 0);
+		} catch (SQLException e) {
+			// If we cannot tell, do not offer the link.
+			request.setAttribute("canDelete", false);
+		}
+
 		// Get the ancestor projects(if any)
 		List<Integer> ancestorIds = ProjectDAO.instance().getAncestors(project.getID());
 		request.setAttribute("ancestorProjects", ancestorIds);
