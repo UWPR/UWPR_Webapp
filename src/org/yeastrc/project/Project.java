@@ -825,12 +825,25 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
-		// Delete rows referencing this project before the project row itself.  Nothing in the
-		// database does it for us, and MyISAM gives us no transaction to roll back, so:
-		//  - children first means a failure leaves the project whole and re-deletable
-		//  - parent first would leave an unreachable project row with orphaned children
+		deleteSharedRows();
+		deleteProjectRow();
+	}
+
+	/**
+	 * Clears the rows that every project has, whatever its type.
+	 */
+	protected void deleteSharedRows() throws SQLException {
+
 		deleteRowsForProject(getConnection(), "projectResearcher", this.id);
 		deleteRowsForProject(DBConnectionManager.getPrConnection(), "externalDataLocations", this.id);
+	}
+
+	/**
+	 * Deletes the tblProjects row.  Always the last step of a delete, because the project
+	 * can no longer be loaded once it is gone -- so a failure before this point leaves the
+	 * project loadable and the delete can simply be retried.
+	 */
+	protected void deleteProjectRow() throws InvalidIDException, SQLException {
 
 		// Get our connection to the database.
 		Connection conn = getConnection();
