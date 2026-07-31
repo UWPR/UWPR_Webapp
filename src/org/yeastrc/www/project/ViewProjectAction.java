@@ -101,8 +101,13 @@ public class ViewProjectAction extends Action {
 			request.setAttribute("projectAndReview", projAndRev);
 		}
 		
-		// A project can only be deleted if no instrument time has been scheduled for it.
-		// This only hides the link.  DeleteProjectAction enforces the same check.
+		// Only researchers on the project (and admins) may archive it.  Deliberately checkAccess,
+		// not the checkReadAccess above, which also admits the project's collaboration groups.
+		// Hides the link only -- ArchiveProjectsAction enforces this.
+		request.setAttribute("canArchive", project.checkAccess(user.getResearcher()));
+
+		// Deletable only while no instrument time is scheduled.  Hides the link only --
+		// DeleteProjectAction enforces this.
 		try {
 			request.setAttribute("canDelete",
 					InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID()) == 0);

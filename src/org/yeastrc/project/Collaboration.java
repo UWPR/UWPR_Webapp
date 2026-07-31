@@ -238,8 +238,8 @@ public class Collaboration extends Project implements ComparableCollaboration {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
-		// Delete the general project entry first
-		super.delete();
+		// This project's own rows go before the general project entry.  Nothing here is atomic,
+		// so children first means a failure leaves the project whole and re-deletable.
 
 		// Get our connection to the database.
 		Connection conn = getConnection();
@@ -297,7 +297,10 @@ public class Collaboration extends Project implements ComparableCollaboration {
 		RejectionCauseDAO.instance().deleteProjectRejectionCauses(this.id);
 		// Delete entries from projectReviewer table
 		ProjectReviewerDAO.instance().deleteProjectReviewers(this.id);
-		
+
+		// Now the general project entry, which also clears the rows shared by all project types.
+		super.delete();
+
 		// re-initialize the id
         super.id = 0;
 	}

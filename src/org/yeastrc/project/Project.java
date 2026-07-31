@@ -240,9 +240,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 
 				// Make sure the result set is set up w/ current values from this object
 				rs.updateString("projectType", getShortType());
-				
+
 				if (this.title == null) { rs.updateNull("projectTitle"); }
 				else { rs.updateString("projectTitle", this.title); }
+
+				rs.updateBoolean("archived", this.archived);
 
 				/*
 				 * Update our researchers.  The value for the researcher ID will be taken from
@@ -373,9 +375,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 				this.submitDate = new java.sql.Date(uDate.getTime());
 				
 				rs.updateDate("projectSubmitDate", this.submitDate);
-				
+
 				if (this.title == null) { rs.updateNull("projectTitle"); }
 				else { rs.updateString("projectTitle", this.title); }
+
+				rs.updateBoolean("archived", this.archived);
 
 				/*
 				 * Update our researchers.  The value for the researcher ID will be taken from
@@ -560,6 +564,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 			this.parentProjectId = rs.getInt("parentProjectID");
 			this.submitDate = rs.getDate("projectSubmitDate");
 			this.title = rs.getString("projectTitle");
+			this.archived = rs.getBoolean("archived");
 			
 			/*
 			 * Populate the researchers associated with this project.  If a problem is
@@ -820,6 +825,13 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
+		// Delete rows referencing this project before the project row itself.  Nothing in the
+		// database does it for us, and MyISAM gives us no transaction to roll back, so:
+		//  - children first means a failure leaves the project whole and re-deletable
+		//  - parent first would leave an unreachable project row with orphaned children
+		deleteRowsForProject(getConnection(), "projectResearcher", this.id);
+		deleteRowsForProject(DBConnectionManager.getPrConnection(), "externalDataLocations", this.id);
+
 		// Get our connection to the database.
 		Connection conn = getConnection();
 		Statement stmt = null;
@@ -873,19 +885,10 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 				conn = null;
 			}
 		}
-
-		// Nothing in the database cleans up rows that reference this project.  There are no
-		// foreign keys on projectID, and the triggers in schema/cost_center_tables.sql only
-		// fire on deletes from invoice, paymentMethod and instrumentUsage.  Clear the rows
-		// this webapp writes itself.
-		deleteRowsForProject(getConnection(), "projectResearcher", this.id);
-		deleteRowsForProject(DBConnectionManager.getPrConnection(), "externalDataLocations", this.id);
 	}
 
 	/**
-	 * Delete every row of the given table that belongs to the given project.  The table must
-	 * have a projectID column, and must not have other rows depending on the ones removed.
-	 * Closes the supplied connection.
+	 * Delete this project's rows from a table with a projectID column.  Closes the connection.
 	 */
 	private static void deleteRowsForProject(Connection conn, String table, int projectId) throws SQLException {
 
@@ -1117,7 +1120,19 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 * @return the project submit date in string form
 	 */
 	public java.util.Date getSubmitDate() { return this.submitDate; }
-	
+
+	/**
+	 * Is this project archived?  Archived projects are listed separately on the home page.
+	 * @return true if the project has been archived
+	 */
+	public boolean isArchived() { return this.archived; }
+
+	/**
+	 * Archive or unarchive this project.  Call save() to persist the change.
+	 * @param archived true to archive the project, false to bring it back to the active list
+	 */
+	public void setArchived(boolean archived) { this.archived = archived; }
+
 	/**
 	 * Returns the project title.
 	 * @return the project title.
@@ -1430,7 +1445,10 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	
 	// The submit date of the project (actually a time stamp of it's creation)
 	private java.sql.Date submitDate;
-	
+
+	// Listed separately on the home page.  Display only -- billing and scheduling ignore this.
+	private boolean archived = false;
+
 	// funding sources (general)
 	private HashSet generalFunding;
 	

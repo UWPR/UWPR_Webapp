@@ -61,9 +61,8 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
-		// A project that has instrument time scheduled cannot be deleted.  Deleting it would leave
-		// rows in instrumentUsage pointing at a project that no longer exists, which breaks the
-		// monthly billing export and the instrument calendar for every period containing that usage.
+		// Refuse to delete a project with instrument time scheduled.  The leftover instrumentUsage
+		// rows would break the monthly billing export and the instrument calendar.
 		try {
 			if (InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(projectID) > 0) {
 				ActionErrors errors = new ActionErrors();

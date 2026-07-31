@@ -7,8 +7,8 @@
  <logic:forward name="authenticate" />
 </yrcwww:notauthenticated>
 
-<!-- Make sure we have our Collections defined, if not, go get them --> 
-<logic:notPresent name="userProjects" scope="request">
+<!-- Make sure we have our Collections defined, if not, go get them -->
+<logic:notPresent name="activeProjects" scope="request">
 	<logic:forward name="standardHome"/>
 </logic:notPresent>
 
@@ -19,11 +19,9 @@
 <script type='text/javascript' src='/pr/js/jquery.tablesorter.min.js'></script>
 
 <style>
-	/* Sort arrows and the pointer cursor for the projects table.
-	   These mirror the rules in css/tablesorter.css, but scoped to table.striped.  We do not put
-	   the "tablesorter" class on this table because those styles also force 8pt text, left-aligned
-	   headers, and a white cell background, which would restyle the table and hide the row stripes.
-	   Image paths are absolute because this block is inlined in the page, not in css/. */
+	/* Sort arrows, copied from css/tablesorter.css but scoped to table.striped.
+	    - the tablesorter class is not used here, it forces 8pt text and hides the row stripes
+	    - image paths are absolute because this block is inlined, not in css/ */
 	table.striped thead tr .header {
 		background-image: url(/pr/images/tablesorter/bg.gif);
 		background-repeat: no-repeat;
@@ -42,18 +40,77 @@
 </style>
 
 <script>
+// jQuery here is 1.5, which predates .prop().  Use attr()/removeAttr() -- .prop() does
+// nothing and the buttons never enable.
+
+// Enable the button only while a checkbox in its table is ticked.
+function updateArchiveButton(tableId, buttonId) {
+	var anyChecked = $("#" + tableId + " tbody input.projectCheck:checked").length > 0;
+	if (anyChecked) {
+		$("#" + buttonId).removeAttr("disabled");
+	}
+	else {
+		$("#" + buttonId).attr("disabled", "disabled");
+	}
+}
+
 $(document).ready(function() {
 
-	// Column indexes are 0-based and must be kept in step with the header row below:
-	//   0 View link, 1 ID, 2 Title, 3 Type, 4 Submit Date, 5 Status, 6 report-overdue marker
-	// Columns 0 and 6 hold no sortable content.
-	$("#your_projects_table").tablesorter({
-		sortList: [[1,1]],          // newest project first, matching the order from the database
+	// Keep these indexes in step with the header rows below.  0-based:
+	//   0 checkbox, 1 View, 2 ID, 3 Title, 4 Type, 5 Submit Date, 6 Status, 7 overdue marker
+	var sorterOptions = {
+		sortList: [[2,1]],          // newest first, matching the order from the database
 		headers: {
 			0: { sorter: false },
-			6: { sorter: false }
+			1: { sorter: false },
+			7: { sorter: false }
 		}
+	};
+
+	$("#your_projects_table").tablesorter(sorterOptions);
+	$("#archived_projects_table").tablesorter(sorterOptions);
+
+	// Delegated handlers, so they survive tablesorter reordering the rows.
+	$("#your_projects_table").delegate("input.projectCheck", "click", function() {
+		updateArchiveButton("your_projects_table", "archive_selected_button");
 	});
+	$("#archived_projects_table").delegate("input.projectCheck", "click", function() {
+		updateArchiveButton("archived_projects_table", "unarchive_selected_button");
+	});
+
+	// Links rather than a header checkbox -- a checkbox in a tablesorter header also sorts.
+	$("#select_all_active").click(function() {
+		$("#your_projects_table tbody input.projectCheck").attr("checked", "checked");
+		updateArchiveButton("your_projects_table", "archive_selected_button");
+		return false;
+	});
+	$("#select_none_active").click(function() {
+		$("#your_projects_table tbody input.projectCheck").removeAttr("checked");
+		updateArchiveButton("your_projects_table", "archive_selected_button");
+		return false;
+	});
+	$("#select_all_archived").click(function() {
+		$("#archived_projects_table tbody input.projectCheck").attr("checked", "checked");
+		updateArchiveButton("archived_projects_table", "unarchive_selected_button");
+		return false;
+	});
+	$("#select_none_archived").click(function() {
+		$("#archived_projects_table tbody input.projectCheck").removeAttr("checked");
+		updateArchiveButton("archived_projects_table", "unarchive_selected_button");
+		return false;
+	});
+
+	// Archived list starts collapsed, since the point is to keep it out of the way.
+	$("#toggle_archived").click(function() {
+		var section = $("#archived_projects_section");
+		section.toggle();
+		$(this).text(section.is(":visible") ? "hide" : "show");
+		return false;
+	});
+
+	// Initial state, in case the browser restored ticked boxes on a back-navigation.
+	updateArchiveButton("your_projects_table", "archive_selected_button");
+	updateArchiveButton("archived_projects_table", "unarchive_selected_button");
 });
 </script>
 
@@ -138,11 +195,15 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 <!-- SHOW ALL PROJECTS, FOR WHICH THIS USER IS LISTED AS A RESEARCHER -->
 <yrcwww:contentbox title="Your Projects" innerBox="true">
 
-<logic:notEmpty name="userProjects" scope="request">
+<logic:notEmpty name="activeProjects" scope="request">
+<form action="/pr/archiveProjects.do" method="post">
+<input type="hidden" name="archived" value="true"/>
+
  <TABLE BORDER="0" WIDTH="100%" id="your_projects_table" class="striped">
 
  <thead>
   <TR>
+   <TH>&nbsp;</TH>
    <TH>&nbsp;</TH>
    <TH><U>ID</U></TH>
    <TH><U>Title</U></TH>
@@ -154,9 +215,12 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 </thead>
 
 <tbody>
-<logic:iterate id="project" name="userProjects" scope="request">
-  
+<logic:iterate id="project" name="activeProjects" scope="request">
+
   <TR>
+  <TD valign="top" align="center">
+   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+  </TD>
   <TD valign="top">
    <NOBR>
     <html:link href="/pr/viewProject.do" paramId="ID" paramName="project" paramProperty="ID">View</html:link>
@@ -192,17 +256,119 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 </logic:iterate>
 </tbody>
  </TABLE>
- 
+
+ <div style="margin-top: 8px;">
+  <input type="submit" id="archive_selected_button" value="Archive Selected" disabled="disabled"/>
+  &nbsp;&nbsp;
+  <span style="font-size: 8pt;">
+   <a href="#" id="select_all_active">select all</a> /
+   <a href="#" id="select_none_active">none</a>
+  </span>
+  &nbsp;&nbsp;
+  <span style="font-size: 8pt; color: #666;">Archiving moves a project to the Archived list.  Nothing is deleted.</span>
+ </div>
+
+</form>
 </logic:notEmpty>
 
-<logic:empty name="userProjects" scope="request">
+<logic:empty name="activeProjects" scope="request">
+	<logic:empty name="archivedProjects" scope="request">
 	<p>You have not yet submitted an abstract for collaboration.
-	<br/>  
+	<br/>
 	For a billed project <html:link href="/pr/newBilledProject.do">click here</html:link>.
 	</p>
+	</logic:empty>
+	<logic:notEmpty name="archivedProjects" scope="request">
+	<p>All of your projects are archived.  See the Archived Projects list.</p>
+	</logic:notEmpty>
 </logic:empty>
 
 </yrcwww:contentbox>
+
+<!-- ARCHIVED PROJECTS -- completed work, kept out of the main list above -->
+<logic:notEmpty name="archivedProjects" scope="request">
+
+<div style="margin: 20px;"></div>
+
+<yrcwww:contentbox title="Archived Projects" innerBox="true">
+
+<div style="margin-bottom: 8px;">
+ <a href="#" id="toggle_archived" style="font-weight: bold;">show</a>
+ <span style="font-size: 8pt; color: #666;">
+  &nbsp;(<bean:size id="archivedCount" name="archivedProjects"/><bean:write name="archivedCount"/> archived)
+ </span>
+</div>
+
+<div id="archived_projects_section" style="display: none;">
+<form action="/pr/archiveProjects.do" method="post">
+<input type="hidden" name="archived" value="false"/>
+
+ <TABLE BORDER="0" WIDTH="100%" id="archived_projects_table" class="striped">
+
+ <thead>
+  <TR>
+   <TH>&nbsp;</TH>
+   <TH>&nbsp;</TH>
+   <TH><U>ID</U></TH>
+   <TH><U>Title</U></TH>
+   <TH><U>Type</U></TH>
+   <TH><U>Submit Date</U></TH>
+   <TH><U>Collaboration<br>Status</U></TH>
+   <TH>&nbsp;</TH>
+  </TR>
+</thead>
+
+<tbody>
+<logic:iterate id="project" name="archivedProjects" scope="request">
+
+  <TR>
+  <TD valign="top" align="center">
+   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+  </TD>
+  <TD valign="top">
+   <NOBR>
+    <html:link href="/pr/viewProject.do" paramId="ID" paramName="project" paramProperty="ID">View</html:link>
+   </NOBR>
+  </TD>
+  <TD valign="top"><bean:write name="project" property="ID"/></TD>
+  <TD valign="top"><bean:write name="project" property="title"/></TD>
+  <TD valign="top">
+  	<logic:equal name="project" property="shortType" value="C">
+  		UWPR Supported
+  	</logic:equal>
+  	<logic:equal name="project" property="shortType" value="B">
+  		Billed
+  	</logic:equal>
+  </TD>
+  <TD valign="top"><bean:write name="project" property="submitDate"/></TD>
+  <TD valign="top">
+  	<logic:equal name="project" property="shortType" value="C">
+  		<bean:write name="project" property="collaborationStatus"/>
+  	</logic:equal>
+  	<logic:equal name="project" property="shortType" value="B">
+  		Active
+  	</logic:equal>
+  </TD>
+  <TD>&nbsp;</TD>
+  </TR>
+</logic:iterate>
+</tbody>
+ </TABLE>
+
+ <div style="margin-top: 8px;">
+  <input type="submit" id="unarchive_selected_button" value="Unarchive Selected" disabled="disabled"/>
+  &nbsp;&nbsp;
+  <span style="font-size: 8pt;">
+   <a href="#" id="select_all_archived">select all</a> /
+   <a href="#" id="select_none_archived">none</a>
+  </span>
+ </div>
+
+</form>
+</div>
+
+</yrcwww:contentbox>
+</logic:notEmpty>
 
 <div style="margin: 20px;"></div>
 
