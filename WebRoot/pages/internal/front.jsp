@@ -150,7 +150,7 @@ To initiate a new project you need to submit a short project description and bil
 			<b><html:link href="/pr/newBilledProject.do">Start new collaboration</html:link></b>
 		</li>
 		<li>
-			<a href="/pr/costcenter_resources/UWPR_Current_Rates.xlsx">Current instrument rates</a>
+			<a href="/pr/costcenter_resources/UWPR_Current_Rates.pdf">Current instrument rates</a>
 		</li>
 		<li>
 			<a href="/pr/costcenter_resources/UWPR_FAQ_Instrument_scheduling.pdf">Billing FAQ and instructions for scheduling instrument time</a>
