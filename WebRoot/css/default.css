@@ -136,13 +136,18 @@ hr {
 
 /* Search */
 
+/* #header is a fixed 52px with overflow hidden, so anything that wraps past
+   three lines here is clipped rather than pushing the header taller.  The
+   longest real username and name is 60 characters and the longest organization
+   58, which both fit on one line at this width. */
 #search {
 	float: right;
-	width: 200px;
+	width: 460px;
 	text-align: right;
-	margin-top:20px;
+	margin-top:16px;
 	color: #DDDDDD;
 	font-size:8pt;
+	line-height: 12px;
 }
 
 #search form {
