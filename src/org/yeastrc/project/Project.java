@@ -830,7 +830,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	}
 
 	/**
-	 * Clears the rows that every project has, whatever its type.
+	 * Clears the projectResearcher and externalDataLocations rows, which both project types
+	 * have.  Other tables keyed on projectID are left behind -- projectGrant, projectGroup,
+	 * tblProjectExperiment, tblProjectProteinInference, and in the pr database projectFiles,
+	 * projectRawDataSummary, projectReportReminder, projectReviewer and collaborationRejected.
+	 * Nothing in the schema removes those, so a deleted project still has rows in them.
 	 */
 	protected void deleteSharedRows() throws SQLException {
 
@@ -840,8 +844,13 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 
 	/**
 	 * Deletes the tblProjects row.  Always the last step of a delete, because the project
-	 * can no longer be loaded once it is gone -- so a failure before this point leaves the
-	 * project loadable and the delete can simply be retried.
+	 * can no longer be loaded once it is gone.
+	 *
+	 * A plain Project is still loadable if an earlier step fails, so the delete can be
+	 * retried.  BilledProject and Collaboration delete their own row immediately before
+	 * this one, and that row is also required to load, so a failure between the two leaves
+	 * a projectID that cannot be loaded, deleted or viewed.  Nothing covers those two
+	 * statements, since they run against different databases.
 	 */
 	protected void deleteProjectRow() throws InvalidIDException, SQLException {
 
