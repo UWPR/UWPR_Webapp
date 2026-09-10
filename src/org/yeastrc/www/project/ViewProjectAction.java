@@ -110,7 +110,7 @@ public class ViewProjectAction extends Action {
 		// DeleteProjectAction enforces this.
 		try {
 			request.setAttribute("canDelete",
-					InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID()) == 0);
+					InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(project.getID()) == 0);
 		} catch (SQLException e) {
 			// If we cannot tell, do not offer the link.
 			request.setAttribute("canDelete", false);

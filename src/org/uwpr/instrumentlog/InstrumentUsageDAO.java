@@ -337,15 +337,35 @@ public class InstrumentUsageDAO {
 		return false;
 	}
 
+	/**
+	 * Counts every block ever booked for the project, cancelled ones included.  Blocks
+	 * cancelled before 10.28.2022 were kept with deleted=1 so a sign-up fee could still be
+	 * charged, and they are counted here.  Use getScheduledUsageBlockCountForProject to ask
+	 * what is scheduled now.
+	 */
 	public int getUsageBlockCountForProject(int projectId) throws SQLException {
+
+		return getUsageBlockCountForProject(projectId, false);
+	}
+
+	/**
+	 * Counts the blocks currently scheduled for the project.  Blocks cancelled before
+	 * 10.28.2022 carry deleted=1 and are excluded.
+	 */
+	public int getScheduledUsageBlockCountForProject(int projectId) throws SQLException {
+
+		return getUsageBlockCountForProject(projectId, true);
+	}
+
+	private int getUsageBlockCountForProject(int projectId, boolean scheduledOnly) throws SQLException {
 
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		String sql = "SELECT COUNT(*) FROM instrumentUsage WHERE projectID="+projectId;
-
-		//System.out.println(sql);
+		if(scheduledOnly)
+			sql += " AND deleted = 0";
 
 		try {
 			conn = getConnection();

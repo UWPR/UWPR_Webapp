@@ -70,7 +70,7 @@ public class DeleteProjectAction extends Action {
 		// Refuse to delete a project with instrument time scheduled.  The leftover instrumentUsage
 		// rows would break the monthly billing export and the instrument calendar.
 		try {
-			if (InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(projectID) > 0) {
+			if (InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(projectID) > 0) {
 				ActionErrors errors = new ActionErrors();
 				errors.add("project", new ActionMessage("error.project.hasinstrumenttime"));
 				saveErrors( request, errors );
