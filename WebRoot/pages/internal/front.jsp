@@ -7,7 +7,8 @@
  <logic:forward name="authenticate" />
 </yrcwww:notauthenticated>
 
-<!-- Make sure we have our Collections defined, if not, go get them -->
+<!-- FrontPageAction sets activeProjects and archivedProjects.  Reached directly, they
+     are missing, so forward to it and come back here once they are set. -->
 <logic:notPresent name="activeProjects" scope="request">
 	<logic:forward name="standardHome"/>
 </logic:notPresent>
@@ -43,7 +44,7 @@
 // jQuery here is 1.5, which predates .prop().  Use attr()/removeAttr() -- .prop() does
 // nothing and the buttons never enable.
 
-// Enable the button only while a checkbox in its table is ticked.
+// Enable the button only while a checkbox in its table is checked.
 function updateArchiveButton(tableId, buttonId) {
 	var anyChecked = $("#" + tableId + " tbody input.projectCheck:checked").length > 0;
 	if (anyChecked) {
@@ -108,7 +109,7 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// Initial state, in case the browser restored ticked boxes on a back-navigation.
+	// Initial state, in case the browser restored checked boxes on a back-navigation.
 	updateArchiveButton("your_projects_table", "archive_selected_button");
 	updateArchiveButton("archived_projects_table", "unarchive_selected_button");
 });

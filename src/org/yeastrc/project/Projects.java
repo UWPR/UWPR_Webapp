@@ -108,8 +108,7 @@ public class Projects {
             "LEFT OUTER JOIN projectResearcher AS pr "+
             "ON p.projectID = pr.projectID "+
             "WHERE (p.projectPI = ? OR pr.researcherID = ?) "+
-            // Newest first.  Sort on projectID, not projectSubmitDate, because older rows can
-            // hold the '0000-00-00' default.
+            // Newest first.
             "ORDER BY p.projectID DESC";
 
             stmt = conn.prepareStatement(sqlStr);

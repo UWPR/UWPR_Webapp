@@ -50,7 +50,7 @@ public class ArchiveProjectsAction extends Action {
 
 		String[] projectIds = request.getParameterValues("projectIds");
 
-		// Nothing ticked.  The button is disabled in this case, so just go back.
+		// Nothing selected.  The button is disabled in this case, so just go back.
 		if (projectIds == null || projectIds.length == 0) {
 			return returnForward(mapping, request);
 		}
