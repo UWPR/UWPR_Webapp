@@ -41,8 +41,8 @@
 </style>
 
 <script>
-// jQuery here is 1.5, which predates .prop().  Use attr()/removeAttr() -- .prop() does
-// nothing and the buttons never enable.
+// jQuery here is 1.5, which has no .prop().  Use attr()/removeAttr(), since calling
+// .prop() would throw and stop the rest of the handler.
 
 // Enable the button only while a checkbox in its table is checked.
 function updateArchiveButton(tableId, buttonId) {
@@ -58,13 +58,12 @@ function updateArchiveButton(tableId, buttonId) {
 $(document).ready(function() {
 
 	// Keep these indexes in step with the header rows below.  0-based:
-	//   0 checkbox, 1 View, 2 ID, 3 Title, 4 Type, 5 Submit Date, 6 Status, 7 overdue marker
+	//   0 checkbox, 1 View, 2 ID, 3 Title, 4 Lab Director, 5 Type, 6 Submit Date
 	var sorterOptions = {
 		sortList: [[2,1]],          // newest first, matching the order from the database
 		headers: {
 			0: { sorter: false },
-			1: { sorter: false },
-			7: { sorter: false }
+			1: { sorter: false }
 		}
 	};
 
@@ -208,10 +207,9 @@ consequently, will NOT work with either pathogenic or radioactive materials.
    <TH>&nbsp;</TH>
    <TH><U>ID</U></TH>
    <TH><U>Title</U></TH>
+   <TH><U>Lab Director</U></TH>
    <TH><U>Type</U></TH>
    <TH><U>Submit Date</U></TH>
-   <TH><U>Collaboration<br>Status</U></TH>
-   <TH>&nbsp;</TH>
   </TR>
 </thead>
 
@@ -230,6 +228,9 @@ consequently, will NOT work with either pathogenic or radioactive materials.
   <TD valign="top"><bean:write name="project" property="ID"/></TD>
   <TD valign="top"><bean:write name="project" property="title"/></TD>
   <TD valign="top">
+   <logic:present name="project" property="PI"><bean:write name="project" property="PI.lastName"/></logic:present>
+  </TD>
+  <TD valign="top">
   	<logic:equal name="project" property="shortType" value="C">
   		UWPR Supported
   	</logic:equal>
@@ -238,21 +239,6 @@ consequently, will NOT work with either pathogenic or radioactive materials.
   	</logic:equal>
   </TD>
   <TD valign="top"><bean:write name="project" property="submitDate"/></TD>
-  <TD valign="top">
-  	<logic:equal name="project" property="shortType" value="C">
-  		<bean:write name="project" property="collaborationStatus"/>
-  	</logic:equal>
-  	<logic:equal name="project" property="shortType" value="B">
-  		Active
-  	</logic:equal>
-  </TD>
-  <TD>
-  	<logic:equal name="project" property="shortType" value="C">
-	  	<logic:equal name="project" property="progressReportOverdue" value="true">
-	  		<span style="color: red; font-weight: bold; font-size: 8pt;">Report Overdue</span>
-	  	</logic:equal>
-  	</logic:equal>
-  </TD>
   </TR>
 </logic:iterate>
 </tbody>
@@ -312,10 +298,9 @@ consequently, will NOT work with either pathogenic or radioactive materials.
    <TH>&nbsp;</TH>
    <TH><U>ID</U></TH>
    <TH><U>Title</U></TH>
+   <TH><U>Lab Director</U></TH>
    <TH><U>Type</U></TH>
    <TH><U>Submit Date</U></TH>
-   <TH><U>Collaboration<br>Status</U></TH>
-   <TH>&nbsp;</TH>
   </TR>
 </thead>
 
@@ -334,6 +319,9 @@ consequently, will NOT work with either pathogenic or radioactive materials.
   <TD valign="top"><bean:write name="project" property="ID"/></TD>
   <TD valign="top"><bean:write name="project" property="title"/></TD>
   <TD valign="top">
+   <logic:present name="project" property="PI"><bean:write name="project" property="PI.lastName"/></logic:present>
+  </TD>
+  <TD valign="top">
   	<logic:equal name="project" property="shortType" value="C">
   		UWPR Supported
   	</logic:equal>
@@ -342,15 +330,6 @@ consequently, will NOT work with either pathogenic or radioactive materials.
   	</logic:equal>
   </TD>
   <TD valign="top"><bean:write name="project" property="submitDate"/></TD>
-  <TD valign="top">
-  	<logic:equal name="project" property="shortType" value="C">
-  		<bean:write name="project" property="collaborationStatus"/>
-  	</logic:equal>
-  	<logic:equal name="project" property="shortType" value="B">
-  		Active
-  	</logic:equal>
-  </TD>
-  <TD>&nbsp;</TD>
   </TR>
 </logic:iterate>
 </tbody>
@@ -436,7 +415,6 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 	<th><u>Lab Director</u></th>
 	<th><u>Title</u></th>
 	<th><u>Submit Date</u></th>
-	<th><u>Collaboration<br>Status</u></th>
  </tr>
  </thead>
  
@@ -452,12 +430,6 @@ consequently, will NOT work with either pathogenic or radioactive materials.
   	<TD valign="top"><bean:write name="project" property="PI.lastName"/></TD>
   	<TD valign="top"><bean:write name="project" property="title"/></TD>
   	<TD valign="top"><bean:write name="project" property="submitDate"/></TD>
-  	<logic:equal name="project" property="shortType" value="C">
-  		<TD valign="top"><bean:write name="project" property="collaborationStatus" /></TD>
-  	</logic:equal>
-  	<logic:equal name="project" property="shortType" value="B">
-  		Active
-  	</logic:equal>
   	
 	</TR>
 </logic:iterate>
