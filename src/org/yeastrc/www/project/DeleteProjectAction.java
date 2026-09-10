@@ -3,7 +3,11 @@
  */
 package org.yeastrc.www.project;
 
+import java.sql.SQLException;
+
 import javax.servlet.http.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 
 import org.uwpr.instrumentlog.InstrumentUsageDAO;
@@ -14,6 +18,8 @@ import org.yeastrc.www.user.*;
  * Implements the logic to delete a project
  */
 public class DeleteProjectAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(DeleteProjectAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -70,9 +76,11 @@ public class DeleteProjectAction extends Action {
 				saveErrors( request, errors );
 				return mapping.findForward("standardHome");
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
+			// The project exists.  Only the scheduled-time check failed.
+			log.error("Error checking scheduled instrument time for project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
-			errors.add("project", new ActionMessage("error.project.projectnotfound"));
+			errors.add("project", new ActionMessage("error.project.instrumenttimecheckfailed"));
 			saveErrors( request, errors );
 			return mapping.findForward("standardHome");
 		}

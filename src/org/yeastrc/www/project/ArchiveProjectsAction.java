@@ -58,7 +58,19 @@ public class ArchiveProjectsAction extends Action {
 			return returnForward(mapping, request, true);
 		}
 
-		boolean archived = Boolean.parseBoolean(request.getParameter("archived"));
+		// Boolean.parseBoolean would read a missing or misspelled parameter as unarchive.
+		String direction = request.getParameter("archived");
+		direction = direction == null ? null : direction.trim();
+
+		if (!"true".equalsIgnoreCase(direction) && !"false".equalsIgnoreCase(direction)) {
+			log.warn("Refusing archive request with archived=" + direction);
+			ActionErrors errors = new ActionErrors();
+			errors.add("archive", new ActionMessage("error.project.archivenodirection"));
+			saveErrors( request, errors );
+			return returnForward(mapping, request, false);
+		}
+
+		boolean archived = "true".equalsIgnoreCase(direction);
 
 		boolean deniedAny = false;
 		boolean failedAny = false;
