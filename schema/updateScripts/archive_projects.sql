@@ -7,5 +7,5 @@
 #  - defaults to 0, so nothing changes on deploy
 # --------------------------------------------------------------------------------
 
-ALTER TABLE tblProjects
+ALTER TABLE mainDb.tblProjects
   ADD COLUMN archived TINYINT(1) NOT NULL DEFAULT 0;

@@ -560,7 +560,6 @@
 		type="org.yeastrc.www.project.ArchiveProjectsAction"
 	>
 		<forward name="Success" path="/viewFrontPage.do" redirect="true"/>
-	  	<forward name="Failure" path="/pages/internal/front.jsp" redirect="false"/>
 	</action>
 	
 	<!-- ================================================================================== -->

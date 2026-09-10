@@ -3,6 +3,8 @@
  */
 package org.yeastrc.www.project;
 
+import java.sql.SQLException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -15,6 +17,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.yeastrc.project.Project;
+import org.yeastrc.project.ProjectDAO;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -52,12 +55,13 @@ public class ArchiveProjectsAction extends Action {
 
 		// Nothing selected.  The button is disabled in this case, so just go back.
 		if (projectIds == null || projectIds.length == 0) {
-			return returnForward(mapping, request);
+			return returnForward(mapping, request, true);
 		}
 
 		boolean archived = Boolean.parseBoolean(request.getParameter("archived"));
 
 		boolean deniedAny = false;
+		boolean failedAny = false;
 
 		for (String projectIdStr: projectIds) {
 
@@ -89,24 +93,42 @@ public class ArchiveProjectsAction extends Action {
 			}
 
 			if (project.isArchived() != archived) {
-				project.setArchived(archived);
-				project.save();
+				// A targeted UPDATE, not project.save().  See ProjectDAO.setArchived.
+				// Each project is separate, so one failure does not abandon the rest of
+				// the batch part way through with no record of what was applied.
+				try {
+					ProjectDAO.instance().setArchived(projectId, archived);
+				} catch (SQLException e) {
+					log.error("Could not set archived=" + archived + " on project " + projectId, e);
+					failedAny = true;
+				}
 			}
 		}
 
-		if (deniedAny) {
+		boolean anythingToReport = deniedAny || failedAny;
+
+		if (anythingToReport) {
 			ActionErrors errors = new ActionErrors();
-			errors.add("access", new ActionMessage("error.project.noaccess"));
+			if (deniedAny) {
+				errors.add("access", new ActionMessage("error.project.noaccess"));
+			}
+			if (failedAny) {
+				errors.add("archive", new ActionMessage("error.project.archivefailed"));
+			}
 			saveErrors( request, errors );
 		}
 
-		return returnForward(mapping, request);
+		return returnForward(mapping, request, !anythingToReport);
 	}
 
 	/**
 	 * Back to the project named by returnTo, or the home page if there isn't one.
+	 *
+	 * Struts 1.1 has no session-scoped saveErrors, so messages live in request scope and a
+	 * redirect discards them.  Callers with something to report pass redirect false, which
+	 * forwards to the same action instead and keeps the messages for errors.jsp.
 	 */
-	private ActionForward returnForward(ActionMapping mapping, HttpServletRequest request) {
+	private ActionForward returnForward(ActionMapping mapping, HttpServletRequest request, boolean redirect) {
 
 		String returnTo = request.getParameter("returnTo");
 
@@ -115,7 +137,7 @@ public class ArchiveProjectsAction extends Action {
 				int returnToId = Integer.parseInt(returnTo);
 				ActionForward forward = new ActionForward();
 				forward.setPath("/viewProject.do?ID=" + returnToId);
-				forward.setRedirect(true);
+				forward.setRedirect(redirect);
 				return forward;
 			} catch (NumberFormatException e) {
 				// Fall through to the home page.
@@ -123,6 +145,14 @@ public class ArchiveProjectsAction extends Action {
 			}
 		}
 
-		return mapping.findForward("Success");
+		ActionForward success = mapping.findForward("Success");
+		if (redirect) {
+			return success;
+		}
+
+		ActionForward forward = new ActionForward();
+		forward.setPath(success.getPath());
+		forward.setRedirect(false);
+		return forward;
 	}
 }
