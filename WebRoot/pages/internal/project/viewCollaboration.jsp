@@ -267,10 +267,20 @@
 
  <logic:equal name="canArchive" value="true">
   <logic:equal name="project" property="archived" value="false">
-   <a href="/pr/archiveProjects.do?archived=true&amp;projectIds=<bean:write name="project" property="ID"/>&amp;returnTo=<bean:write name="project" property="ID"/>"><B>[ARCHIVE PROJECT]</B></a>
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="true"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[ARCHIVE PROJECT]</B></button>
+   </form>
   </logic:equal>
   <logic:equal name="project" property="archived" value="true">
-   <a href="/pr/archiveProjects.do?archived=false&amp;projectIds=<bean:write name="project" property="ID"/>&amp;returnTo=<bean:write name="project" property="ID"/>"><B>[UNARCHIVE PROJECT]</B></a>
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="false"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[UNARCHIVE PROJECT]</B></button>
+   </form>
   </logic:equal>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
  </logic:equal>
