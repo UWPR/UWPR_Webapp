@@ -254,7 +254,7 @@
 
 			<ul>
 				<li style="padding:3px;"><a href="/pr/costcenter_resources/UWPR_FAQ_Instrument_scheduling.pdf">Billing FAQ and instructions for scheduling instrument time</a></li>
-				<li style="padding:3px;"><a href="/pr/costcenter_resources/UWPR_Current_Rates.xlsx">Download current instrument rates</a></li>
+				<li style="padding:3px;"><a href="/pr/costcenter_resources/UWPR_Current_Rates.pdf">Download current instrument rates</a></li>
 				<li style="padding:3px;"><html:link href="pages/admin/costcenter/paymentInformation.jsp">Payment information</html:link></li>
 			</ul>
 			
