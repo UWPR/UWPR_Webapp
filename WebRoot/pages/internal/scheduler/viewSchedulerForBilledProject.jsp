@@ -542,7 +542,7 @@ Instrument time cannot be deleted less that 48 hours prior to the scheduled star
 		</div>
 		
 		<div style="margin-top:10px;color:black;font-size:8pt;font-weight:normal;">
-			<a href="/pr/costcenter_resources/UWPR_Current_Rates.xlsx"><b>View</b></a> the current rates for instruments.
+			<a href="/pr/costcenter_resources/UWPR_Current_Rates.pdf"><b>View</b></a> the current rates for instruments.
 		</div>
 		
 	</div>
