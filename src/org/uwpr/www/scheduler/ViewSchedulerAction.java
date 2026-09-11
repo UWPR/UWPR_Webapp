@@ -251,6 +251,7 @@ public class ViewSchedulerAction extends Action {
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
         projSearcher.setExcludeArchived(true);
+        projSearcher.setRequireWriteAccess(true);
         if(!isAdmin) {
         	projSearcher.setResearcher(user.getResearcher());
         }
@@ -260,6 +261,7 @@ public class ViewSchedulerAction extends Action {
         projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
         projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
         projSearcher.setExcludeArchived(true);
+        projSearcher.setRequireWriteAccess(true);
         if(!isAdmin) {
         	projSearcher.setResearcher(user.getResearcher());
         }

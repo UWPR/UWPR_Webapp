@@ -79,6 +79,7 @@ public class ViewAllInstrumentsCalendarAction extends Action {
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
         projSearcher.setExcludeArchived(true);
+        projSearcher.setRequireWriteAccess(true);
         if(!isAdmin)
         {
             // If the user is not an admin, include only those projects to which the
@@ -96,6 +97,7 @@ public class ViewAllInstrumentsCalendarAction extends Action {
             projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
             projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
             projSearcher.setExcludeArchived(true);
+            projSearcher.setRequireWriteAccess(true);
             List<Project> subsidizedProjects = projSearcher.search();
             projects.addAll(subsidizedProjects);
         }

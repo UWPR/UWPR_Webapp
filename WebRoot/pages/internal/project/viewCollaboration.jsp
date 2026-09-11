@@ -201,6 +201,7 @@
 				</tr>
 				
 				 <logic:equal name="project" property="accepted" value="true">
+				 <logic:equal name="project" property="archived" value="false">
 				 <yrcwww:member group="administrators">
 					<tr>
 						<td colspan="4" align="center">
@@ -212,6 +213,7 @@
 						</td>
 					</tr>
 				</yrcwww:member>
+				</logic:equal>
 				</logic:equal>
 	
 			</table>

@@ -209,8 +209,12 @@ public class ProjectsSearcher {
 				}
 				
 				// Don't add this project to the list if the Researcher doesn't have access
-				if (this.researcher != null && !p.checkReadAccess(this.researcher)) {
-					 continue;
+				if (this.researcher != null) {
+					boolean hasAccess = this.requireWriteAccess ? p.checkAccess(this.researcher)
+					                                            : p.checkReadAccess(this.researcher);
+					if (!hasAccess) {
+						continue;
+					}
 				}
 
 				retList.add(p);
@@ -287,12 +291,18 @@ public class ProjectsSearcher {
 	}
 	
 	/**
-	 * Leave archived projects out of the result.  Intended for the project drop-downs,
-	 * where a researcher picks a project to work with and an archived one is not a
-	 * sensible choice.
+	 * Leave archived projects out of the result.
 	 */
 	public void setExcludeArchived(boolean excludeArchived) {
 		this.excludeArchived = excludeArchived;
+	}
+
+	/**
+	 * The researcher must be an administrator, the PI, or one of the project researchers
+	 * to have write access.
+	 */
+	public void setRequireWriteAccess(boolean requireWriteAccess) {
+		this.requireWriteAccess = requireWriteAccess;
 	}
 
 	/** Set the researcher to use as the basis for checking access to the projects
@@ -344,8 +354,7 @@ public class ProjectsSearcher {
 	// The collaboration status of the projects to include in the result
 	private Set<CollaborationStatus> statusTypes;
 
-	// Leave archived projects out of the result.  Off by default, so a caller that has not
-	// asked keeps seeing every project.
 	private boolean excludeArchived = false;
+	private boolean requireWriteAccess = false;
 
 }

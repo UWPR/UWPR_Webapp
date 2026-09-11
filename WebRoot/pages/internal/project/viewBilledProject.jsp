@@ -227,6 +227,10 @@
 				</logic:iterate>
 				</tbody>
 				</table>
+				<!-- An archived project is finished work, so it is not offered a new payment
+				     method or new instrument time.  RequestProjectInstrumentTimeAjaxAction
+				     enforces the scheduling half. -->
+				<logic:equal name="project" property="archived" value="false">
 				<div style="margin:10px 0px 10px 0px; text-align:left;font-weight:bold;">
 					<html:link action="newPaymentMethod.do" paramId="projectId" paramName="project" paramProperty="ID">
 					[Add New Payment Method]
@@ -246,6 +250,7 @@
 						</yrcwww:member>
 					</logic:equal>
 				</div>
+				</logic:equal>
 				
 				<div style="margin:5px 0px 15px 0px">
 					<html:link action="viewTimeScheduledForProject" paramId="projectId" paramName="project" paramProperty="ID">
@@ -255,14 +260,16 @@
 				
 			</logic:notEmpty>
 			<logic:empty name="project" property="paymentMethods">
+				<logic:equal name="project" property="archived" value="false">
 				<div style="color:red;margin:10px 0px 10px 0px;">
 					There are no payment methods associated with this project.
 					<br/>
 					In order to schedule instrument time you must have at least one payment method.
-					<br/>  
+					<br/>
 					Click <html:link action="newPaymentMethod.do" paramId="projectId" paramName="project" paramProperty="ID">here</html:link>
 					to add a payment method for this project.
 				</div>
+				</logic:equal>
 			</logic:empty>
 
 			<ul>
