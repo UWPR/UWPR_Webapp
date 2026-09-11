@@ -273,14 +273,27 @@ public class EditBlockDetailsFormAction extends Action {
 
         request.setAttribute("editBlockDetailsForm", editForm);
 
-        // Get a list of ALL projects this user has access to.
+        // Get a list of the projects this user has access to.
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
+        // Archived projects are kept here.  This select is pre-set to the block's own
+        // project, so dropping that project would leave nothing selected and saving the
+        // form would move the block to whichever project the browser picked instead.
         Groups groupMan = Groups.getInstance();
-        if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+        boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
+        if(!isAdmin) {
             projSearcher.setResearcher(user.getResearcher());
         }
         List <Project> projects = projSearcher.search();
+
+        if(isAdmin) {
+            // An admin sees every project, so group them by lab director.
+            Collections.sort(projects, new ProjectPIComparator());
+        }
+        else {
+            // A researcher sees only their own, where the newest is the likely choice.
+            Collections.sort(projects, Collections.reverseOrder(new ProjectIDComparator()));
+        }
         request.setAttribute("projects", projects);
 
 

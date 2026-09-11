@@ -74,9 +74,12 @@ public class ViewAllInstrumentsCalendarAction extends Action {
         Groups groupMan = Groups.getInstance();
 
         // Put a list of projects to be displayed in a drop down list
+        boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
+
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
-        if(!groupMan.isMember(user.getResearcher().getID(), "administrators"))
+        projSearcher.setExcludeArchived(true);
+        if(!isAdmin)
         {
             // If the user is not an admin, include only those projects to which the
             // user has access.
@@ -86,18 +89,27 @@ public class ViewAllInstrumentsCalendarAction extends Action {
         List<Project> projects = new ArrayList<Project>();
         projects.addAll(billedProjects);
 
-        if (groupMan.isMember(user.getResearcher().getID(), "administrators"))
+        if (isAdmin)
         {
             // Add subsidized projects only if the user making this request is an admin.
             projSearcher = new ProjectsSearcher();
             projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
             projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
+            projSearcher.setExcludeArchived(true);
             List<Project> subsidizedProjects = projSearcher.search();
             projects.addAll(subsidizedProjects);
         }
 
-
-        Collections.sort(projects, new ProjectPIComparator());
+        if(isAdmin)
+        {
+            // An admin sees every project, so group them by lab director.
+            Collections.sort(projects, new ProjectPIComparator());
+        }
+        else
+        {
+            // A researcher sees only their own, where the newest is the likely choice.
+            Collections.sort(projects, Collections.reverseOrder(new ProjectIDComparator()));
+        }
         request.setAttribute("projects", projects);
 
 

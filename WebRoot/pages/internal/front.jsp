@@ -67,9 +67,6 @@ $(document).ready(function() {
 		}
 	};
 
-	$("#your_projects_table").tablesorter(sorterOptions);
-	$("#archived_projects_table").tablesorter(sorterOptions);
-
 	// Delegated handlers, so they survive tablesorter reordering the rows.
 	$("#your_projects_table").delegate("input.projectCheck", "click", function() {
 		updateArchiveButton("your_projects_table", "archive_selected_button");
@@ -111,6 +108,15 @@ $(document).ready(function() {
 	// Initial state, in case the browser restored checked boxes on a back-navigation.
 	updateArchiveButton("your_projects_table", "archive_selected_button");
 	updateArchiveButton("archived_projects_table", "unarchive_selected_button");
+
+	// Last, and guarded.  Sorting is the only thing here that the page can do without.
+	// If the plugin fails to load, an unguarded call throws and everything after it in
+	// this function is skipped, which would leave the archived list permanently collapsed
+	// and both buttons disabled.
+	if ($.fn.tablesorter) {
+		$("#your_projects_table").tablesorter(sorterOptions);
+		$("#archived_projects_table").tablesorter(sorterOptions);
+	}
 });
 </script>
 

@@ -156,7 +156,18 @@ public class ProjectsSearcher {
 				
 				sqlStr += " P.projectSubmitDate <= '" + year + month + day + "'";
 			}
-			
+
+			// Archived constraint
+			if (this.excludeArchived) {
+				if (haveConstraint) { sqlStr += " AND"; }
+				else {
+					sqlStr += " WHERE";
+					haveConstraint = true;
+				}
+
+				sqlStr += " P.archived = 0";
+			}
+
 			sqlStr += " ORDER BY P.projectSubmitDate";
 			
 			stmt = conn.prepareStatement(sqlStr);
@@ -275,10 +286,19 @@ public class ProjectsSearcher {
 	    this.statusTypes.add(status);
 	}
 	
+	/**
+	 * Leave archived projects out of the result.  Intended for the project drop-downs,
+	 * where a researcher picks a project to work with and an archived one is not a
+	 * sensible choice.
+	 */
+	public void setExcludeArchived(boolean excludeArchived) {
+		this.excludeArchived = excludeArchived;
+	}
+
 	/** Set the researcher to use as the basis for checking access to the projects
 	 *  returned.  If this researcher doesn't have access to a project, it won't be
 	 *  in the returned list.
-	 * 
+	 *
 	 * @param researcher The researcher
 	 */
 	public void setResearcher(Researcher researcher) {
@@ -323,5 +343,9 @@ public class ProjectsSearcher {
 	
 	// The collaboration status of the projects to include in the result
 	private Set<CollaborationStatus> statusTypes;
+
+	// Leave archived projects out of the result.  Off by default, so a caller that has not
+	// asked keeps seeing every project.
+	private boolean excludeArchived = false;
 
 }

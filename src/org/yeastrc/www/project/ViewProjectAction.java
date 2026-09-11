@@ -8,6 +8,8 @@
 
 package org.yeastrc.www.project;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
@@ -28,6 +30,8 @@ import java.util.List;
  * Implements the logic to register a user
  */
 public class ViewProjectAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(ViewProjectAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -112,7 +116,7 @@ public class ViewProjectAction extends Action {
 			request.setAttribute("canDelete",
 					InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(project.getID()) == 0);
 		} catch (SQLException e) {
-			// If we cannot tell, do not offer the link.
+			log.error("Error checking scheduled instrument time for project " + project.getID(), e);
 			request.setAttribute("canDelete", false);
 		}
 

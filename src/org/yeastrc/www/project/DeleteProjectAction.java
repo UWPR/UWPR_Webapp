@@ -67,6 +67,22 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
+		// Load our project.  Before the scheduled-time check below, so that an ID which is
+		// not a project is reported as such rather than being queried against instrumentUsage.
+		Project project;
+
+		try {
+			project = ProjectFactory.getProject(projectID);
+		} catch (Exception e) {
+
+			// Couldn't load the project.
+			log.error("Could not load project " + projectID, e);
+			ActionErrors errors = new ActionErrors();
+			errors.add("username", new ActionMessage("error.project.projectnotfound"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
+		}
+
 		// Refuse to delete a project with instrument time scheduled.  The leftover instrumentUsage
 		// rows would break the monthly billing export and the instrument calendar.
 		try {
@@ -77,7 +93,7 @@ public class DeleteProjectAction extends Action {
 				return mapping.findForward("standardHome");
 			}
 		} catch (SQLException e) {
-			// The project exists.  Only the scheduled-time check failed.
+			// The project loaded above, so it exists.  Only the scheduled-time check failed.
 			log.error("Error checking scheduled instrument time for project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
 			errors.add("project", new ActionMessage("error.project.instrumenttimecheckfailed"));
@@ -85,19 +101,15 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
-		// Load our project
-		Project project;
-
 		try {
-			project = ProjectFactory.getProject(projectID);
 			project.delete();
 		} catch (Exception e) {
-			
-			// Couldn't load the project.
+
+			log.error("Error deleting project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
-			errors.add("username", new ActionMessage("error.project.projectnotfound"));
+			errors.add("project", new ActionMessage("error.project.deletefailed"));
 			saveErrors( request, errors );
-			return mapping.findForward("standardHome");	
+			return mapping.findForward("standardHome");
 		}
 
 		return mapping.findForward("Success");
