@@ -833,8 +833,10 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 * Clears the projectResearcher and externalDataLocations rows, which both project types
 	 * have.  Other tables keyed on projectID are left behind -- projectGrant, projectGroup,
 	 * tblProjectExperiment, tblProjectProteinInference, and in the pr database projectFiles,
-	 * projectRawDataSummary, projectReportReminder, projectReviewer and collaborationRejected.
-	 * Nothing in the schema removes those, so a deleted project still has rows in them.
+	 * projectRawDataSummary and projectReportReminder.  Nothing in the schema removes those,
+	 * so a deleted project still has rows in them.
+	 *
+	 * Collaboration.delete() clears projectReviewer and collaborationRejected before calling this.
 	 */
 	protected void deleteSharedRows() throws SQLException {
 
