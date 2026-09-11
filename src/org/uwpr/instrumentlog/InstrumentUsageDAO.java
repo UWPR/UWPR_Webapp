@@ -340,12 +340,11 @@ public class InstrumentUsageDAO {
 	/**
 	 * Counts every block ever booked for the project, cancelled ones included.  Blocks
 	 * cancelled before 10.28.2022 were kept with deleted=1 so a sign-up fee could still be
-	 * charged, and they are counted here.  Use getScheduledUsageBlockCountForProject to ask
-	 * what is scheduled now.
+	 * charged, and they are counted here.
 	 */
 	public int getUsageBlockCountForProject(int projectId) throws SQLException {
 
-		return getUsageBlockCountForProject(projectId, false);
+		return getUsageBlockCountForProject(projectId, false, false);
 	}
 
 	/**
@@ -354,10 +353,19 @@ public class InstrumentUsageDAO {
 	 */
 	public int getScheduledUsageBlockCountForProject(int projectId) throws SQLException {
 
-		return getUsageBlockCountForProject(projectId, true);
+		return getUsageBlockCountForProject(projectId, true, false);
 	}
 
-	private int getUsageBlockCountForProject(int projectId, boolean scheduledOnly) throws SQLException {
+	/**
+	 * Counts the blocks scheduled for the project that have not ended yet.  Cancelled blocks
+	 * are excluded.
+	 */
+	public int getFutureUsageBlockCountForProject(int projectId) throws SQLException {
+
+		return getUsageBlockCountForProject(projectId, true, true);
+	}
+
+	private int getUsageBlockCountForProject(int projectId, boolean scheduledOnly, boolean futureOnly) throws SQLException {
 
 		Connection conn = null;
 		Statement stmt = null;
@@ -366,6 +374,8 @@ public class InstrumentUsageDAO {
 		String sql = "SELECT COUNT(*) FROM instrumentUsage WHERE projectID="+projectId;
 		if(scheduledOnly)
 			sql += " AND deleted = 0";
+		if(futureOnly)
+			sql += " AND endDate > NOW()";
 
 		try {
 			conn = getConnection();

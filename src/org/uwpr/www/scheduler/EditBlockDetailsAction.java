@@ -74,6 +74,13 @@ public class EditBlockDetailsAction extends Action {
                         		"User does not have access to edit instrument time for project "+projectId+"."),
         				"viewProject", "?ID="+projectId);
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		return returnError(mapping, request, "scheduler",
+        				new ActionMessage("error.project.archivedinstrumenttime"),
+        				"viewProject", "?ID="+projectId);
+        	}
         }
         catch(Exception e) {
         	return returnError(mapping, request, "scheduler", 
@@ -151,6 +158,16 @@ public class EditBlockDetailsAction extends Action {
             blocksToUpdate.add(usageBlock);
             Date blkEndDate = usageBlock.getEndDate();
             rangeEndDate = rangeEndDate == null ? blkEndDate : (blkEndDate.after(rangeEndDate) ? blkEndDate : rangeEndDate);
+        }
+
+        // If the block is moving to a different project, make sure the project it is leaving is not archived.
+        for(UsageBlockBase block: blocksToUpdate) {
+            if(block.getProjectID() != projectId
+                    && ProjectFactory.getProject(block.getProjectID()).isArchived()) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.project.archivedinstrumenttime"),
+                        "viewProject", "?ID="+block.getProjectID());
+            }
         }
 
         // Get the selected payment methods

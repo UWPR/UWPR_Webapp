@@ -1470,7 +1470,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	// The submit date of the project (actually a time stamp of it's creation)
 	private java.sql.Date submitDate;
 
-	// Listed separately on the home page.  Display only -- billing and scheduling ignore this.
+	// Listed separately on the home page.  Payment methods and instrument time cannot change.  Billing is unaffected.
 	private boolean archived = false;
 
 	// funding sources (general)

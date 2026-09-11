@@ -16,6 +16,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectDAO;
 import org.yeastrc.project.ProjectFactory;
@@ -74,6 +75,7 @@ public class ArchiveProjectsAction extends Action {
 
 		boolean deniedAny = false;
 		boolean failedAny = false;
+		boolean hasFutureTimeAny = false;
 
 		for (String projectIdStr: projectIds) {
 
@@ -104,6 +106,21 @@ public class ArchiveProjectsAction extends Action {
 				continue;
 			}
 
+			// An archived project's instrument time cannot be changed, so a project with time
+			// still to come is not archived.
+			if (archived && !project.isArchived()) {
+				try {
+					if (InstrumentUsageDAO.getInstance().getFutureUsageBlockCountForProject(projectId) > 0) {
+						hasFutureTimeAny = true;
+						continue;
+					}
+				} catch (SQLException e) {
+					log.error("Could not check future instrument time for project " + projectId, e);
+					failedAny = true;
+					continue;
+				}
+			}
+
 			if (project.isArchived() != archived) {
 				// A targeted UPDATE, not project.save().  See ProjectDAO.setArchived.
 				// Each project is separate, so one failure does not abandon the rest of
@@ -117,15 +134,22 @@ public class ArchiveProjectsAction extends Action {
 			}
 		}
 
-		boolean anythingToReport = deniedAny || failedAny;
+		boolean anythingToReport = deniedAny || failedAny || hasFutureTimeAny;
 
 		if (anythingToReport) {
+			// The project page archives one project, the home page buttons archive a selection.
+			boolean single = projectIds.length == 1;
+
 			ActionErrors errors = new ActionErrors();
 			if (deniedAny) {
 				errors.add("access", new ActionMessage("error.project.noaccess"));
 			}
+			if (hasFutureTimeAny) {
+				errors.add("archive", new ActionMessage("error.project.archivehasfuturetime"));
+			}
 			if (failedAny) {
-				errors.add("archive", new ActionMessage("error.project.archivefailed"));
+				errors.add("archive", new ActionMessage(single ? "error.project.archivefailed.one"
+						: "error.project.archivefailed.some"));
 			}
 			saveErrors( request, errors );
 		}

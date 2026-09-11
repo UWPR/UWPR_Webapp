@@ -218,9 +218,11 @@
 					<td style="padding:3px">
 						<nobr>
 						<a href='/pr/viewPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/view.png" title="View" width="20" height="20"/></a>
+						<logic:equal name="project" property="archived" value="false">
 						&nbsp;&nbsp;
 						<a href='/pr/copyPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/copy.png" title="Copy" width="20" height="20"/>
 						</a>
+						</logic:equal>
 						</nobr>
 					</td>
 					</tr>

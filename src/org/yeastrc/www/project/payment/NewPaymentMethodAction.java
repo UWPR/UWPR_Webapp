@@ -73,6 +73,15 @@ public class NewPaymentMethodAction extends Action {
             	return newFwd;
 
         	}
+
+        	// An archived project takes no new payment methods.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("payment", new ActionMessage("error.project.archivedpayment"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("Failure");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

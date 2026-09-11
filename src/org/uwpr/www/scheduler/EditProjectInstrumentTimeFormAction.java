@@ -84,6 +84,15 @@ public class EditProjectInstrumentTimeFormAction extends Action {
                 ActionForward fwd = mapping.findForward("viewProject");
                 return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("viewProject");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

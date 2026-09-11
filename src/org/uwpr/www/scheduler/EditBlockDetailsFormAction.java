@@ -85,6 +85,15 @@ public class EditBlockDetailsFormAction extends Action {
                 ActionForward fwd = mapping.findForward("viewProject");
                 return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("viewProject");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();
@@ -278,10 +287,10 @@ public class EditBlockDetailsFormAction extends Action {
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
         // Only projects this user can edit.  User must be administrator, project PI, or a project researcher
         projSearcher.setRequireWriteAccess(true);
+        // A block cannot be moved to an archived project.  The block's own project is not
+        // archived, because this action refuses one above.
+        projSearcher.setExcludeArchived(true);
 
-        // Archived projects are kept.  Excluding them could drop the block's own project,
-        // which this select is pre-set to, and the save would move the block to whichever
-        // project the browser picked instead.
         Groups groupMan = Groups.getInstance();
         boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
         if(!isAdmin) {
