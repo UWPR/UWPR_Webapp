@@ -276,9 +276,12 @@ public class EditBlockDetailsFormAction extends Action {
         // Get a list of the projects this user has access to.
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
-        // Archived projects are kept here.  This select is pre-set to the block's own
-        // project, so dropping that project would leave nothing selected and saving the
-        // form would move the block to whichever project the browser picked instead.
+        // Only projects this user can edit.  User must be administrator, project PI, or a project researcher
+        projSearcher.setRequireWriteAccess(true);
+
+        // Archived projects are kept.  Excluding them could drop the block's own project,
+        // which this select is pre-set to, and the save would move the block to whichever
+        // project the browser picked instead.
         Groups groupMan = Groups.getInstance();
         boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
         if(!isAdmin) {
