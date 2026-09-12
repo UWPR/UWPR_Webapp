@@ -28,6 +28,7 @@ import org.yeastrc.project.ProjectReviewer;
 import org.yeastrc.project.ProjectReviewerDAO;
 import org.yeastrc.project.ProjectsSearcher;
 import org.yeastrc.project.Researcher;
+import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 /**
@@ -59,6 +60,15 @@ public class SearchProjectsAction extends Action {
 			errors.add("username", new ActionMessage("error.login.notloggedin"));
 			saveErrors( request, errors );
 			return mapping.findForward("authenticate");
+		}
+
+		// The link to this page is on the ADMIN menu only, so the action restricts it too.
+		Groups groupMan = Groups.getInstance();
+		if (!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+			ActionErrors errors = new ActionErrors();
+			errors.add("access", new ActionMessage("error.access.invalidgroup"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
 		}
 
 		// The Researcher

@@ -43,6 +43,9 @@ public class ProjectsSearcher {
 		try {
 			boolean haveConstraint = false;
 
+			// One entry per ? in sqlStr, in the order the placeholders appear.
+			List<Object> params = new ArrayList<Object>();
+
             String sqlStr = "SELECT DISTINCT P.projectID, P.projectSubmitDate ";
             sqlStr += "FROM tblProjects AS P ";
             sqlStr += "LEFT OUTER JOIN projectResearcher AS PR ON P.projectID = PR.projectID ";
@@ -53,22 +56,22 @@ public class ProjectsSearcher {
 			if (this.types.size() > 0) {
 				sqlStr += " WHERE";
 				haveConstraint = true;
-				
+
 				sqlStr += " (";
-				
+
 				Iterator<String> iter = this.types.iterator();
-				String type = iter.next();
-				sqlStr += "P.projectType = '" + type + "'";
-				
+				sqlStr += "P.projectType = ?";
+				params.add(iter.next());
+
 				while (iter.hasNext()) {
-					type = iter.next();
-					sqlStr += " OR P.projectType = '" + type + "'";
+					sqlStr += " OR P.projectType = ?";
+					params.add(iter.next());
 				}
-				
+
 				sqlStr += ")";
 			}
 
-			// We have search tokens
+			// We have search tokens.  A project has to match every one of them.
 			if (this.searchTokens.size() > 0) {
 				if (haveConstraint) {
 					sqlStr += " AND";
@@ -76,57 +79,19 @@ public class ProjectsSearcher {
 					sqlStr += " WHERE";
 					haveConstraint = true;
 				}
-				
+
 				Iterator<String> iter = this.searchTokens.iterator();
-				String tok = iter.next();
 
-                String tokSearchStr = "(RPI.researcherLastName LIKE '%" + tok + "%' OR ";
-                tokSearchStr += "RPI.researcherFirstName LIKE '%" + tok + "%' OR ";
-                tokSearchStr += "R.researcherLastName LIKE '%" + tok + "%' OR ";
-                tokSearchStr += "R.researcherFirstName LIKE '%" + tok + "%' OR ";
-                try
-                {
-                    int projectId = Integer.parseInt(tok);
-                    tokSearchStr += "P.projectID = " + projectId + " OR ";
-                }
-                catch(NumberFormatException ignored){}
-				tokSearchStr += "P.projectAbstract LIKE '%" + tok + "%' OR ";
-				tokSearchStr += "P.publicAbstract LIKE '%" + tok + "%' OR ";
-				tokSearchStr += "P.projectKeywords LIKE '%" + tok + "%' OR ";
-				tokSearchStr += "P.projectProgress LIKE '%" + tok + "%' OR ";
-				tokSearchStr += "P.scientificQuestion LIKE '%" + tok + "%' OR ";
-				tokSearchStr += "P.projectTitle LIKE '%" + tok + "%')";
+				sqlStr += " (";
+				sqlStr += tokenConstraint(iter.next(), params);
 
-				
-				sqlStr += " (";				
-				
-				sqlStr += tokSearchStr;
-				
 				while (iter.hasNext()) {
-					tok = iter.next();
-                    tokSearchStr = "(RPI.researcherLastName LIKE '%" + tok + "%' OR ";
-                    tokSearchStr += "RPI.researcherFirstName LIKE '%" + tok + "%' OR ";
-                    tokSearchStr += "R.researcherLastName LIKE '%" + tok + "%' OR ";
-                    tokSearchStr += "R.researcherFirstName LIKE '%" + tok + "%' OR ";
-                    try
-                    {
-                        int projectId = Integer.parseInt(tok);
-                        tokSearchStr += "P.projectID = " + projectId + " OR ";
-                    }
-                    catch(NumberFormatException ignored){}
-					tokSearchStr += "P.projectAbstract LIKE '%" + tok + "%' OR ";
-					tokSearchStr += "P.publicAbstract LIKE '%" + tok + "%' OR ";
-					tokSearchStr += "P.projectKeywords LIKE '%" + tok + "%' OR ";
-					tokSearchStr += "P.projectProgress LIKE '%" + tok + "%' OR ";
-					tokSearchStr += "P.scientificQuestion LIKE '%" + tok + "%' OR ";
-					tokSearchStr += "P.projectTitle LIKE '%" + tok + "%')";
-	
-					sqlStr += " AND " + tokSearchStr;
+					sqlStr += " AND " + tokenConstraint(iter.next(), params);
 				}
-				
+
 				sqlStr += ")";
 			}
-			
+
 			// Start date constraint
 			if (this.startDate != null) {
 				if (haveConstraint) { sqlStr += " AND"; }
@@ -134,12 +99,9 @@ public class ProjectsSearcher {
 					sqlStr += " WHERE";
 					haveConstraint = true;
 				}
-				
-				String year = String.valueOf(this.startDate.getYear() + 1900);
-				String month = String.valueOf(this.startDate.getMonth() + 1);
-				String day = String.valueOf(this.startDate.getDate());
-				
-				sqlStr += " P.projectSubmitDate >= '" + year + "-" + month + "-" + day + "'";
+
+				sqlStr += " P.projectSubmitDate >= ?";
+				params.add(new java.sql.Date(this.startDate.getTime()));
 			}
 
 			// End date constraint
@@ -149,12 +111,9 @@ public class ProjectsSearcher {
 					sqlStr += " WHERE";
 					haveConstraint = true;
 				}
-				
-				String year = String.valueOf(this.endDate.getYear() + 1900);
-				String month = String.valueOf(this.endDate.getMonth() + 1);
-				String day = String.valueOf(this.endDate.getDate());
-				
-				sqlStr += " P.projectSubmitDate <= '" + year + month + day + "'";
+
+				sqlStr += " P.projectSubmitDate <= ?";
+				params.add(new java.sql.Date(this.endDate.getTime()));
 			}
 
 			// Archived constraint
@@ -169,8 +128,11 @@ public class ProjectsSearcher {
 			}
 
 			sqlStr += " ORDER BY P.projectSubmitDate";
-			
+
 			stmt = conn.prepareStatement(sqlStr);
+			for (int i = 0; i < params.size(); i++) {
+				stmt.setObject(i + 1, params.get(i));
+			}
 			rs = stmt.executeQuery();
 			
 			while (rs.next()) {
@@ -250,6 +212,43 @@ public class ProjectsSearcher {
 		
 		
 		return retList;
+	}
+
+	/**
+	 * The columns one search word is matched against.
+	 */
+	private static final String[] TOKEN_COLUMNS = {
+			"RPI.researcherLastName", "RPI.researcherFirstName",
+			"R.researcherLastName", "R.researcherFirstName",
+			"P.projectAbstract", "P.publicAbstract", "P.projectKeywords",
+			"P.projectProgress", "P.scientificQuestion", "P.projectTitle"
+	};
+
+	/**
+	 * A parenthesised OR over TOKEN_COLUMNS for one search word.  A word that parses as an
+	 * integer also matches that project ID.
+	 *
+	 * Adds one entry to params for each ? it returns, in the same order.
+	 */
+	private String tokenConstraint(String tok, List<Object> params) {
+
+		StringBuilder constraint = new StringBuilder("(");
+
+		for (int i = 0; i < TOKEN_COLUMNS.length; i++) {
+			if (i > 0) { constraint.append(" OR "); }
+			constraint.append(TOKEN_COLUMNS[i]).append(" LIKE ?");
+			params.add("%" + tok + "%");
+		}
+
+		try {
+			int projectId = Integer.parseInt(tok);
+			constraint.append(" OR P.projectID = ?");
+			params.add(projectId);
+		}
+		catch (NumberFormatException ignored) {}
+
+		constraint.append(")");
+		return constraint.toString();
 	}
 
 	/**
