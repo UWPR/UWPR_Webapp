@@ -29,6 +29,36 @@ public class ProjectPaymentMethodDAO {
 		return instance;
 	}
 	
+	/**
+	 * True if the payment method is linked to the project.
+	 *
+	 * Actions take a paymentMethodId and a projectId as separate request parameters, so the
+	 * two have to be checked against each other before the project's access or archived state
+	 * says anything about the payment method.
+	 */
+	public boolean belongsToProject(int paymentMethodId, int projectId) throws SQLException {
+
+		String sql = "SELECT COUNT(*) FROM projectPaymentMethod WHERE paymentMethodID=? AND projectID=?";
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			conn = getConnection();
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, paymentMethodId);
+			stmt.setInt(2, projectId);
+			rs = stmt.executeQuery();
+			return rs.next() && rs.getInt(1) > 0;
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
+	}
+
 	public List<PaymentMethod> getPaymentMethods(int projectId) throws SQLException {
 		
 		List<Integer> paymentMethodIds = new ArrayList<Integer>();

@@ -201,6 +201,34 @@ public class EditBlockDetailsFormAction extends Action {
             }
         }
 
+        // The blocks can be from a project other than the one in the request, so the checks at
+        // the top of this method cover the wrong project.  The blocks belong to blkProjId.
+        if(blkProjId != projectId) {
+
+            Project blkProject = null;
+            try {
+                blkProject = ProjectFactory.getProject(blkProjId);
+            }
+            catch(Exception ignored) {}
+
+            if(blkProject == null) {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.scheduler.invalidid",
+                        "Project with ID: "+blkProjId+" not found in the database."));
+                saveErrors( request, errors );
+                return mapping.findForward("standardHome");
+            }
+
+            if(!blkProject.checkAccess(user.getResearcher()) || blkProject.isArchived()) {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.costcenter.invalidaccess",
+                        "User does not have access to edit instrument time for project "+blkProjId+"."));
+                saveErrors( request, errors );
+                ActionForward fwd = mapping.findForward("viewProject");
+                return new ActionForward(fwd.getPath()+"?ID="+blkProjId, fwd.getRedirect());
+            }
+        }
+
         // sort the blocks by start date/time
         Collections.sort(blocksToUpdate, new Comparator<UsageBlockBase>() {
             @Override

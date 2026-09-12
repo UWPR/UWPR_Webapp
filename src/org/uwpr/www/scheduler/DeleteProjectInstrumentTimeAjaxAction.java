@@ -123,6 +123,15 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         		return null;
         	}
 
+        	// usageBlockIds and projectId arrive as separate parameters, so the access and
+        	// archived checks above say nothing about these blocks until the two are tied together.
+        	if(usageBlock.getProjectID() != projectId) {
+        		responseWriter.write("ERROR: Usage block "+usageBlockId+" is not scheduled for project "+projectId+".");
+        		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+        		return null;
+        	}
+
 			usageBlocks.add(usageBlock);
 
         	StringBuilder errorMessage = new StringBuilder();

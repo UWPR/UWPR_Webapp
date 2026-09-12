@@ -174,8 +174,9 @@ public class EditBlockDetailsAction extends Action {
             }
         }
 
-        // If the blocks are moving to a different project, the project they are leaving has to
-        // still be there, and must not be archived.
+        // If the blocks are moving to a different project, the project they are leaving governs
+        // them.  It has to still be there, the user has to be able to edit it, and it must not
+        // be archived.
         if(blkProjId != projectId) {
 
             Project blkProject = null;
@@ -193,6 +194,13 @@ public class EditBlockDetailsAction extends Action {
                 return returnError(mapping, request, "scheduler",
                         new ActionMessage("error.costcenter.load", e.getMessage()),
                         "standardHome");
+            }
+
+            if(!blkProject.checkAccess(user.getResearcher())) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.costcenter.invalidaccess",
+                                "User does not have access to edit instrument time for project "+blkProjId+"."),
+                        "viewProject", "?ID="+blkProjId);
             }
 
             if(blkProject.isArchived()) {

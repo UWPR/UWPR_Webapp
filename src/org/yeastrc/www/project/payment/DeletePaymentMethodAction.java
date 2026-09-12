@@ -122,6 +122,16 @@ public class DeletePaymentMethodAction extends Action {
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
         }
+        // paymentMethodId and projectId arrive as separate parameters, so the checks above
+        // say nothing about this payment method until the two are tied together.
+        if(!ProjectPaymentMethodDAO.getInstance().belongsToProject(paymentMethodId, projectId)) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("payment", new ActionMessage("error.payment.invalidaccess",
+					"Payment method "+paymentMethodId+" is not associated with project "+projectId+"."));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        }
         
         
         // the user requesting this action should be the one who created this payment method

@@ -11,6 +11,7 @@ import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
+import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 import org.yeastrc.utils.CountriesBean;
 import org.yeastrc.utils.StatesBean;
 import org.yeastrc.www.user.User;
@@ -114,6 +115,16 @@ public class CopyPaymentMethodAction extends Action {
 			ActionForward fwd = mapping.findForward("Failure");
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
+        }
+        // paymentMethodId and projectId arrive as separate parameters, so the checks above
+        // say nothing about this payment method until the two are tied together.
+        if(!ProjectPaymentMethodDAO.getInstance().belongsToProject(paymentMethodId, projectId)) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("payment", new ActionMessage("error.payment.invalidaccess",
+					"Payment method "+paymentMethodId+" is not associated with project "+projectId+"."));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         }
 
         

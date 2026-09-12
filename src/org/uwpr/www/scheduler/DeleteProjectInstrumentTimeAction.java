@@ -124,7 +124,18 @@ public class DeleteProjectInstrumentTimeAction extends Action {
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
         	return newFwd;
         }
-        
+
+        // usageBlockId and projectId arrive as separate parameters, so the access and archived
+        // checks above say nothing about this block until the two are tied together.
+        if(usageBlock.getProjectID() != projectId) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess",
+					"Usage block "+usageBlockId+" is not scheduled for project "+projectId+"."));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			return new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
+        }
+
         StringBuilder errorMessage = new StringBuilder();
         
         if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(usageBlock, user, errorMessage)) {
