@@ -238,6 +238,10 @@ public class Collaboration extends Project implements ComparableCollaboration {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
+		// Validate the subtype row exists before deleting any child rows, so a missing tblCollaboration
+		// does not leave a project stripped of its reviewers, rejection causes and shared rows.
+		requireCollaborationRow();
+
 		// Nothing here is atomic, so the order is what limits the damage when a step fails:
 		//  - the rejection causes, the reviewers, and the rows shared by all project types
 		//  - tblCollaboration, which is what makes this a collaboration project
@@ -302,6 +306,30 @@ public class Collaboration extends Project implements ComparableCollaboration {
 
 		// re-initialize the id
         super.id = 0;
+	}
+
+	/**
+	 * Throws InvalidIDException if this project has no tblCollaboration row.  Called before any
+	 * delete step so a missing subtype row does not leave a project stripped of its child rows.
+	 */
+	private void requireCollaborationRow() throws InvalidIDException, SQLException {
+
+		Connection conn = getConnection();
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery("SELECT projectID FROM tblCollaboration WHERE projectID = " + super.id);
+			if( !rs.next() ) {
+				throw new InvalidIDException("Attempted to delete a Collaboration Project not found in the database.");
+			}
+		}
+		finally {
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
 	}
 
 
