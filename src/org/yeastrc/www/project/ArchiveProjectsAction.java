@@ -76,6 +76,7 @@ public class ArchiveProjectsAction extends Action {
 		boolean deniedAny = false;
 		boolean failedAny = false;
 		boolean hasFutureTimeAny = false;
+		boolean skippedAny = false;
 
 		for (String projectIdStr: projectIds) {
 
@@ -83,8 +84,9 @@ public class ArchiveProjectsAction extends Action {
 			try {
 				projectId = Integer.parseInt(projectIdStr);
 			} catch (NumberFormatException e) {
-				// Ignore anything that is not a project ID and keep going with the rest.
+				// Not a project ID.  Skip it and report the selection was not fully applied.
 				log.warn("Ignoring non-numeric projectIds value in archive request: " + projectIdStr);
+				skippedAny = true;
 				continue;
 			}
 
@@ -92,8 +94,10 @@ public class ArchiveProjectsAction extends Action {
 			try {
 				project = ProjectFactory.getProject(projectId);
 			} catch (Exception e) {
-				// Project is gone or of an unknown type.  Skip it rather than failing the batch.
+				// Project is gone or of an unknown type.  Skip it and report it rather than
+				// letting the batch succeed silently.
 				log.warn("Could not load project " + projectId + " while archiving", e);
+				skippedAny = true;
 				continue;
 			}
 
@@ -134,7 +138,7 @@ public class ArchiveProjectsAction extends Action {
 			}
 		}
 
-		boolean anythingToReport = deniedAny || failedAny || hasFutureTimeAny;
+		boolean anythingToReport = deniedAny || failedAny || hasFutureTimeAny || skippedAny;
 
 		if (anythingToReport) {
 			// The project page archives one project, the home page buttons archive a selection.
@@ -146,6 +150,9 @@ public class ArchiveProjectsAction extends Action {
 			}
 			if (hasFutureTimeAny) {
 				errors.add("archive", new ActionMessage("error.project.archivehasfuturetime"));
+			}
+			if (skippedAny) {
+				errors.add("archive", new ActionMessage("error.project.archiveskipped"));
 			}
 			if (failedAny) {
 				errors.add("archive", new ActionMessage(single ? "error.project.archivefailed.one"
