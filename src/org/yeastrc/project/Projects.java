@@ -66,6 +66,7 @@ public class Projects {
 		if (!gm.isInAGroup(researcherID)) return null;
 
 		ProjectsSearcher ps = new ProjectsSearcher();
+		ps.setExcludeArchived(true);
 		//ps.setResearcher(r);
 
 		// Set the start date of the search to 1 month ago

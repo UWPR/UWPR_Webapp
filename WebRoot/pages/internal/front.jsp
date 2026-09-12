@@ -224,7 +224,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 
   <TR>
   <TD valign="top" align="center">
-   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>" aria-label="Select project <bean:write name="project" property="ID"/>"/>
   </TD>
   <TD valign="top">
    <NOBR>
@@ -315,7 +315,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 
   <TR>
   <TD valign="top" align="center">
-   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+   <input type="checkbox" class="projectCheck" name="projectIds" value="<bean:write name="project" property="ID"/>" aria-label="Select project <bean:write name="project" property="ID"/>"/>
   </TD>
   <TD valign="top">
    <NOBR>

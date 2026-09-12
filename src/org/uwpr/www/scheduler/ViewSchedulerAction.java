@@ -116,6 +116,15 @@ public class ViewSchedulerAction extends Action {
             	return newFwd;
 
         	}
+
+        	// Instrument time cannot be scheduled for archived projects.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("Failure");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

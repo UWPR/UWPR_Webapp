@@ -49,7 +49,7 @@
 <logic:equal name="project" property="archived" value="true">
  <div style="margin: 0 0 12px 0; padding: 8px 12px; border-left: 4px solid #888; background-color: #ececec; color: #444;">
   <b>This project is archived.</b>
-  It is listed under Archived Projects on your home page instead of the main list.
+  It is listed under Archived Projects rather than the main list.
   Nothing has been deleted, and instrument time and billing records are unchanged.
  </div>
 </logic:equal>

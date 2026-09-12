@@ -96,6 +96,7 @@ public class ViewPaymentMethodAction extends Action {
         	request.setAttribute("paymentMethod", paymentMethod);
         	request.setAttribute("paymentMethodUsage", pmu);
         	request.setAttribute("projectId", projectId);
+        	request.setAttribute("project", project);
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

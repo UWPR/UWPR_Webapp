@@ -100,7 +100,7 @@ public class ArchiveProjectsAction extends Action {
 			// The IDs come straight off the request, so this is the check that matters.
 			// Hiding the link in the JSP is convenience only.
 			if (!project.checkAccess(user.getResearcher())) {
-				log.warn("Researcher " + user.getResearcher().getID()
+				log.warn("User " + user.getID()
 						+ " tried to archive project " + projectId + " without access");
 				deniedAny = true;
 				continue;

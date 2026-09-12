@@ -267,7 +267,9 @@ function backToProject(projectId) {
    		<td colspan="2" style="text-align:center;">
 
    			<input onclick='editPaymentMethod(<bean:write name="paymentMethod" property="id"/>, <bean:write name="projectId"/>)' type="button" value="Edit"/>
+   			<logic:equal name="project" property="archived" value="false">
    			<input onclick='deletePaymentMethod(<bean:write name="paymentMethod" property="id"/>, <bean:write name="projectId"/>)' type="button" value="Delete"/>
+   			</logic:equal>
    			<input onclick='backToProject(<bean:write name="projectId"/>)' type="button" value="Back to Project"/>
    			
    		</td>
