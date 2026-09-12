@@ -201,8 +201,8 @@ public class EditBlockDetailsFormAction extends Action {
             }
         }
 
-        // The blocks can be from a project other than the one in the request, so the checks at
-        // the top of this method cover the wrong project.  The blocks belong to blkProjId.
+        // Verify that the project the blocks belong to, which may be different from the projectId
+        // in the request, exists, the user has edit access, and the project is not archived.
         if(blkProjId != projectId) {
 
             Project blkProject = null;

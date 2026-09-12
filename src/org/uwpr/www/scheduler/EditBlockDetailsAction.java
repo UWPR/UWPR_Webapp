@@ -174,9 +174,8 @@ public class EditBlockDetailsAction extends Action {
             }
         }
 
-        // If the blocks are moving to a different project, the project they are leaving governs
-        // them.  It has to still be there, the user has to be able to edit it, and it must not
-        // be archived.
+        // Verify that the project the blocks belong to, which may be different from the projectId
+        // in the request, exists, the user has edit access, and the project is not archived.
         if(blkProjId != projectId) {
 
             Project blkProject = null;

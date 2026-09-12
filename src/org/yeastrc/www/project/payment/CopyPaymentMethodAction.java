@@ -116,8 +116,9 @@ public class CopyPaymentMethodAction extends Action {
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
         }
-        // paymentMethodId and projectId arrive as separate parameters, so the checks above
-        // say nothing about this payment method until the two are tied together.
+
+        // paymentMethodId and projectId are separate parameters, so verify that the payment method belongs
+        // to the projectId in the request.
         if(!ProjectPaymentMethodDAO.getInstance().belongsToProject(paymentMethodId, projectId)) {
         	ActionErrors errors = new ActionErrors();
 			errors.add("payment", new ActionMessage("error.payment.invalidaccess",

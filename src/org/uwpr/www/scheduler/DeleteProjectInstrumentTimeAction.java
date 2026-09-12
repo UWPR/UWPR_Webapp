@@ -125,8 +125,8 @@ public class DeleteProjectInstrumentTimeAction extends Action {
         	return newFwd;
         }
 
-        // usageBlockId and projectId arrive as separate parameters, so the access and archived
-        // checks above say nothing about this block until the two are tied together.
+        // usageBlockId and projectId are separate request parameters, so verify that the usage block
+        // belongs to the projectId in the request.
         if(usageBlock.getProjectID() != projectId) {
         	ActionErrors errors = new ActionErrors();
 			errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess",
