@@ -397,9 +397,6 @@ public class InstrumentUsageDAO {
 	
 	public void purge(UsageBlockBase block, Researcher researcher) throws SQLException {
 
-		// NOTE: There is a trigger on instrumentUsage table that will 
-		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to 
-		//       the given usageId
 		Connection conn = null;
 
 		try {
@@ -422,9 +419,11 @@ public class InstrumentUsageDAO {
 		{
 			return;
 		}
-		// NOTE: There is a trigger on instrumentUsage table that will
-		//       delete all entries in the instrumentUsagePayment where instrumentUsageID is equal to
-		//       the given usageId
+
+		// No trigger deletes a usage block's child rows, so delete them here on the caller's
+		// connection, each block's children before the block itself.
+		InstrumentUsagePaymentDAO paymentDao = InstrumentUsagePaymentDAO.getInstance();
+		InvoiceInstrumentUsageDAO invoiceUsageDao = InvoiceInstrumentUsageDAO.getInstance();
 		PreparedStatement stmt = null;
 		String sql = "DELETE FROM instrumentUsage WHERE id=?";
 
@@ -436,6 +435,10 @@ public class InstrumentUsageDAO {
 			for(UsageBlockBase block: blocks)
 			{
 				log.info("Deleting usage block ID "+block.getID());
+
+				paymentDao.deletePaymentsForUsage(conn, block.getID());
+				invoiceUsageDao.deleteBlocksForUsage(conn, block.getID());
+
 				stmt.setInt(1, block.getID());
 				stmt.executeUpdate();
 

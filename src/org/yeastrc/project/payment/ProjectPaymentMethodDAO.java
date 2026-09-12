@@ -7,6 +7,7 @@ package org.yeastrc.project.payment;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.uwpr.instrumentlog.InstrumentUsagePaymentDAO;
 import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.ProjectMismatchException;
 
@@ -192,15 +193,28 @@ public class ProjectPaymentMethodDAO {
 	}
 	
 	public void deletePaymentMethod(int paymentMethodId) throws SQLException {
-		
-		// first delete the payment method
+
+		// No trigger cleans up the child rows, and PaymentMethodDAO.deletePaymentMethod opens its own
+		// connection, so this is not one transaction.  Delete the children before the payment method,
+		// so a failure part way leaves a harmless extra child row rather than an orphaned link.
+
+		// The bridge rows linking the method to its projects.  These are the 6 orphaned
+		// projectPaymentMethod rows on prod, from this line having been commented out.
+		unlinkProjectPaymentMethod(paymentMethodId, 0);
+
+		// Any instrumentUsagePayment splits.  DeletePaymentMethodAction refuses a method still in
+		// use, but a split whose usage block is gone now passes that check, so clear it here.
+		Connection conn = null;
+		try {
+			conn = getConnection();
+			InstrumentUsagePaymentDAO.getInstance().deletePaymentsForPaymentMethod(conn, paymentMethodId);
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+
+		// Finally the payment method itself.
 		PaymentMethodDAO.getInstance().deletePaymentMethod(paymentMethodId);
-		
-		// now delete the entry in the bridge table
-		// NOTE: there is a trigger on paymentMethod that will 
-		//       delete all entries in projectPaymentMethod that have this paymentMethodId
-		// unlinkProjectPaymentMethod(paymentMethodId, 0);
-		
 	}
 
 	public void unlinkProjectPaymentMethod(int paymentMethodId, int projectId) throws SQLException {

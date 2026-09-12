@@ -126,8 +126,12 @@ public class InstrumentUsagePaymentDAO {
     }
 
     public boolean hasInstrumentUsageForPayment(int paymentMethodId) throws SQLException {
-		
-		String sql = "SELECT count(*) FROM instrumentUsagePayment WHERE paymentMethodID = "+paymentMethodId;
+
+		// Inner-join instrumentUsage so a split whose usage block no longer exists (an orphan) does
+		// not make the payment method look in use and stop it being deleted or edited.
+		String sql = "SELECT count(*) FROM instrumentUsagePayment iup"
+				+ " INNER JOIN instrumentUsage iu ON iu.id = iup.instrumentUsageID"
+				+ " WHERE iup.paymentMethodID = "+paymentMethodId;
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -151,21 +155,23 @@ public class InstrumentUsagePaymentDAO {
 		return false;
 	}
 
-	public void deletePaymentsForUsage (int instrumentUsageId) throws SQLException {
-
-		Connection conn = null;
-
-		try {
-			deletePaymentsForUsage(conn, instrumentUsageId);
-		}
-		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
 	public void deletePaymentsForUsage (Connection conn, int instrumentUsageId) throws SQLException {
 
 		String sql = "DELETE FROM instrumentUsagePayment where instrumentUsageID="+instrumentUsageId;
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.executeUpdate();
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
+
+	public void deletePaymentsForPaymentMethod (Connection conn, int paymentMethodId) throws SQLException {
+
+		String sql = "DELETE FROM instrumentUsagePayment WHERE paymentMethodID="+paymentMethodId;
 		PreparedStatement stmt = null;
 
 		try {

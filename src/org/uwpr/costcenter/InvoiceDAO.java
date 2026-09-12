@@ -93,13 +93,20 @@ public class InvoiceDAO {
 	}
 	
 	public void delete(Invoice invoice) throws SQLException {
-		
+
 		String sql = "DELETE FROM invoice WHERE id="+invoice.getId();
 		Connection conn = null;
 		Statement stmt = null;
-		
+
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
+
+			// Delete the invoice's usage links first, on the same connection.  There is no trigger
+			// to do it, so leaving them orphans invoiceInstrumentUsage rows, and an orphaned link
+			// then reports its block as billed.  Children before parent, so a failure leaves the
+			// invoice loadable and re-deletable rather than stranding the links.
+			InvoiceInstrumentUsageDAO.getInstance().deleteBlocksForInvoice(conn, invoice.getId());
+
 			stmt = conn.createStatement();
 			stmt.execute(sql);
 		}

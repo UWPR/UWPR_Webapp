@@ -46,8 +46,12 @@ public class InvoiceInstrumentUsageDAO {
 	}
 	
 	public InvoiceInstrumentUsage getInvoiceBlock (int instrumentUsageId) throws SQLException {
-		
-		String sql = "SELECT * FROM invoiceInstrumentUsage WHERE instrumentUsageID="+instrumentUsageId;
+
+		// Inner-join invoice so a link left behind by a deleted invoice does not report the block
+		// as billed.  Callers treat a non-null result as "already invoiced" and refuse to edit it.
+		String sql = "SELECT iiu.* FROM invoiceInstrumentUsage iiu"
+				+ " INNER JOIN invoice i ON i.id = iiu.invoiceID"
+				+ " WHERE iiu.instrumentUsageID="+instrumentUsageId;
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -71,7 +75,35 @@ public class InvoiceInstrumentUsageDAO {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
-		
+
 		return null;
+	}
+
+	public void deleteBlocksForInvoice (Connection conn, int invoiceId) throws SQLException {
+
+		String sql = "DELETE FROM invoiceInstrumentUsage WHERE invoiceID="+invoiceId;
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.executeUpdate();
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
+
+	public void deleteBlocksForUsage (Connection conn, int instrumentUsageId) throws SQLException {
+
+		String sql = "DELETE FROM invoiceInstrumentUsage WHERE instrumentUsageID="+instrumentUsageId;
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.executeUpdate();
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
 	}
 }
