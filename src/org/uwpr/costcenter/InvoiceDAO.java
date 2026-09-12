@@ -102,9 +102,9 @@ public class InvoiceDAO {
 			conn = DBConnectionManager.getMainDbConnection();
 
 			// Delete the invoice's usage links first, on the same connection.  There is no trigger
-			// to do it, so leaving them orphans invoiceInstrumentUsage rows, and an orphaned link
-			// then reports its block as billed.  Children before parent, so a failure leaves the
-			// invoice loadable and re-deletable rather than stranding the links.
+			// to do it, so not deleting them leaves orphaned invoiceInstrumentUsage rows, and an
+			// orphaned link then reports its block as billed.  Children before parent, so a failure
+			// leaves the invoice loadable and re-deletable rather than stranding the links.
 			InvoiceInstrumentUsageDAO.getInstance().deleteBlocksForInvoice(conn, invoice.getId());
 
 			stmt = conn.createStatement();

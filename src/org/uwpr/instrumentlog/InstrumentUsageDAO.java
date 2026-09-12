@@ -348,15 +348,6 @@ public class InstrumentUsageDAO {
 	}
 
 	/**
-	 * Counts the blocks currently scheduled for the project.  Blocks cancelled before
-	 * 10.28.2022 carry deleted=1 and are excluded.
-	 */
-	public int getScheduledUsageBlockCountForProject(int projectId) throws SQLException {
-
-		return getUsageBlockCountForProject(projectId, true, false);
-	}
-
-	/**
 	 * Counts the blocks scheduled for the project that have not ended yet.  Cancelled blocks
 	 * are excluded.
 	 */

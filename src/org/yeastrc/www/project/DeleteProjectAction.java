@@ -94,8 +94,8 @@ public class DeleteProjectAction extends Action {
 				return mapping.findForward("standardHome");
 			}
 		} catch (SQLException e) {
-			// The project loaded above, so it exists.  Only the scheduled-time check failed.
-			log.error("Error checking scheduled instrument time for project " + projectID, e);
+			// The project loaded above, so it exists.  Only the instrument-time check failed.
+			log.error("Error checking instrument time for project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
 			errors.add("project", new ActionMessage("error.project.instrumenttimecheckfailed"));
 			saveErrors( request, errors );
