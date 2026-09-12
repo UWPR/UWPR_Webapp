@@ -182,15 +182,9 @@ public class EditBlockDetailsAction extends Action {
             Project blkProject = null;
             try {
                 blkProject = ProjectFactory.getProject(blkProjId);
-
-                if(blkProject == null) {
-                    return returnError(mapping, request, "scheduler",
-                            new ActionMessage("error.scheduler.invalidid",
-                                    "Project with ID: "+blkProjId+" not found in the database."),
-                            "standardHome");
-                }
             }
             catch(Exception e) {
+                // ProjectFactory.getProject throws for a missing ID rather than returning null.
                 return returnError(mapping, request, "scheduler",
                         new ActionMessage("error.costcenter.load", e.getMessage()),
                         "standardHome");

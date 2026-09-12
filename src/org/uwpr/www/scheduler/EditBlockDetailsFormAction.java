@@ -219,10 +219,18 @@ public class EditBlockDetailsFormAction extends Action {
                 return mapping.findForward("standardHome");
             }
 
-            if(!blkProject.checkAccess(user.getResearcher()) || blkProject.isArchived()) {
+            if(!blkProject.checkAccess(user.getResearcher())) {
                 ActionErrors errors = new ActionErrors();
                 errors.add("scheduler", new ActionMessage("error.costcenter.invalidaccess",
                         "User does not have access to edit instrument time for project "+blkProjId+"."));
+                saveErrors( request, errors );
+                ActionForward fwd = mapping.findForward("viewProject");
+                return new ActionForward(fwd.getPath()+"?ID="+blkProjId, fwd.getRedirect());
+            }
+
+            if(blkProject.isArchived()) {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
                 saveErrors( request, errors );
                 ActionForward fwd = mapping.findForward("viewProject");
                 return new ActionForward(fwd.getPath()+"?ID="+blkProjId, fwd.getRedirect());
