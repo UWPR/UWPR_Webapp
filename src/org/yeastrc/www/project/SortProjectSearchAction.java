@@ -37,6 +37,15 @@ public class SortProjectSearchAction extends Action {
 			return mapping.findForward("authenticate");
 		}
 
+		// The link to this page is on the ADMIN menu only, so the action restricts it too.
+		Groups groupMan = Groups.getInstance();
+		if (!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+			ActionErrors errors = new ActionErrors();
+			errors.add("access", new ActionMessage("error.access.invalidgroup"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
+		}
+
 		// Make sure we have the pre-existing list of projects from their previous search
 		// We can have two types of projects:  Subsidized projects and Billed projects
 		
