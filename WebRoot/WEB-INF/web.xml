@@ -44,6 +44,19 @@
   </welcome-file-list>
 
 
+  <!-- Generic error page.  Keeps an uncaught exception, and any SQL a SQLException carries, from
+       reaching the browser.  The detail is logged server-side.  DTD 2.3 requires error-page here,
+       after welcome-file-list and before the taglibs. -->
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/error.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/error.jsp</location>
+  </error-page>
+
+
   <!-- Struts Tag Library Descriptors -->
   <taglib>
     <taglib-uri>/tags/struts-bean</taglib-uri>
