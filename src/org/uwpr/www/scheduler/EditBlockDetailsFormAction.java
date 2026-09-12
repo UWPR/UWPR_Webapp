@@ -287,8 +287,7 @@ public class EditBlockDetailsFormAction extends Action {
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
         // Only projects this user can edit.  User must be administrator, project PI, or a project researcher
         projSearcher.setRequireWriteAccess(true);
-        // A block cannot be moved to an archived project.  The block's own project is not
-        // archived, because this action refuses one above.
+        // A block cannot be moved to an archived project.
         projSearcher.setExcludeArchived(true);
 
         Groups groupMan = Groups.getInstance();

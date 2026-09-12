@@ -24,8 +24,8 @@ import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
 /**
- * Archives or unarchives projects.  Only changes how they are listed on the home page --
- * nothing is deleted, and billing, scheduling and the calendar are unaffected.
+ * Archives or unarchives projects.  Nothing is deleted and billing is unaffected, but an
+ * archived project takes no new payment methods and its instrument time cannot be changed.
  *
  * Serves the details page link and the home page bulk buttons.  Parameters:
  *  - projectIds -- one or more project IDs
