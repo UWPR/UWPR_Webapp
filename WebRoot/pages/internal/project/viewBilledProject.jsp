@@ -46,12 +46,25 @@
  }
 </SCRIPT>
 
+<logic:equal name="project" property="archived" value="true">
+ <div style="margin: 0 0 12px 0; padding: 8px 12px; border-left: 4px solid #888; background-color: #ececec; color: #444;">
+  <b>This project is archived.</b>
+  It is listed under Archived Projects rather than the main list.
+  Nothing has been deleted, and instrument time and billing records are unchanged.
+ </div>
+</logic:equal>
+
  <CENTER>
  <TABLE CELLPADDING="no" CELLSPACING="0" class="striped">
-  
+
   <tr>
    <TD valign="top" width="25%">ID:</TD>
-   <TD valign="top" width="75%"><bean:write name="project" property="ID"/></TD>
+   <TD valign="top" width="75%">
+    <bean:write name="project" property="ID"/>
+    <logic:equal name="project" property="archived" value="true">
+     <span style="margin-left: 8px; padding: 1px 6px; background-color: #888; color: #FFF; font-size: 8pt; font-weight: bold;">ARCHIVED</span>
+    </logic:equal>
+   </TD>
   </tr>
 
    <!--  ANCESTORS of this project, if any -->
@@ -205,15 +218,21 @@
 					<td style="padding:3px">
 						<nobr>
 						<a href='/pr/viewPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/view.png" title="View" width="20" height="20"/></a>
+						<logic:equal name="project" property="archived" value="false">
 						&nbsp;&nbsp;
 						<a href='/pr/copyPaymentMethod.do?projectId=<bean:write name="project" property="ID"/>&paymentMethodId=<bean:write name="paymentMethod" property="id"/>'><img src="<%=request.getContextPath()%>/images/copy.png" title="Copy" width="20" height="20"/>
 						</a>
+						</logic:equal>
 						</nobr>
 					</td>
 					</tr>
 				</logic:iterate>
 				</tbody>
 				</table>
+				<!-- An archived project is finished work, so it is not offered a new payment
+				     method or new instrument time.  RequestProjectInstrumentTimeAjaxAction
+				     enforces the scheduling half. -->
+				<logic:equal name="project" property="archived" value="false">
 				<div style="margin:10px 0px 10px 0px; text-align:left;font-weight:bold;">
 					<html:link action="newPaymentMethod.do" paramId="projectId" paramName="project" paramProperty="ID">
 					[Add New Payment Method]
@@ -233,6 +252,7 @@
 						</yrcwww:member>
 					</logic:equal>
 				</div>
+				</logic:equal>
 				
 				<div style="margin:5px 0px 15px 0px">
 					<html:link action="viewTimeScheduledForProject" paramId="projectId" paramName="project" paramProperty="ID">
@@ -242,14 +262,16 @@
 				
 			</logic:notEmpty>
 			<logic:empty name="project" property="paymentMethods">
+				<logic:equal name="project" property="archived" value="false">
 				<div style="color:red;margin:10px 0px 10px 0px;">
 					There are no payment methods associated with this project.
 					<br/>
 					In order to schedule instrument time you must have at least one payment method.
-					<br/>  
+					<br/>
 					Click <html:link action="newPaymentMethod.do" paramId="projectId" paramName="project" paramProperty="ID">here</html:link>
 					to add a payment method for this project.
 				</div>
+				</logic:equal>
 			</logic:empty>
 
 			<ul>
@@ -312,10 +334,32 @@
    
  <div style="margin-top:20px">
  <html:link action="/editProject.do" paramId="ID" paramName="project" paramProperty="ID"><B>[EDIT PROJECT]</B></html:link>
- 
- <yrcwww:member group="administrators">
+
+ <logic:equal name="canArchive" value="true">
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  <logic:equal name="project" property="archived" value="false">
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="true"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[ARCHIVE PROJECT]</B></button>
+   </form>
+  </logic:equal>
+  <logic:equal name="project" property="archived" value="true">
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="false"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[UNARCHIVE PROJECT]</B></button>
+   </form>
+  </logic:equal>
+ </logic:equal>
+
+ <yrcwww:member group="administrators">
+  <logic:equal name="canDelete" value="true">
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+   <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  </logic:equal>
  </yrcwww:member>
 
  <div style="margin-top:20px;font-weight:bold; font-size: larger;">

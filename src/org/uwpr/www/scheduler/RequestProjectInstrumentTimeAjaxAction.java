@@ -135,6 +135,11 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
         if(project instanceof BilledProject && ((BilledProject)project).isBlocked()) {
         	return sendError(response,"This project has been blocked. If you think this is in error please contact us.");
         }
+
+        // Cannot schedule instrument time for archived projects.
+        if(project.isArchived()) {
+        	return sendError(response,"This project is archived. Unarchive it before scheduling instrument time.");
+        }
         
         
         // Get the rate type -- UW, non-profit, commercial etc.

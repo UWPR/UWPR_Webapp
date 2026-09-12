@@ -156,7 +156,18 @@ public class ProjectsSearcher {
 				
 				sqlStr += " P.projectSubmitDate <= '" + year + month + day + "'";
 			}
-			
+
+			// Archived constraint
+			if (this.excludeArchived) {
+				if (haveConstraint) { sqlStr += " AND"; }
+				else {
+					sqlStr += " WHERE";
+					haveConstraint = true;
+				}
+
+				sqlStr += " P.archived = 0";
+			}
+
 			sqlStr += " ORDER BY P.projectSubmitDate";
 			
 			stmt = conn.prepareStatement(sqlStr);
@@ -198,8 +209,12 @@ public class ProjectsSearcher {
 				}
 				
 				// Don't add this project to the list if the Researcher doesn't have access
-				if (this.researcher != null && !p.checkReadAccess(this.researcher)) {
-					 continue;
+				if (this.researcher != null) {
+					boolean hasAccess = this.requireWriteAccess ? p.checkAccess(this.researcher)
+					                                            : p.checkReadAccess(this.researcher);
+					if (!hasAccess) {
+						continue;
+					}
 				}
 
 				retList.add(p);
@@ -275,10 +290,25 @@ public class ProjectsSearcher {
 	    this.statusTypes.add(status);
 	}
 	
+	/**
+	 * Leave archived projects out of the result.
+	 */
+	public void setExcludeArchived(boolean excludeArchived) {
+		this.excludeArchived = excludeArchived;
+	}
+
+	/**
+	 * The researcher must be an administrator, the PI, or one of the project researchers
+	 * to have write access.
+	 */
+	public void setRequireWriteAccess(boolean requireWriteAccess) {
+		this.requireWriteAccess = requireWriteAccess;
+	}
+
 	/** Set the researcher to use as the basis for checking access to the projects
 	 *  returned.  If this researcher doesn't have access to a project, it won't be
 	 *  in the returned list.
-	 * 
+	 *
 	 * @param researcher The researcher
 	 */
 	public void setResearcher(Researcher researcher) {
@@ -323,5 +353,8 @@ public class ProjectsSearcher {
 	
 	// The collaboration status of the projects to include in the result
 	private Set<CollaborationStatus> statusTypes;
+
+	private boolean excludeArchived = false;
+	private boolean requireWriteAccess = false;
 
 }

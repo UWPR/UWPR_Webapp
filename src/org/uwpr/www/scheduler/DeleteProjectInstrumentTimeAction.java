@@ -77,6 +77,15 @@ public class DeleteProjectInstrumentTimeAction extends Action {
     			ActionForward newFwd = new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
             	return newFwd;
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("Failure");
+        		return new ActionForward(fwd.getPath()+"?projectId="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

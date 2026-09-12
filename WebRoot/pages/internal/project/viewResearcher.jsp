@@ -99,6 +99,9 @@
 	   <NOBR>
 		<html:link href="/pr/viewProject.do" paramId="ID" paramName="project" paramProperty="ID">
 		 <bean:write name="project" property="ID"/></html:link>
+		<logic:equal name="project" property="archived" value="true">
+		 <span style="color: #888; font-size: 8pt;">(Archived)</span>
+		</logic:equal>
 	   </NOBR>
 	  </TD>
 	  <TD valign="top" width="25%"><bean:write name="project" property="submitDate"/></TD>

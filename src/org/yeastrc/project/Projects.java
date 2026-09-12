@@ -66,6 +66,7 @@ public class Projects {
 		if (!gm.isInAGroup(researcherID)) return null;
 
 		ProjectsSearcher ps = new ProjectsSearcher();
+		ps.setExcludeArchived(true);
 		//ps.setResearcher(r);
 
 		// Set the start date of the search to 1 month ago
@@ -108,7 +109,8 @@ public class Projects {
             "LEFT OUTER JOIN projectResearcher AS pr "+
             "ON p.projectID = pr.projectID "+
             "WHERE (p.projectPI = ? OR pr.researcherID = ?) "+
-            "ORDER BY p.projectID";
+            // Newest first.
+            "ORDER BY p.projectID DESC";
 
             stmt = conn.prepareStatement(sqlStr);
             stmt.setInt(1, researcherID);

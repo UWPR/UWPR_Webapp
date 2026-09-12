@@ -120,7 +120,7 @@ function switchProject(instrumentId, usageBlockIdsToEdit) {
         <td><b>Project:</b></td>
         <td>
             <html:select name="editBlockDetailsForm" property="projectId" styleId="projectSelector">
-                <html:options collection="projects" property="ID" labelProperty="title"/>
+                <html:options collection="projects" property="ID" labelProperty="label"/>
             </html:select>
         </td>
         <td></td>

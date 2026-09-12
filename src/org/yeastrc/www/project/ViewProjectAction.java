@@ -8,10 +8,13 @@
 
 package org.yeastrc.www.project;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 import org.uwpr.data.DataURI;
 import org.uwpr.data.DataURISearcher;
 import org.uwpr.data.MSDaPlExperimentSearcher;
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsage;
 import org.uwpr.instrumentlog.rawfile.ProjectRawFileUsageUtils;
 import org.yeastrc.project.*;
@@ -27,6 +30,8 @@ import java.util.List;
  * Implements the logic to register a user
  */
 public class ViewProjectAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(ViewProjectAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -100,6 +105,21 @@ public class ViewProjectAction extends Action {
 			request.setAttribute("projectAndReview", projAndRev);
 		}
 		
+		// Only researchers on the project (and admins) may archive it.  Deliberately checkAccess,
+		// not the checkReadAccess above, which also admits the project's collaboration groups.
+		// Hides the link only -- ArchiveProjectsAction enforces this.
+		request.setAttribute("canArchive", project.checkAccess(user.getResearcher()));
+
+		// Deletable only while no instrument time is scheduled.  Hides the link only --
+		// DeleteProjectAction enforces this.
+		try {
+			request.setAttribute("canDelete",
+					InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(project.getID()) == 0);
+		} catch (SQLException e) {
+			log.error("Error checking scheduled instrument time for project " + project.getID(), e);
+			request.setAttribute("canDelete", false);
+		}
+
 		// Get the ancestor projects(if any)
 		List<Integer> ancestorIds = ProjectDAO.instance().getAncestors(project.getID());
 		request.setAttribute("ancestorProjects", ancestorIds);

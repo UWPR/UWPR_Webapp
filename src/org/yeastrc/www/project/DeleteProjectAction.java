@@ -3,9 +3,14 @@
  */
 package org.yeastrc.www.project;
 
+import java.sql.SQLException;
+
 import javax.servlet.http.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
 
+import org.uwpr.instrumentlog.InstrumentUsageDAO;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.*;
 
@@ -13,6 +18,8 @@ import org.yeastrc.www.user.*;
  * Implements the logic to delete a project
  */
 public class DeleteProjectAction extends Action {
+
+	private static final Logger log = LogManager.getLogger(DeleteProjectAction.class);
 
 	public ActionForward execute( ActionMapping mapping,
 								  ActionForm form,
@@ -60,19 +67,49 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
-		// Load our project
+		// Load our project.  Before the scheduled-time check below, so that an ID which is
+		// not a project is reported as such rather than being queried against instrumentUsage.
 		Project project;
-		
+
 		try {
 			project = ProjectFactory.getProject(projectID);
-			project.delete();
 		} catch (Exception e) {
-			
+
 			// Couldn't load the project.
+			log.error("Could not load project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
 			errors.add("username", new ActionMessage("error.project.projectnotfound"));
 			saveErrors( request, errors );
-			return mapping.findForward("standardHome");	
+			return mapping.findForward("standardHome");
+		}
+
+		// Refuse to delete a project with instrument time scheduled.  The leftover instrumentUsage
+		// rows would break the monthly billing export and the instrument calendar.
+		try {
+			if (InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(projectID) > 0) {
+				ActionErrors errors = new ActionErrors();
+				errors.add("project", new ActionMessage("error.project.hasinstrumenttime"));
+				saveErrors( request, errors );
+				return mapping.findForward("standardHome");
+			}
+		} catch (SQLException e) {
+			// The project loaded above, so it exists.  Only the scheduled-time check failed.
+			log.error("Error checking scheduled instrument time for project " + projectID, e);
+			ActionErrors errors = new ActionErrors();
+			errors.add("project", new ActionMessage("error.project.instrumenttimecheckfailed"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
+		}
+
+		try {
+			project.delete();
+		} catch (Exception e) {
+
+			log.error("Error deleting project " + projectID, e);
+			ActionErrors errors = new ActionErrors();
+			errors.add("project", new ActionMessage("error.project.deletefailed"));
+			saveErrors( request, errors );
+			return mapping.findForward("standardHome");
 		}
 
 		return mapping.findForward("Success");

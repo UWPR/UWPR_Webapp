@@ -40,12 +40,25 @@
  }
 </SCRIPT>
 
+<logic:equal name="project" property="archived" value="true">
+ <div style="margin: 0 0 12px 0; padding: 8px 12px; border-left: 4px solid #888; background-color: #ececec; color: #444;">
+  <b>This project is archived.</b>
+  It is listed under Archived Projects rather than the main list.
+  Nothing has been deleted, and instrument time and billing records are unchanged.
+ </div>
+</logic:equal>
+
  <CENTER>
  <TABLE CELLPADDING="no" CELLSPACING="0" class="striped">
-  
+
   <tr>
    <TD valign="top" width="25%">ID:</TD>
-   <TD valign="top" width="75%"><bean:write name="project" property="ID"/></TD>
+   <TD valign="top" width="75%">
+    <bean:write name="project" property="ID"/>
+    <logic:equal name="project" property="archived" value="true">
+     <span style="margin-left: 8px; padding: 1px 6px; background-color: #888; color: #FFF; font-size: 8pt; font-weight: bold;">ARCHIVED</span>
+    </logic:equal>
+   </TD>
   </tr>
 
    <!--  ANCESTORS of this project, if any -->
@@ -188,6 +201,7 @@
 				</tr>
 				
 				 <logic:equal name="project" property="accepted" value="true">
+				 <logic:equal name="project" property="archived" value="false">
 				 <yrcwww:member group="administrators">
 					<tr>
 						<td colspan="4" align="center">
@@ -199,6 +213,7 @@
 						</td>
 					</tr>
 				</yrcwww:member>
+				</logic:equal>
 				</logic:equal>
 	
 			</table>
@@ -252,8 +267,30 @@
    
  <div style="margin-top:15px;">
 
+ <logic:equal name="canArchive" value="true">
+  <logic:equal name="project" property="archived" value="false">
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="true"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[ARCHIVE PROJECT]</B></button>
+   </form>
+  </logic:equal>
+  <logic:equal name="project" property="archived" value="true">
+   <form action="/pr/archiveProjects.do" method="post" class="inlineform">
+    <input type="hidden" name="archived" value="false"/>
+    <input type="hidden" name="projectIds" value="<bean:write name="project" property="ID"/>"/>
+    <input type="hidden" name="returnTo" value="<bean:write name="project" property="ID"/>"/>
+    <button type="submit" class="linkbutton"><B>[UNARCHIVE PROJECT]</B></button>
+   </form>
+  </logic:equal>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ </logic:equal>
+
  <yrcwww:member group="administrators">
-  <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  <logic:equal name="canDelete" value="true">
+   <a href="#" onclick="confirmDelete('<bean:write name="project" property="ID"/>'); return false;"><B>[DELETE PROJECT]</B></a>
+  </logic:equal>
  </yrcwww:member>
  </div>
 

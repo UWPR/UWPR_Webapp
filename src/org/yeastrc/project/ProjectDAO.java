@@ -12,6 +12,7 @@ import org.uwpr.instrumentlog.UsageBlockBaseDAO;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -89,6 +90,32 @@ public class ProjectDAO {
     private Connection getConnection() throws SQLException
     {
         return DBConnectionManager.getMainDbConnection();
+    }
+
+    /**
+     * Sets the archived flag on a project.
+     *
+     * Deliberately a targeted UPDATE rather than Project.save(), which rewrites all
+     * columns of the row and replaces the project's projectResearcher rows with a DELETE
+     * and re-INSERT.  Archiving changes only where the project is listed.
+     */
+    public void setArchived(int projectId, boolean archived) throws SQLException {
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = getConnection();
+            stmt = conn.prepareStatement(
+                    "UPDATE tblProjects SET archived = ? WHERE projectID = ?");
+            stmt.setBoolean(1, archived);
+            stmt.setInt(2, projectId);
+            stmt.executeUpdate();
+        }
+        finally {
+            if(stmt != null) try {stmt.close();} catch(SQLException e){}
+            if(conn != null) try {conn.close();} catch(SQLException e){}
+        }
     }
 
     /**

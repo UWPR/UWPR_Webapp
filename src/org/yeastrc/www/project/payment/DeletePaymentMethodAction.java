@@ -72,6 +72,15 @@ public class DeletePaymentMethodAction extends Action {
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
         }
+
+        // Payment methods are not removed from an archived project.
+        if(project.isArchived()) {
+        	ActionErrors errors = new ActionErrors();
+        	errors.add("payment", new ActionMessage("error.project.archivedpayment"));
+        	saveErrors( request, errors );
+        	ActionForward fwd = mapping.findForward("Failure");
+        	return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        }
         
         
         // we need a paymentMethodId

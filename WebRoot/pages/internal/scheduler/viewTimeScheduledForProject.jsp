@@ -98,8 +98,10 @@ function deleteTimeBlock(usageBlockId, projectId) {
 <logic:present name="noInstrumentTimeScheduled">
     <div style="margin:20px;">
         There is no instrument time scheduled for project ID <bean:write name="project" property="ID"/>.
+        <logic:equal name="project" property="archived" value="false">
         <br/>
         Click <html:link action="viewScheduler.do" paramId="projectId" paramName="project" paramProperty="ID">here</html:link> to schedule time for this project.
+        </logic:equal>
         </div>
 </logic:present>
 
@@ -195,11 +197,13 @@ function deleteTimeBlock(usageBlockId, projectId) {
     <div style="margin-top:10px;margin-bottom:10px;">
         Export billing information: <a href="" onclick="return exportBillingInformation()">[Detailed]</a>&nbsp;<a href="" onclick="return exportBillingInformation(true)">[Summarized]</a>
     </div>
+<logic:equal name="project" property="archived" value="false">
 <div style="font-weight:bold; text-alignment:center; font-size:8pt">
 	<html:link action="viewScheduler.do" paramName="project" paramProperty="ID" paramId="projectId">
 		[Schedule Time for Project]
 	</html:link>
 </div>
+</logic:equal>
 
 <table id="blocklist_table" class="tablesorter" border="0" cellpadding="7">
 	<thead>
@@ -256,8 +260,10 @@ function deleteTimeBlock(usageBlockId, projectId) {
 					</logic:notEmpty>
 				</td>
 				<td style="font-size:10pt;color:red">
+                    <logic:equal name="project" property="archived" value="false">
                     <a href="#" onclick='deleteTimeBlock(<bean:write name="usageBlock" property="ID" />, <bean:write name="project" property="ID" />)'>[Delete]</a>
                     <a href='viewEditBlockDetailsForm.do?projectId=<bean:write name="project" property="ID" />&instrumentId=<bean:write name="usageBlock" property="instrumentID" />&usageBlockIds=<bean:write name="usageBlock" property="ID" />'>[Edit]</a>
+                    </logic:equal>
 				</td>
 				
 			</tr>

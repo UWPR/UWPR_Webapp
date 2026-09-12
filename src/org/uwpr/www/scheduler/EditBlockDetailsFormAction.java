@@ -85,6 +85,15 @@ public class EditBlockDetailsFormAction extends Action {
                 ActionForward fwd = mapping.findForward("viewProject");
                 return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("viewProject");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();
@@ -273,14 +282,29 @@ public class EditBlockDetailsFormAction extends Action {
 
         request.setAttribute("editBlockDetailsForm", editForm);
 
-        // Get a list of ALL projects this user has access to.
+        // Get a list of the projects this user has access to.
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
+        // Only projects this user can edit.  User must be administrator, project PI, or a project researcher
+        projSearcher.setRequireWriteAccess(true);
+        // A block cannot be moved to an archived project.
+        projSearcher.setExcludeArchived(true);
+
         Groups groupMan = Groups.getInstance();
-        if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+        boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
+        if(!isAdmin) {
             projSearcher.setResearcher(user.getResearcher());
         }
         List <Project> projects = projSearcher.search();
+
+        if(isAdmin) {
+            // An admin sees every project, so group them by lab director.
+            Collections.sort(projects, new ProjectPIComparator());
+        }
+        else {
+            // A researcher sees only their own, where the newest is the likely choice.
+            Collections.sort(projects, Collections.reverseOrder(new ProjectIDComparator()));
+        }
         request.setAttribute("projects", projects);
 
 

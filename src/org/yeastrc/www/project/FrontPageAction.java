@@ -3,6 +3,7 @@
  */
 package org.yeastrc.www.project;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.uwpr.notice.NoticeDAO;
 import org.yeastrc.project.Collaboration;
+import org.yeastrc.project.Project;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -51,9 +53,22 @@ public class FrontPageAction extends Action {
 		Collection c = user.getNewProjects();
 		request.setAttribute("newProjects", c);
 
-		// Get all projects for this YRC user
-		c = user.getProjects();
-		request.setAttribute("userProjects", c);
+		// Split into the two lists the home page shows.  Set both even when empty -- front.jsp
+		// forwards back here if activeProjects is missing.
+		List<Project> activeProjects = new ArrayList<Project>();
+		List<Project> archivedProjects = new ArrayList<Project>();
+
+		for (Project project: user.getProjects()) {
+			if (project.isArchived()) {
+				archivedProjects.add(project);
+			}
+			else {
+				activeProjects.add(project);
+			}
+		}
+
+		request.setAttribute("activeProjects", activeProjects);
+		request.setAttribute("archivedProjects", archivedProjects);
 
 		Groups groupMan = Groups.getInstance();
 		if (groupMan.isMember(user.getResearcher().getID(), "administrators")) {

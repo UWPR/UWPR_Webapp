@@ -240,9 +240,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 
 				// Make sure the result set is set up w/ current values from this object
 				rs.updateString("projectType", getShortType());
-				
+
 				if (this.title == null) { rs.updateNull("projectTitle"); }
 				else { rs.updateString("projectTitle", this.title); }
+
+				rs.updateBoolean("archived", this.archived);
 
 				/*
 				 * Update our researchers.  The value for the researcher ID will be taken from
@@ -373,9 +375,11 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 				this.submitDate = new java.sql.Date(uDate.getTime());
 				
 				rs.updateDate("projectSubmitDate", this.submitDate);
-				
+
 				if (this.title == null) { rs.updateNull("projectTitle"); }
 				else { rs.updateString("projectTitle", this.title); }
+
+				rs.updateBoolean("archived", this.archived);
 
 				/*
 				 * Update our researchers.  The value for the researcher ID will be taken from
@@ -560,6 +564,7 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 			this.parentProjectId = rs.getInt("parentProjectID");
 			this.submitDate = rs.getDate("projectSubmitDate");
 			this.title = rs.getString("projectTitle");
+			this.archived = rs.getBoolean("archived");
 			
 			/*
 			 * Populate the researchers associated with this project.  If a problem is
@@ -820,6 +825,40 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
+		deleteSharedRows();
+		deleteProjectRow();
+	}
+
+	/**
+	 * Deletes the projectResearcher and externalDataLocations rows, which both project types
+	 * have.  externalDataLocations is in the pr database, and DataURIDeleter owns that table
+	 * everywhere else.
+	 *
+	 * Other tables keyed on projectID are left behind -- projectGrant, projectGroup,
+	 * tblProjectExperiment, tblProjectProteinInference, and in the pr database projectFiles,
+	 * projectRawDataSummary and projectReportReminder.  Nothing in the schema removes those,
+	 * so a deleted project still has rows in them.
+	 *
+	 * Collaboration.delete() clears projectReviewer and collaborationRejected before calling this.
+	 */
+	protected void deleteSharedRows() throws SQLException {
+
+		deleteRowsForProject(getConnection(), "projectResearcher", this.id);
+		deleteRowsForProject(DBConnectionManager.getPrConnection(), "externalDataLocations", this.id);
+	}
+
+	/**
+	 * Deletes the tblProjects row.  Always the last step of a delete, because the project
+	 * can no longer be loaded once it is gone.
+	 *
+	 * A plain Project is still loadable if an earlier step fails, so the delete can be
+	 * retried.  BilledProject and Collaboration delete their own row immediately before
+	 * this one, and that row is also required to load, so a failure between the two leaves
+	 * a projectID that cannot be loaded, deleted or viewed.  Nothing covers those two
+	 * statements, since they run against different databases.
+	 */
+	protected void deleteProjectRow() throws InvalidIDException, SQLException {
+
 		// Get our connection to the database.
 		Connection conn = getConnection();
 		Statement stmt = null;
@@ -871,6 +910,28 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 			if (conn != null) {
 				try { conn.close(); } catch (SQLException e) { ; }
 				conn = null;
+			}
+		}
+	}
+
+	/**
+	 * Delete this project's rows from a table with a projectID column.  Closes the connection.
+	 */
+	private static void deleteRowsForProject(Connection conn, String table, int projectId) throws SQLException {
+
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement("DELETE FROM " + table + " WHERE projectID = ?");
+			stmt.setInt(1, projectId);
+			stmt.executeUpdate();
+		}
+		finally {
+			if (stmt != null) {
+				try { stmt.close(); } catch (SQLException e) { ; }
+			}
+			if (conn != null) {
+				try { conn.close(); } catch (SQLException e) { ; }
 			}
 		}
 	}
@@ -1086,7 +1147,19 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	 * @return the project submit date in string form
 	 */
 	public java.util.Date getSubmitDate() { return this.submitDate; }
-	
+
+	/**
+	 * Is this project archived?  Archived projects are listed separately on the home page.
+	 * @return true if the project has been archived
+	 */
+	public boolean isArchived() { return this.archived; }
+
+	/**
+	 * Archive or unarchive this project.  Call save() to persist the change.
+	 * @param archived true to archive the project, false to bring it back to the active list
+	 */
+	public void setArchived(boolean archived) { this.archived = archived; }
+
 	/**
 	 * Returns the project title.
 	 * @return the project title.
@@ -1399,7 +1472,10 @@ public abstract class Project implements Comparable, IData, ComparableProject {
 	
 	// The submit date of the project (actually a time stamp of it's creation)
 	private java.sql.Date submitDate;
-	
+
+	// Listed separately on the home page.  Payment methods and instrument time cannot change.  Billing is unaffected.
+	private boolean archived = false;
+
 	// funding sources (general)
 	private HashSet generalFunding;
 	

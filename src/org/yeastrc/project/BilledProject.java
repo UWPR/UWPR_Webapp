@@ -180,8 +180,12 @@ public class BilledProject extends Project {
 	
 	public void delete() throws InvalidIDException, SQLException {
 
-		// Delete the general project entry first
-		super.delete();
+		// Nothing here is atomic, so the order is what limits the damage when a step fails:
+		//  - the payment method links and the rows shared by all project types
+		//  - tblBilledProject, which is what makes this a billed project
+		//  - tblProjects last, in deleteProjectRow()
+		ProjectPaymentMethodDAO.getInstance().unlinkProjectPaymentMethod(0, this.id);
+		super.deleteSharedRows();
 
 		// Get our connection to the database.
 		Connection conn = DBConnectionManager.getPrConnection();
@@ -215,8 +219,7 @@ public class BilledProject extends Project {
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 		
-		// Delete the payment methods for this project
-        ProjectPaymentMethodDAO.getInstance().unlinkProjectPaymentMethod(0, this.id);
+		super.deleteProjectRow();
 
 		// re-initialize the id
         super.id = 0;

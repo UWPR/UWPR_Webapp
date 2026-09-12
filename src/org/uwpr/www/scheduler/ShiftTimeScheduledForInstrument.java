@@ -1,5 +1,6 @@
 package org.uwpr.www.scheduler;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
@@ -168,6 +169,31 @@ public class ShiftTimeScheduledForInstrument extends Action
             message = message + " TO (" + TimeUtils.format(block.getStartDate()) + " - " + TimeUtils.format(block.getEndDate()) + ")";
 
             logMessages.add(message);
+        }
+
+        // An archived project's instrument time cannot be changed.  Refuse the whole shift
+        // rather than moving part of the instrument's schedule and leaving a gap.  Name every
+        // archived project, so they can be unarchived in one go.
+        Set<Integer> shiftProjectIds = new TreeSet<Integer>();
+        for(UsageBlock block: usageBlocksToShift) {
+            shiftProjectIds.add(block.getProjectID());
+        }
+        List<Integer> archivedProjectIds = new ArrayList<Integer>();
+        for(int shiftProjectId: shiftProjectIds) {
+            Project shiftProject = ProjectFactory.getProject(shiftProjectId);
+            if(shiftProject != null && shiftProject.isArchived()) {
+                archivedProjectIds.add(shiftProjectId);
+            }
+        }
+        if(!archivedProjectIds.isEmpty()) {
+            String projectList = StringUtils.join(archivedProjectIds.toArray(), ", ");
+            String message = archivedProjectIds.size() == 1
+                    ? "Project " + projectList + " is archived.  Unarchive it before shifting its instrument time."
+                    : "Projects " + projectList + " are archived.  Unarchive them before shifting their instrument time.";
+            ActionErrors errors = new ActionErrors();
+            errors.add("scheduler", new ActionMessage("error.scheduler.general", message));
+            saveErrors(request, errors);
+            return mapping.findForward("Failure");
         }
 
         log.info(("Shifting blocks on instrument " + instrumentId + " by " + shiftByDays + ". Range " + startDateString + " TO " + endDateString));

@@ -116,6 +116,15 @@ public class ViewSchedulerAction extends Action {
             	return newFwd;
 
         	}
+
+        	// Instrument time cannot be scheduled for archived projects.
+        	if(project.isArchived()) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("Failure");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();
@@ -246,9 +255,13 @@ public class ViewSchedulerAction extends Action {
         
         // If the user making the request is an admin put a list of projects 
         // to be displayed in a drop down list
+        boolean isAdmin = groupMan.isMember(user.getResearcher().getID(), "administrators");
+
         ProjectsSearcher projSearcher = new ProjectsSearcher();
         projSearcher.addType(new BilledProject().getShortType()); // billed projects
-        if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+        projSearcher.setExcludeArchived(true);
+        projSearcher.setRequireWriteAccess(true);
+        if(!isAdmin) {
         	projSearcher.setResearcher(user.getResearcher());
         }
         List <Project> billedProjects = projSearcher.search();
@@ -256,7 +269,9 @@ public class ViewSchedulerAction extends Action {
         projSearcher = new ProjectsSearcher();
         projSearcher.addType(new Collaboration().getShortType()); // subsidized projects
         projSearcher.addStatusType(CollaborationStatus.ACCEPTED); // list accepted projects only
-        if(!groupMan.isMember(user.getResearcher().getID(), "administrators")) {
+        projSearcher.setExcludeArchived(true);
+        projSearcher.setRequireWriteAccess(true);
+        if(!isAdmin) {
         	projSearcher.setResearcher(user.getResearcher());
         }
         List<Project> subsidizedProjects = projSearcher.search();
@@ -265,7 +280,14 @@ public class ViewSchedulerAction extends Action {
         projects.addAll(billedProjects);
         projects.addAll(subsidizedProjects);
 
-        Collections.sort(projects, new ProjectPIComparator());
+        if(isAdmin) {
+            // An admin sees every project, so group them by lab director.
+            Collections.sort(projects, new ProjectPIComparator());
+        }
+        else {
+            // A researcher sees only their own, where the newest is the likely choice.
+            Collections.sort(projects, Collections.reverseOrder(new ProjectIDComparator()));
+        }
         request.setAttribute("projects", projects);
         
         // If the "scheduler_year" and "scheduler_month" attributes were set in the 

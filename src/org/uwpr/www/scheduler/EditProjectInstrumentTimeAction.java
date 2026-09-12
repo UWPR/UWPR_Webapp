@@ -70,6 +70,13 @@ public class EditProjectInstrumentTimeAction extends Action {
                         		"User does not have access to edit instrument time for project "+projectId+"."),
         				"viewProject", "?ID="+projectId);
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		return returnError(mapping, request, "scheduler",
+        				new ActionMessage("error.project.archivedinstrumenttime"),
+        				"viewProject", "?ID="+projectId);
+        	}
         }
         catch(Exception e) {
         	return returnError(mapping, request, "scheduler", 

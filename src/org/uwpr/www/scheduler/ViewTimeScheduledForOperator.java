@@ -192,6 +192,9 @@ public class ViewTimeScheduledForOperator extends Action {
         List<Project> billedOperatorProjects = new ArrayList<Project>();
         for(Project project: allProjects)
         {
+            // Archived projects are kept here.  This list is a filter over time already
+            // scheduled, and an archived project can still have past time to filter by.
+            // The same loop also collects the payment methods for the filter next to it.
             if(project instanceof BilledProject)
             {
                 paymentMethods.addAll(((BilledProject)project).getPaymentMethods());

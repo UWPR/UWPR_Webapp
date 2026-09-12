@@ -43,6 +43,29 @@ a:hover {
 	text-decoration: none;
 }
 
+/* A button that reads as a link, for an action that changes something on the server and
+   so must not be reachable by following a URL.  Matches the anchor colour above. */
+form.inlineform {
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+
+button.linkbutton {
+	background: none;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	font: inherit;
+	color: #204F77;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+button.linkbutton:hover {
+	text-decoration: none;
+}
+
 a img {
 	border: none;
 }
@@ -136,13 +159,18 @@ hr {
 
 /* Search */
 
+/* #header is a fixed 52px with overflow hidden, so anything that wraps past
+   three lines here is clipped rather than pushing the header taller.  The
+   longest real username and name is 60 characters and the longest organization
+   58, which both fit on one line at this width. */
 #search {
 	float: right;
-	width: 200px;
+	width: 460px;
 	text-align: right;
-	margin-top:20px;
+	margin-top:16px;
 	color: #DDDDDD;
 	font-size:8pt;
+	line-height: 12px;
 }
 
 #search form {

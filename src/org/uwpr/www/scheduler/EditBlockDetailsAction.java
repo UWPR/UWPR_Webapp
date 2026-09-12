@@ -74,6 +74,13 @@ public class EditBlockDetailsAction extends Action {
                         		"User does not have access to edit instrument time for project "+projectId+"."),
         				"viewProject", "?ID="+projectId);
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		return returnError(mapping, request, "scheduler",
+        				new ActionMessage("error.project.archivedinstrumenttime"),
+        				"viewProject", "?ID="+projectId);
+        	}
         }
         catch(Exception e) {
         	return returnError(mapping, request, "scheduler", 
@@ -151,6 +158,48 @@ public class EditBlockDetailsAction extends Action {
             blocksToUpdate.add(usageBlock);
             Date blkEndDate = usageBlock.getEndDate();
             rangeEndDate = rangeEndDate == null ? blkEndDate : (blkEndDate.after(rangeEndDate) ? blkEndDate : rangeEndDate);
+        }
+
+        // Blocks need not be from the projectId in the request but they have to be from the same
+        // project, the same rule EditBlockDetailsFormAction applies.
+        int blkProjId = blocksToUpdate.get(0).getProjectID();
+        for(UsageBlockBase block: blocksToUpdate) {
+
+            if(blkProjId != block.getProjectID()) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.costcenter.invaliddata",
+                                "Usage blocks being updated have to be from the same project. "
+                                        + "Usage block ( "+block.getID()+") is not for project "+blkProjId),
+                        "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+            }
+        }
+
+        // If the blocks are moving to a different project, the project they are leaving has to
+        // still be there, and must not be archived.
+        if(blkProjId != projectId) {
+
+            Project blkProject = null;
+            try {
+                blkProject = ProjectFactory.getProject(blkProjId);
+
+                if(blkProject == null) {
+                    return returnError(mapping, request, "scheduler",
+                            new ActionMessage("error.scheduler.invalidid",
+                                    "Project with ID: "+blkProjId+" not found in the database."),
+                            "standardHome");
+                }
+            }
+            catch(Exception e) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.costcenter.load", e.getMessage()),
+                        "standardHome");
+            }
+
+            if(blkProject.isArchived()) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.project.archivedinstrumenttime"),
+                        "viewProject", "?ID="+blkProjId);
+            }
         }
 
         // Get the selected payment methods

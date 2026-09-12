@@ -68,6 +68,13 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             	return null;
         	}
+
+        	// An archived project's instrument time cannot be changed.
+        	if(project.isArchived()) {
+        		responseWriter.write("ERROR: This project is archived. Unarchive it before changing instrument time.");
+        		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        		return null;
+        	}
         }
         catch(Exception e) {
         	log.error("Error checking access to project ID: "+projectId, e);

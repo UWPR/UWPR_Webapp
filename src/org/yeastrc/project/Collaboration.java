@@ -238,8 +238,13 @@ public class Collaboration extends Project implements ComparableCollaboration {
 	 */
 	public void delete() throws InvalidIDException, SQLException {
 
-		// Delete the general project entry first
-		super.delete();
+		// Nothing here is atomic, so the order is what limits the damage when a step fails:
+		//  - the rejection causes, the reviewers, and the rows shared by all project types
+		//  - tblCollaboration, which is what makes this a collaboration project
+		//  - tblProjects last, in deleteProjectRow()
+		RejectionCauseDAO.instance().deleteProjectRejectionCauses(this.id);
+		ProjectReviewerDAO.instance().deleteProjectReviewers(this.id);
+		super.deleteSharedRows();
 
 		// Get our connection to the database.
 		Connection conn = getConnection();
@@ -293,11 +298,8 @@ public class Collaboration extends Project implements ComparableCollaboration {
 			}
 		}
 		
-		// Delete entries from collaborationRejected table
-		RejectionCauseDAO.instance().deleteProjectRejectionCauses(this.id);
-		// Delete entries from projectReviewer table
-		ProjectReviewerDAO.instance().deleteProjectReviewers(this.id);
-		
+		super.deleteProjectRow();
+
 		// re-initialize the id
         super.id = 0;
 	}
