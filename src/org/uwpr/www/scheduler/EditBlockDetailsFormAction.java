@@ -209,12 +209,10 @@ public class EditBlockDetailsFormAction extends Action {
             try {
                 blkProject = ProjectFactory.getProject(blkProjId);
             }
-            catch(Exception ignored) {}
-
-            if(blkProject == null) {
+            catch(Exception e) {
+                // ProjectFactory.getProject throws for a missing ID rather than returning null.
                 ActionErrors errors = new ActionErrors();
-                errors.add("scheduler", new ActionMessage("error.scheduler.invalidid",
-                        "Project with ID: "+blkProjId+" not found in the database."));
+                errors.add("scheduler", new ActionMessage("error.costcenter.load", e.getMessage()));
                 saveErrors( request, errors );
                 return mapping.findForward("standardHome");
             }

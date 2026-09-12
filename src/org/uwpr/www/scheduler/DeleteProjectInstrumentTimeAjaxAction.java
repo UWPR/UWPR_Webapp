@@ -89,6 +89,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         if(usageBlockIdString == null) {
         	responseWriter.write("ERROR: No usage block IDs found in the request");
         	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        	return null;
         }
         String[] tokens = usageBlockIdString.split(",");
         for(String token: tokens) {
@@ -99,6 +100,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         	catch(NumberFormatException e) {
         		responseWriter.write("ERROR: Invalid usageBlockId: "+token+" in request");
             	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            	return null;
         	}
         }
         
