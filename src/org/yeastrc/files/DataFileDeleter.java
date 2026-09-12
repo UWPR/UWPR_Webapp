@@ -30,22 +30,26 @@ public class DataFileDeleter {
 		PreparedStatement stmt = null;
 		
 		try {
-			
-			String sql = "DELETE FROM files WHERE id = ?";
+
 			conn = DBConnectionManager.getPrConnection();
-			stmt = conn.prepareStatement( sql );
-			stmt.setInt( 1, datafile.getId() );
-			stmt.executeUpdate();
-			stmt.close(); stmt = null;
-			
+
+			// Delete the link rows before the blob.  A failure between them would otherwise leave a
+			// location row pointing at a deleted file, the same kind of orphan the cascade-deletes
+			// work is closing.
 			for( String t : DataFileDataUtils.getTypeLocationMap().values() ) {
-				sql = "DELETE FROM " + t + " WHERE file_id = ?";
+				String sql = "DELETE FROM " + t + " WHERE file_id = ?";
 				stmt = conn.prepareStatement( sql );
 				stmt.setInt( 1, datafile.getId() );
 				stmt.executeUpdate();
 				stmt.close(); stmt = null;
 			}
-			
+
+			String sql = "DELETE FROM files WHERE id = ?";
+			stmt = conn.prepareStatement( sql );
+			stmt.setInt( 1, datafile.getId() );
+			stmt.executeUpdate();
+			stmt.close(); stmt = null;
+
 		} finally {
 
 			if (stmt != null) {
