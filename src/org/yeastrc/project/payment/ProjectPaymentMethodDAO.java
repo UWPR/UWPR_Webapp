@@ -8,6 +8,7 @@ package org.yeastrc.project.payment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.ProjectMismatchException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -57,6 +58,26 @@ public class ProjectPaymentMethodDAO {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
+	}
+
+	/**
+	 * Loads the payment method for a project, tying the load and the ownership check together so a
+	 * caller cannot do one without the other.  Returns null if the payment method does not exist, and
+	 * throws ProjectMismatchException if it exists but is not linked to the project, so
+	 * the caller can tell a not-found from a not-associated and report each.
+	 */
+	public PaymentMethod getPaymentMethodForProject(int paymentMethodId, int projectId)
+			throws SQLException, ProjectMismatchException {
+
+		PaymentMethod paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+		if(paymentMethod == null) {
+			return null;
+		}
+		if(!belongsToProject(paymentMethodId, projectId)) {
+			throw new ProjectMismatchException(
+					"Payment method "+paymentMethodId+" is not associated with project "+projectId+".");
+		}
+		return paymentMethod;
 	}
 
 	public List<PaymentMethod> getPaymentMethods(int projectId) throws SQLException {

@@ -10,7 +10,7 @@ import org.yeastrc.project.Affiliation;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
-import org.yeastrc.project.payment.PaymentMethodDAO;
+import org.yeastrc.project.ProjectMismatchException;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 import org.yeastrc.utils.CountriesBean;
 import org.yeastrc.utils.StatesBean;
@@ -94,10 +94,19 @@ public class CopyPaymentMethodAction extends Action {
         	return newFwd;
         }
         
-        // load the payment method
+        // paymentMethodId and projectId are separate request parameters, so load the payment method only
+        // if it belongs to the project.
         PaymentMethod paymentMethod = null;
         try {
-        	paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+        	paymentMethod = ProjectPaymentMethodDAO.getInstance().getPaymentMethodForProject(paymentMethodId, projectId);
+        }
+        catch(ProjectMismatchException e) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("payment", new ActionMessage("error.payment.invalidaccess", e.getMessage()));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	return newFwd;
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();
@@ -115,17 +124,6 @@ public class CopyPaymentMethodAction extends Action {
 			ActionForward fwd = mapping.findForward("Failure");
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;
-        }
-
-        // paymentMethodId and projectId are separate parameters, so verify that the payment method belongs
-        // to the projectId in the request.
-        if(!ProjectPaymentMethodDAO.getInstance().belongsToProject(paymentMethodId, projectId)) {
-        	ActionErrors errors = new ActionErrors();
-			errors.add("payment", new ActionMessage("error.payment.invalidaccess",
-					"Payment method "+paymentMethodId+" is not associated with project "+projectId+"."));
-			saveErrors( request, errors );
-			ActionForward fwd = mapping.findForward("Failure");
-			return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         }
 
         
