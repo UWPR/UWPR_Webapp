@@ -97,22 +97,15 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// Archived list starts collapsed, since the point is to keep it out of the way.
-	$("#toggle_archived").click(function() {
-		var section = $("#archived_projects_section");
-		section.toggle();
-		$(this).text(section.is(":visible") ? "hide" : "show");
-		return false;
-	});
-
-	// Initial state, in case the browser restored checked boxes on a back-navigation.
+	// Both buttons are enabled in the HTML, so they work with no JavaScript.  Here they are
+	// disabled until a checkbox in their table is checked.  This also covers a browser
+	// restoring checked boxes on a back-navigation.
 	updateArchiveButton("your_projects_table", "archive_selected_button");
 	updateArchiveButton("archived_projects_table", "unarchive_selected_button");
 
-	// Last, and guarded.  Sorting is the only thing here that the page can do without.
-	// If the plugin fails to load, an unguarded call throws and everything after it in
-	// this function is skipped, which would leave the archived list permanently collapsed
-	// and both buttons disabled.
+	// Last, and guarded.  Sorting is the only thing here the page can do without, so a missing
+	// plugin must not throw and skip the handlers bound above.  The archived list is a native
+	// <details> and both buttons start enabled, so neither depends on this running.
 	if ($.fn.tablesorter) {
 		$("#your_projects_table").tablesorter(sorterOptions);
 		$("#archived_projects_table").tablesorter(sorterOptions);
@@ -251,7 +244,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
  </TABLE>
 
  <div style="margin-top: 8px;">
-  <input type="submit" id="archive_selected_button" value="Archive Selected" disabled="disabled"/>
+  <input type="submit" id="archive_selected_button" value="Archive Selected"/>
   &nbsp;&nbsp;
   <span style="font-size: 8pt;">
    <a href="#" id="select_all_active">select all</a> /
@@ -285,14 +278,11 @@ consequently, will NOT work with either pathogenic or radioactive materials.
 
 <yrcwww:contentbox title="Archived Projects" innerBox="true">
 
-<div style="margin-bottom: 8px;">
- <a href="#" id="toggle_archived" style="font-weight: bold;">show</a>
- <span style="font-size: 8pt; color: #666;">
-  &nbsp;(<bean:size id="archivedCount" name="archivedProjects"/><bean:write name="archivedCount"/> archived)
- </span>
-</div>
-
-<div id="archived_projects_section" style="display: none;">
+<bean:size id="archivedCount" name="archivedProjects"/>
+<details style="margin-top: 4px;">
+<summary style="cursor: pointer; font-weight: bold;">Show or hide
+ <span style="font-size: 8pt; color: #666; font-weight: normal;">&nbsp;(<bean:write name="archivedCount"/> archived)</span>
+</summary>
 <form action="/pr/archiveProjects.do" method="post">
 <input type="hidden" name="archived" value="false"/>
 
@@ -342,7 +332,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
  </TABLE>
 
  <div style="margin-top: 8px;">
-  <input type="submit" id="unarchive_selected_button" value="Unarchive Selected" disabled="disabled"/>
+  <input type="submit" id="unarchive_selected_button" value="Unarchive Selected"/>
   &nbsp;&nbsp;
   <span style="font-size: 8pt;">
    <a href="#" id="select_all_archived">select all</a> /
@@ -351,7 +341,7 @@ consequently, will NOT work with either pathogenic or radioactive materials.
  </div>
 
 </form>
-</div>
+</details>
 
 </yrcwww:contentbox>
 </logic:notEmpty>
