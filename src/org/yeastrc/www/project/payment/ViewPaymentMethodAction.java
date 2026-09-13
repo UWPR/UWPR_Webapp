@@ -19,7 +19,8 @@ import org.apache.struts.action.ActionMessage;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
-import org.yeastrc.project.payment.PaymentMethodDAO;
+import org.yeastrc.project.ProjectMismatchException;
+import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 import org.yeastrc.project.payment.PaymentMethodUsage;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
@@ -91,12 +92,29 @@ public class ViewPaymentMethodAction extends Action {
         
         
         try {
-        	PaymentMethod paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+        	// paymentMethodId and projectId are separate request parameters, so load the payment method only
+        	// if it belongs to the project.
+        	PaymentMethod paymentMethod = ProjectPaymentMethodDAO.getInstance().getPaymentMethodForProject(paymentMethodId, projectId);
+        	if(paymentMethod == null) {
+        		ActionErrors errors = new ActionErrors();
+        		errors.add("payment", new ActionMessage("error.payment.load","No payment method found for ID: "+paymentMethodId));
+        		saveErrors( request, errors );
+        		ActionForward fwd = mapping.findForward("Failure");
+        		return new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	}
 			PaymentMethodUsage pmu = new PaymentMethodUsage(paymentMethodId);
         	request.setAttribute("paymentMethod", paymentMethod);
         	request.setAttribute("paymentMethodUsage", pmu);
         	request.setAttribute("projectId", projectId);
         	request.setAttribute("project", project);
+        }
+        catch(ProjectMismatchException e) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("payment", new ActionMessage("error.payment.invalidaccess", e.getMessage()));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	return newFwd;
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

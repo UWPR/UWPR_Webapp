@@ -20,6 +20,8 @@ import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
+import org.yeastrc.project.ProjectMismatchException;
+import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
@@ -93,10 +95,19 @@ public class SavePaymentMethodAction extends Action {
         }
         
         
-        // load the payment method
+        // paymentMethodId and projectId are separate request parameters, so load the payment method only
+        // if it belongs to the project.
         PaymentMethod paymentMethod = null;
         try {
-        	paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+        	paymentMethod = ProjectPaymentMethodDAO.getInstance().getPaymentMethodForProject(paymentMethodId, projectId);
+        }
+        catch(ProjectMismatchException e) {
+        	ActionErrors errors = new ActionErrors();
+			errors.add("payment", new ActionMessage("error.payment.invalidaccess", e.getMessage()));
+			saveErrors( request, errors );
+			ActionForward fwd = mapping.findForward("Failure");
+			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
+        	return newFwd;
         }
         catch(Exception e) {
         	ActionErrors errors = new ActionErrors();

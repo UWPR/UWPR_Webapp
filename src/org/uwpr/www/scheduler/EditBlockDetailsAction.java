@@ -146,15 +146,6 @@ public class EditBlockDetailsAction extends Action {
         						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
         	}
 
-            // If this block has already been billed throw an error
-            InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(usageBlock.getID());
-            if(billedBlock != null) {
-                return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.costcenter.invalidaccess",
-                                "Usage block : "+usageBlockId +" has already been billed."),
-                                "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
-            }
-
             blocksToUpdate.add(usageBlock);
             Date blkEndDate = usageBlock.getEndDate();
             rangeEndDate = rangeEndDate == null ? blkEndDate : (blkEndDate.after(rangeEndDate) ? blkEndDate : rangeEndDate);
@@ -174,31 +165,44 @@ public class EditBlockDetailsAction extends Action {
             }
         }
 
-        // If the blocks are moving to a different project, the project they are leaving has to
-        // still be there, and must not be archived.
+        // Verify that the project the blocks belong to, which may be different from the projectId
+        // in the request, exists, the user has edit access, and the project is not archived.
         if(blkProjId != projectId) {
 
             Project blkProject = null;
             try {
                 blkProject = ProjectFactory.getProject(blkProjId);
-
-                if(blkProject == null) {
-                    return returnError(mapping, request, "scheduler",
-                            new ActionMessage("error.scheduler.invalidid",
-                                    "Project with ID: "+blkProjId+" not found in the database."),
-                            "standardHome");
-                }
             }
             catch(Exception e) {
+                // ProjectFactory.getProject throws for a missing ID rather than returning null.
                 return returnError(mapping, request, "scheduler",
                         new ActionMessage("error.costcenter.load", e.getMessage()),
                         "standardHome");
+            }
+
+            if(!blkProject.checkAccess(user.getResearcher())) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.costcenter.invalidaccess",
+                                "User does not have access to edit instrument time for project "+blkProjId+"."),
+                        "viewProject", "?ID="+blkProjId);
             }
 
             if(blkProject.isArchived()) {
                 return returnError(mapping, request, "scheduler",
                         new ActionMessage("error.project.archivedinstrumenttime"),
                         "viewProject", "?ID="+blkProjId);
+            }
+        }
+
+        // A caller without access to the block's project must not learn its billing state, so the
+        // already-billed check runs after the source-project access check above.
+        for(UsageBlockBase block: blocksToUpdate) {
+            InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(block.getID());
+            if(billedBlock != null) {
+                return returnError(mapping, request, "scheduler",
+                        new ActionMessage("error.costcenter.invalidaccess",
+                                "Usage block : "+block.getID() +" has already been billed."),
+                                "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
             }
         }
 

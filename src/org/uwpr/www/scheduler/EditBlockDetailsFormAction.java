@@ -201,6 +201,40 @@ public class EditBlockDetailsFormAction extends Action {
             }
         }
 
+        // Verify that the project the blocks belong to, which may be different from the projectId
+        // in the request, exists, the user has edit access, and the project is not archived.
+        if(blkProjId != projectId) {
+
+            Project blkProject = null;
+            try {
+                blkProject = ProjectFactory.getProject(blkProjId);
+            }
+            catch(Exception e) {
+                // ProjectFactory.getProject throws for a missing ID rather than returning null.
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.costcenter.load", e.getMessage()));
+                saveErrors( request, errors );
+                return mapping.findForward("standardHome");
+            }
+
+            if(!blkProject.checkAccess(user.getResearcher())) {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.costcenter.invalidaccess",
+                        "User does not have access to edit instrument time for project "+blkProjId+"."));
+                saveErrors( request, errors );
+                ActionForward fwd = mapping.findForward("viewProject");
+                return new ActionForward(fwd.getPath()+"?ID="+blkProjId, fwd.getRedirect());
+            }
+
+            if(blkProject.isArchived()) {
+                ActionErrors errors = new ActionErrors();
+                errors.add("scheduler", new ActionMessage("error.project.archivedinstrumenttime"));
+                saveErrors( request, errors );
+                ActionForward fwd = mapping.findForward("viewProject");
+                return new ActionForward(fwd.getPath()+"?ID="+blkProjId, fwd.getRedirect());
+            }
+        }
+
         // sort the blocks by start date/time
         Collections.sort(blocksToUpdate, new Comparator<UsageBlockBase>() {
             @Override

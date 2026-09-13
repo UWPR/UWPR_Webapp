@@ -8,6 +8,7 @@ package org.yeastrc.project.payment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.project.ProjectMismatchException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -29,6 +30,56 @@ public class ProjectPaymentMethodDAO {
 		return instance;
 	}
 	
+	/**
+	 * True if the payment method is linked to the project.
+	 *
+	 * Actions take a paymentMethodId and a projectId as separate request parameters, so the
+	 * two have to be checked against each other before the project's access or archived state
+	 * says anything about the payment method.
+	 */
+	public boolean belongsToProject(int paymentMethodId, int projectId) throws SQLException {
+
+		String sql = "SELECT COUNT(*) FROM projectPaymentMethod WHERE paymentMethodID=? AND projectID=?";
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			conn = getConnection();
+
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, paymentMethodId);
+			stmt.setInt(2, projectId);
+			rs = stmt.executeQuery();
+			return rs.next() && rs.getInt(1) > 0;
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
+	}
+
+	/**
+	 * Loads the payment method for a project, tying the load and the ownership check together so a
+	 * caller cannot do one without the other.  Returns null if the payment method does not exist, and
+	 * throws ProjectMismatchException if it exists but is not linked to the project, so
+	 * the caller can tell a not-found from a not-associated and report each.
+	 */
+	public PaymentMethod getPaymentMethodForProject(int paymentMethodId, int projectId)
+			throws SQLException, ProjectMismatchException {
+
+		PaymentMethod paymentMethod = PaymentMethodDAO.getInstance().getPaymentMethod(paymentMethodId);
+		if(paymentMethod == null) {
+			return null;
+		}
+		if(!belongsToProject(paymentMethodId, projectId)) {
+			throw new ProjectMismatchException(
+					"Payment method "+paymentMethodId+" is not associated with project "+projectId+".");
+		}
+		return paymentMethod;
+	}
+
 	public List<PaymentMethod> getPaymentMethods(int projectId) throws SQLException {
 		
 		List<Integer> paymentMethodIds = new ArrayList<Integer>();
