@@ -89,6 +89,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         if(usageBlockIdString == null) {
         	responseWriter.write("ERROR: No usage block IDs found in the request");
         	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        	return null;
         }
         String[] tokens = usageBlockIdString.split(",");
         for(String token: tokens) {
@@ -99,6 +100,7 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         	catch(NumberFormatException e) {
         		responseWriter.write("ERROR: Invalid usageBlockId: "+token+" in request");
             	response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            	return null;
         	}
         }
         
@@ -118,6 +120,15 @@ public class DeleteProjectInstrumentTimeAjaxAction extends Action {
         	UsageBlockBase usageBlock = UsageBlockBaseDAO.getUsageBlockBase(usageBlockId);
         	if(usageBlock == null) {
         		responseWriter.write("ERROR: No usage block found for usageBlockId: "+usageBlockId);
+        		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+        		return null;
+        	}
+
+        	// usageBlockIds and projectId are separate request parameters, so verify that all usage blocks
+        	// belong to the projectId in the request.
+        	if(usageBlock.getProjectID() != projectId) {
+        		responseWriter.write("ERROR: Usage block "+usageBlockId+" is not scheduled for project "+projectId+".");
         		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
         		return null;

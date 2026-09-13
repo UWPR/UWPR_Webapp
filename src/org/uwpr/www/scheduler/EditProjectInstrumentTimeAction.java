@@ -184,6 +184,16 @@ public class EditProjectInstrumentTimeAction extends Action {
         						"No usage block found for usageBlockId: "+usageBlockId),
         						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
         	}
+
+        	// usageBlockIds and projectId are separate request parameters, so verify that all usage blocks
+        	// belong to the projectId in the request.
+        	if(usageBlock.getProjectID() != projectId) {
+        		return returnError(mapping, request, "scheduler",
+        				new ActionMessage("error.costcenter.invaliddata",
+        						"Usage block "+usageBlockId+" is not scheduled for project "+projectId+"."),
+        						"viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
+        	}
+
         	blocksToDelete.add(usageBlock);
         }
 
