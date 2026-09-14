@@ -11,9 +11,10 @@
     Object failedUri  = request.getAttribute("javax.servlet.error.request_uri");
     Object statusCode = request.getAttribute("javax.servlet.error.status_code");
 
-    // A short reference the user can quote.  It is logged beside the detail, and the log's own
-    // timestamp matches it, so a report can be traced to the failure.
-    String reference = Long.toHexString(System.currentTimeMillis());
+    // A unique reference the user can quote.  It is logged beside the detail, so a report can be
+    // traced to the failure.  A UUID rather than a timestamp, so two failures in the same
+    // millisecond cannot share a reference.
+    String reference = java.util.UUID.randomUUID().toString();
 
     Logger errorLog = LogManager.getLogger("org.uwpr.www.ErrorPage");
     errorLog.error("Unhandled error [" + reference + "] on " + failedUri + " (status " + statusCode + ")", failure);
