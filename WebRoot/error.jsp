@@ -28,7 +28,7 @@
 <body>
  <div style="max-width: 600px; margin: 40px auto; padding: 0 20px;">
   <h2>Something went wrong</h2>
-  <p>An error on the server stopped this page from completing. Please try again.</p>
+  <p>An error on the server stopped this request from completing. Please try again.</p>
   <p>If it keeps happening, email the UWPR administrators and quote the reference below so they can
      find the matching log entry.</p>
   <p><b>Reference:</b> <%= reference %></p>
