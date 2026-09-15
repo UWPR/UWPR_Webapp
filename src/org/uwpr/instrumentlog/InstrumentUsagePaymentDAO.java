@@ -126,8 +126,12 @@ public class InstrumentUsagePaymentDAO {
     }
 
     public boolean hasInstrumentUsageForPayment(int paymentMethodId) throws SQLException {
-		
-		String sql = "SELECT count(*) FROM instrumentUsagePayment WHERE paymentMethodID = "+paymentMethodId;
+
+		// Inner-join instrumentUsage so an instrumentUsagePayment row whose usage block no longer exists
+		// (an orphan) does not make the payment method look in use and stop it being deleted or edited.
+		String sql = "SELECT count(*) FROM instrumentUsagePayment iup"
+				+ " INNER JOIN instrumentUsage iu ON iu.id = iup.instrumentUsageID"
+				+ " WHERE iup.paymentMethodID = "+paymentMethodId;
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -151,29 +155,46 @@ public class InstrumentUsagePaymentDAO {
 		return false;
 	}
 
-	public void deletePaymentsForUsage (int instrumentUsageId) throws SQLException {
-
-		Connection conn = null;
-
-		try {
-			deletePaymentsForUsage(conn, instrumentUsageId);
-		}
-		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
-		}
-	}
-
 	public void deletePaymentsForUsage (Connection conn, int instrumentUsageId) throws SQLException {
 
-		String sql = "DELETE FROM instrumentUsagePayment where instrumentUsageID="+instrumentUsageId;
+		String sql = "DELETE FROM instrumentUsagePayment WHERE instrumentUsageID = ?";
 		PreparedStatement stmt = null;
 
 		try {
 			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, instrumentUsageId);
 			stmt.executeUpdate();
 		}
 		finally {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
+	}
+
+	/**
+	 * Returns the instrumentUsageID of every instrumentUsagePayment row for the payment method.
+	 * DeletePaymentMethodAction refuses to delete a method with live usage, so a non-empty result means
+	 * orphaned rows whose usage block was purged.  deletePaymentMethod uses this to refuse the delete
+	 * and name the rows rather than delete them silently.
+	 */
+	public List<Integer> getUsageIdsForPaymentMethod (Connection conn, int paymentMethodId) throws SQLException {
+
+		String sql = "SELECT instrumentUsageID FROM instrumentUsagePayment WHERE paymentMethodID = ?";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<Integer> usageIds = new ArrayList<>();
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, paymentMethodId);
+			rs = stmt.executeQuery();
+			while(rs.next()) {
+				usageIds.add(rs.getInt("instrumentUsageID"));
+			}
+		}
+		finally {
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+		return usageIds;
 	}
 }

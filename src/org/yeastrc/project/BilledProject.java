@@ -180,6 +180,10 @@ public class BilledProject extends Project {
 	
 	public void delete() throws InvalidIDException, SQLException {
 
+		// Validate the subtype row exists before deleting any child rows so a missing tblBilledProject
+		// does not leave a project stripped of its researchers, payment links and external data.
+		requireBilledProjectRow();
+
 		// Nothing here is atomic, so the order is what limits the damage when a step fails:
 		//  - the payment method links and the rows shared by all project types
 		//  - tblBilledProject, which is what makes this a billed project
@@ -224,8 +228,32 @@ public class BilledProject extends Project {
 		// re-initialize the id
         super.id = 0;
 	}
-	
-	
+
+	/**
+	 * Throws InvalidIDException if this project has no tblBilledProject row.  Called before any
+	 * delete step so a missing subtype row does not leave a project stripped of its child rows.
+	 */
+	private void requireBilledProjectRow() throws InvalidIDException, SQLException {
+
+		Connection conn = DBConnectionManager.getPrConnection();
+		Statement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery("SELECT projectID FROM tblBilledProject WHERE projectID = " + super.id);
+			if( !rs.next() ) {
+				throw new InvalidIDException("Attempted to delete a Billed Project not found in the database.");
+			}
+		}
+		finally {
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+
 	/**
 	 * Removes a group from the set of groups to which this project belongs.  If the group
 	 * isn't in the set, nothing happens.
