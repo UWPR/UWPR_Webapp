@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.yeastrc.db.DBConnectionManager;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,13 +80,48 @@ public class InvoiceInstrumentUsageDAO {
 		return null;
 	}
 
+	/**
+	 * Returns every invoiceInstrumentUsage row for the block, without the invoice join getInvoiceBlock
+	 * uses.  getInvoiceBlock hides a row left by a deleted invoice (an orphan), so this exposes those
+	 * orphaned rows, letting the invoicing path refuse a block that still carries one.
+	 */
+	public List<InvoiceInstrumentUsage> getAllInvoiceRowsForUsage (int instrumentUsageId) throws SQLException {
+
+		String sql = "SELECT id, invoiceID, instrumentUsageID FROM invoiceInstrumentUsage WHERE instrumentUsageID = ?";
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<InvoiceInstrumentUsage> rows = new ArrayList<>();
+
+		try {
+			conn = DBConnectionManager.getMainDbConnection();
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, instrumentUsageId);
+			rs = stmt.executeQuery();
+			while(rs.next()) {
+				InvoiceInstrumentUsage row = new InvoiceInstrumentUsage();
+				row.setId(rs.getInt("id"));
+				row.setInvoiceId(rs.getInt("invoiceID"));
+				row.setInstrumentUsageId(rs.getInt("instrumentUsageID"));
+				rows.add(row);
+			}
+		}
+		finally {
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+		}
+		return rows;
+	}
+
 	public void deleteBlocksForInvoice (Connection conn, int invoiceId) throws SQLException {
 
-		String sql = "DELETE FROM invoiceInstrumentUsage WHERE invoiceID="+invoiceId;
+		String sql = "DELETE FROM invoiceInstrumentUsage WHERE invoiceID = ?";
 		PreparedStatement stmt = null;
 
 		try {
 			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, invoiceId);
 			stmt.executeUpdate();
 		}
 		finally {
@@ -95,11 +131,12 @@ public class InvoiceInstrumentUsageDAO {
 
 	public void deleteBlocksForUsage (Connection conn, int instrumentUsageId) throws SQLException {
 
-		String sql = "DELETE FROM invoiceInstrumentUsage WHERE instrumentUsageID="+instrumentUsageId;
+		String sql = "DELETE FROM invoiceInstrumentUsage WHERE instrumentUsageID = ?";
 		PreparedStatement stmt = null;
 
 		try {
 			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, instrumentUsageId);
 			stmt.executeUpdate();
 		}
 		finally {

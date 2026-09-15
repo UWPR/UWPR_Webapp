@@ -37,8 +37,10 @@ public class InvoiceBlockCreator implements
 	public void blockExported(UsageBlockBase block) throws BillingInformationExporterException
 	{
 		InvoiceInstrumentUsage oldSavedBlock = null;
+		List<InvoiceInstrumentUsage> allRows = null;
 		try {
 			oldSavedBlock = invoiceBlockDao.getInvoiceBlock(block.getID());
+			allRows = invoiceBlockDao.getAllInvoiceRowsForUsage(block.getID());
 		}
 		catch(SQLException e) {
 			throw new BillingInformationExporterException("Error getting results from invoiceInstrumentUsage table.", e);
@@ -52,6 +54,18 @@ public class InvoiceBlockCreator implements
 			if(oldSavedBlock.getInvoiceId() != invoice.getId()) {
 				throw new BillingInformationExporterException("Usage block with ID "+block.getID()+" is already part of another invoice");
 			}
+		}
+		else if(!allRows.isEmpty()) {
+			// getInvoiceBlock inner-joins invoice, so a null result can still hide rows left by a deleted
+			// invoice (orphans).  The orphan cleanup should have removed these before deploy, so if any are
+			// here, refuse to invoice over them and name them rather than adding a second row.
+			List<String> orphanRows = new ArrayList<>();
+			for(InvoiceInstrumentUsage orphan: allRows) {
+				orphanRows.add("id " + orphan.getId() + " (deleted invoice " + orphan.getInvoiceId() + ")");
+			}
+			throw new BillingInformationExporterException("Usage block " + block.getID() + " has "
+					+ allRows.size() + " orphaned invoiceInstrumentUsage row(s), " + orphanRows
+					+ ".  Clean up these rows before invoicing this block.");
 		}
 
 		// Add to blocks that will be invoiced

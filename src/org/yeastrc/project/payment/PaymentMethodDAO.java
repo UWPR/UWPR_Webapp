@@ -295,23 +295,32 @@ public class PaymentMethodDAO {
     }
 
     public void deletePaymentMethod(int paymentMethodId) throws SQLException {
-	
-		String sql = "DELETE FROM paymentMethod WHERE id="+paymentMethodId;
+
 		Connection conn = null;
-		Statement stmt = null;
-		
 		try {
 			conn = getConnection();
-			stmt = conn.createStatement();
-			int numRowsDeleted = stmt.executeUpdate(sql);
-			
-			if(numRowsDeleted == 0) {
-				throw new SQLException("Deleting payment method failed, no rows affected.");
-			}
-			
+			deletePaymentMethod(conn, paymentMethodId);
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException ignored){}
+		}
+	}
+
+	public void deletePaymentMethod(Connection conn, int paymentMethodId) throws SQLException {
+
+		String sql = "DELETE FROM paymentMethod WHERE id = ?";
+		PreparedStatement stmt = null;
+
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, paymentMethodId);
+			int numRowsDeleted = stmt.executeUpdate();
+
+			if(numRowsDeleted == 0) {
+				throw new SQLException("Deleting payment method failed, no rows affected.");
+			}
+		}
+		finally {
 			if(stmt != null) try {stmt.close();} catch(SQLException ignored){}
 		}
 	}

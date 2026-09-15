@@ -180,9 +180,8 @@ public class BilledProject extends Project {
 	
 	public void delete() throws InvalidIDException, SQLException {
 
-		// Validate the subtype row exists before deleting any child rows.  If tblBilledProject is
-		// missing (the unloadable billed-project husks), deleting the children first would strip a
-		// live project of its researchers, payment links and external data and then throw.
+		// Validate the subtype row exists before deleting any child rows so a missing tblBilledProject
+		// does not leave a project stripped of its researchers, payment links and external data.
 		requireBilledProjectRow();
 
 		// Nothing here is atomic, so the order is what limits the damage when a step fails:

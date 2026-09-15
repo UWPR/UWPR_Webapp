@@ -194,36 +194,66 @@ public class ProjectPaymentMethodDAO {
 	
 	public void deletePaymentMethod(int paymentMethodId) throws SQLException {
 
-		// No trigger cleans up the child rows, and PaymentMethodDAO.deletePaymentMethod opens its own
-		// connection, so this is not one transaction.  Delete the children before the payment method,
-		// so a failure part way leaves a harmless extra child row rather than an orphaned link.
-
-		// The bridge rows linking the method to its projects.  These are the 6 orphaned
-		// projectPaymentMethod rows on prod, from this line having been commented out.
-		unlinkProjectPaymentMethod(paymentMethodId, 0);
-
-		// Any instrumentUsagePayment splits.  DeletePaymentMethodAction refuses a method still in
-		// use, but a split whose usage block is gone now passes that check, so clear it here.
+		// No trigger cleans up the child rows, so delete the projectPaymentMethod bridge rows before the
+		// payment method.  projectPaymentMethod is InnoDB and shares this transaction, so a failure rolls
+		// back and deletes nothing.  paymentMethod is MyISAM, so it commits immediately.  The one case
+		// left uncovered is a commit failure after the paymentMethod delete, which leaves orphaned
+		// projectPaymentMethod rows.  getPaymentMethod logs those on load, and only paymentMethod on
+		// InnoDB would close the window.
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			InstrumentUsagePaymentDAO.getInstance().deletePaymentsForPaymentMethod(conn, paymentMethodId);
+			conn.setAutoCommit(false);
+
+			// The orphan cleanup should have removed every orphaned instrumentUsagePayment row before this
+			// code was deployed, and DeletePaymentMethodAction blocks deleting a method with live usage, so a
+			// method reaching here should have no instrumentUsagePayment rows.  If it has any, an orphan has
+			// recurred -- refuse the delete and name the rows so an admin can find and clean them, rather than
+			// deleting them silently.
+			List<Integer> orphanedUsageIds = InstrumentUsagePaymentDAO.getInstance().getUsageIdsForPaymentMethod(conn, paymentMethodId);
+			if(!orphanedUsageIds.isEmpty()) {
+				throw new SQLException("Payment method " + paymentMethodId + " has " + orphanedUsageIds.size()
+						+ " orphaned instrumentUsagePayment row(s), for purged usage blocks " + orphanedUsageIds
+						+ ".  Clean up these rows before deleting the payment method.");
+			}
+
+			// The bridge rows linking the method to its projects.
+			unlinkProjectPaymentMethod(conn, paymentMethodId, 0);
+
+			// The payment method itself, last.
+			PaymentMethodDAO.getInstance().deletePaymentMethod(conn, paymentMethodId);
+
+			conn.commit();
+		}
+		catch(SQLException e) {
+			if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
+			throw e;
+		}
+		finally {
+			if(conn != null) try {conn.setAutoCommit(true);} catch(SQLException ignored){}
+			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+	public void unlinkProjectPaymentMethod(int paymentMethodId, int projectId) throws SQLException {
+
+		Connection conn = null;
+		try {
+			conn = getConnection();
+			unlinkProjectPaymentMethod(conn, paymentMethodId, projectId);
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
 		}
-
-		// Finally the payment method itself.
-		PaymentMethodDAO.getInstance().deletePaymentMethod(paymentMethodId);
 	}
 
-	public void unlinkProjectPaymentMethod(int paymentMethodId, int projectId) throws SQLException {
-		
+	public void unlinkProjectPaymentMethod(Connection conn, int paymentMethodId, int projectId) throws SQLException {
+
 		if(paymentMethodId == 0 && projectId == 0) {
 			log.error("paymentMethodId and projectId are both 0 in unlinkProjectPaymentMethod. Skipping...");
 			return;
 		}
-		
+
 		String sql = "DELETE FROM projectPaymentMethod WHERE ";
 		if(paymentMethodId != 0) {
 			sql += "paymentMethodID="+paymentMethodId;
@@ -233,20 +263,15 @@ public class ProjectPaymentMethodDAO {
 		if(projectId != 0) {
 			sql += " projectID="+projectId;
 		}
-		
-		Connection conn = null;
+
 		Statement stmt = null;
-		ResultSet rs = null;
-		
+
 		try {
-			conn = getConnection();
 			stmt = conn.createStatement();
-            stmt.executeUpdate(sql);
+			stmt.executeUpdate(sql);
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
-			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
 	}
 

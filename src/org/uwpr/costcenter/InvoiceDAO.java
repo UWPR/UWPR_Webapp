@@ -100,17 +100,26 @@ public class InvoiceDAO {
 
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
+			conn.setAutoCommit(false);
 
-			// Delete the invoice's usage links first, on the same connection.  There is no trigger
-			// to do it, so not deleting them leaves orphaned invoiceInstrumentUsage rows, and an
-			// orphaned link then reports its block as billed.  Children before parent, so a failure
-			// leaves the invoice loadable and re-deletable rather than stranding the links.
+			// Delete the invoice's usage links, then the invoice, on one connection.  No trigger
+			// removes the links, and a link left behind reports its block as billed.
+			// invoiceInstrumentUsage is InnoDB, so a failure on the invoice delete rolls back the
+			// link delete and leaves the invoice re-deletable.  invoice is MyISAM and commits on its
+			// own, so a commit failure after it still strands the links.
 			InvoiceInstrumentUsageDAO.getInstance().deleteBlocksForInvoice(conn, invoice.getId());
 
 			stmt = conn.createStatement();
 			stmt.execute(sql);
+
+			conn.commit();
+		}
+		catch(SQLException e) {
+			if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
+			throw e;
 		}
 		finally {
+			if(conn != null) try {conn.setAutoCommit(true);} catch(SQLException ignored){}
 			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}

@@ -433,8 +433,8 @@ public class InstrumentUsageDAO {
 				stmt.setInt(1, block.getID());
 				stmt.executeUpdate();
 
-				message = message == null ? "" : message + ": ";
-				logDao.logSignupPurged(conn, block, researcher.getID(), message + block.toString());
+				String logMessage = message == null ? "" : message + ": ";
+				logDao.logSignupPurged(conn, block, researcher.getID(), logMessage + block.toString());
 			}
 
 		} finally {
