@@ -246,10 +246,9 @@ public class EditBlockDetailsFormAction extends Action {
         UsageBlockBase firstBlock = blocksToUpdate.get(0);
 
         // If the first block in the range has already been billed, throw an error message.
-        InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(firstBlock.getID());
-        if(billedBlock != null) {
+        if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(firstBlock.getID())) {
             ActionErrors errors = new ActionErrors();
-            errors.add("scheduler", new ActionMessage("error.costcenter.invalidaccess",
+            errors.add("scheduler", new ActionMessage("error.costcenter.notallowed",
                     "The first block ( "+firstBlock.getStartDateFormated()+" - "+firstBlock.getEndDateFormated()+
                     ") in the selected range has already been billed. Please select blocks that have not been billed."));
             saveErrors( request, errors );

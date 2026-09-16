@@ -5,6 +5,8 @@
  */
 package org.yeastrc.www.project.payment;
 
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,7 +33,7 @@ import org.yeastrc.www.user.UserUtils;
  */
 public class DeletePaymentMethodAction extends Action {
 
-	private static final Logger log = LogManager.getLogger(SaveNewPaymentMethodAction.class);
+	private static final Logger log = LogManager.getLogger(DeletePaymentMethodAction.class);
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm form, 
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -170,11 +172,17 @@ public class DeletePaymentMethodAction extends Action {
         	ppmDao.deletePaymentMethod(paymentMethodId);
         }
         catch(Exception e) {
+        	// The failure detail -- including the ids of any orphaned rows that blocked the delete -- is
+        	// logged, not shown.  The user gets a generic message and a reference to quote, and an admin
+        	// finds the matching log entry by that reference and cleans up.  Same pattern as error.jsp.
+        	String reference = UUID.randomUUID().toString();
+        	log.error("Error deleting payment method [" + reference + "], project " + projectId
+        			+ ", paymentMethod " + paymentMethodId, e);
+
         	ActionErrors errors = new ActionErrors();
-			errors.add("costcenter", new ActionMessage("error.costcenter.delete", "Error deleting payment method."+e.getMessage()));
+			errors.add("costcenter", new ActionMessage("error.payment.delete", reference));
 			saveErrors( request, errors );
-			log.error("Error deleting payment method", e);
-			
+
 			ActionForward fwd = mapping.findForward("Failure");
 			ActionForward newFwd = new ActionForward(fwd.getPath()+"?ID="+projectId, fwd.getRedirect());
         	return newFwd;

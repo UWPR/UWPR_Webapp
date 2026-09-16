@@ -83,18 +83,19 @@ public class DeleteProjectAction extends Action {
 			return mapping.findForward("standardHome");
 		}
 
-		// Refuse to delete a project with instrument time scheduled.  The leftover instrumentUsage
-		// rows would break the monthly billing export and the instrument calendar.
+		// Refuse to delete a project with any instrument time against it, cancelled blocks included.
+		// Blocks cancelled before 10.28.2022 kept deleted=1 rows that getCostOld still bills, and any
+		// leftover instrumentUsage row breaks the monthly billing export and the instrument calendar.
 		try {
-			if (InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(projectID) > 0) {
+			if (InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(projectID) > 0) {
 				ActionErrors errors = new ActionErrors();
 				errors.add("project", new ActionMessage("error.project.hasinstrumenttime"));
 				saveErrors( request, errors );
 				return mapping.findForward("standardHome");
 			}
 		} catch (SQLException e) {
-			// The project loaded above, so it exists.  Only the scheduled-time check failed.
-			log.error("Error checking scheduled instrument time for project " + projectID, e);
+			// The project loaded above, so it exists.  Only the instrument-time check failed.
+			log.error("Error checking instrument time for project " + projectID, e);
 			ActionErrors errors = new ActionErrors();
 			errors.add("project", new ActionMessage("error.project.instrumenttimecheckfailed"));
 			saveErrors( request, errors );

@@ -310,10 +310,8 @@ public class JSONInstrumentUsageGetter {
 				e.printStackTrace();
 			}
 			// If this block has already been billed it cannot be deleted or edited even by admins
-			InvoiceInstrumentUsage billedBlock = null;
 			try {
-				billedBlock = invoiceInstrumentUsageDao.getInvoiceBlock(block.getID());
-				if(billedBlock == null) {
+				if(!invoiceInstrumentUsageDao.isBlockInvoiced(block.getID())) {
 					blockObject.put("editable", true);
 				}
 			} catch (SQLException e) {

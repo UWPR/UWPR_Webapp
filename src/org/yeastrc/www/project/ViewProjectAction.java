@@ -110,13 +110,13 @@ public class ViewProjectAction extends Action {
 		// Hides the link only -- ArchiveProjectsAction enforces this.
 		request.setAttribute("canArchive", project.checkAccess(user.getResearcher()));
 
-		// Deletable only while no instrument time is scheduled.  Hides the link only --
-		// DeleteProjectAction enforces this.
+		// Deletable only while no instrument time is recorded, cancelled blocks included, matching
+		// the DeleteProjectAction guard.  Hides the link only -- DeleteProjectAction enforces this.
 		try {
 			request.setAttribute("canDelete",
-					InstrumentUsageDAO.getInstance().getScheduledUsageBlockCountForProject(project.getID()) == 0);
+					InstrumentUsageDAO.getInstance().getUsageBlockCountForProject(project.getID()) == 0);
 		} catch (SQLException e) {
-			log.error("Error checking scheduled instrument time for project " + project.getID(), e);
+			log.error("Error checking instrument time for project " + project.getID(), e);
 			request.setAttribute("canDelete", false);
 		}
 

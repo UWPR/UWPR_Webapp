@@ -266,10 +266,13 @@
                          linksdiv += "&nbsp;&nbsp;&nbsp;";
                          linksdiv += "<span id='project_detail_tooltip_edit_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit Dates & Operator]</span>";
                          linksdiv += "</div>";
+
+                         // Edit Project & Payment Method also acts on the selected blocks, so hide it too
+                         // when none can be selected (every block is billed).
+                         linksdiv += '<div style="margin-top: 7px;">';
+                         linksdiv += "<span id='project_detail_tooltip_edit_payment_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit Project & Payment Method]</span>";
+                         linksdiv += "</div>";
 					 }
-                     linksdiv += '<div style="margin-top: 7px;">';
-                     linksdiv += "<span id='project_detail_tooltip_edit_payment_"+event.id+"' style='color:red; font-size:8pt; font-weigt:bold; text-decoration:underline; cursor:pointer'>[Edit Project & Payment Method]</span>";
-                     linksdiv += "</div>";
 
                      linksdiv += "</div>"
 

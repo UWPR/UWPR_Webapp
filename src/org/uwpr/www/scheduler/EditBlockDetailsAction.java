@@ -197,10 +197,9 @@ public class EditBlockDetailsAction extends Action {
         // A caller without access to the block's project must not learn its billing state, so the
         // already-billed check runs after the source-project access check above.
         for(UsageBlockBase block: blocksToUpdate) {
-            InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(block.getID());
-            if(billedBlock != null) {
+            if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(block.getID())) {
                 return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.costcenter.invalidaccess",
+                        new ActionMessage("error.costcenter.notallowed",
                                 "Usage block : "+block.getID() +" has already been billed."),
                                 "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
             }

@@ -73,6 +73,7 @@ public class ExportBillingInformationAction extends Action {
 
     	Exception exception = null;
     	Invoice invoice = null;
+    	boolean invoiceCreated = false; // true only when this request created the invoice, not reused an existing one
         try {
         	
         	BillingInformationExcelExporter exporter = new BillingInformationExcelExporter();
@@ -95,6 +96,7 @@ public class ExportBillingInformationAction extends Action {
             		invoice.setBillEndDate(endBillDate);
             		invoice.setCreatedBy(user.getResearcher().getID());
             		InvoiceDAO.getInstance().save(invoice);
+            		invoiceCreated = true;
             	}
             	
             	InvoiceBlockCreator invoiceBlockCreator = new InvoiceBlockCreator(invoice);
@@ -132,7 +134,10 @@ public class ExportBillingInformationAction extends Action {
 
         if(exception != null)
 		{
-			if(invoice != null) {
+			// Only delete an invoice this request created.  A reused invoice's links are committed billing
+			// records and delete() now cascades to them, so deleting it after a failed re-export would
+			// erase that invoice and its links.
+			if(invoice != null && invoiceCreated) {
 				log.info("Deleting invoice ID: "+invoice.getId());
 				try {
 					InvoiceDAO.getInstance().delete(invoice);
