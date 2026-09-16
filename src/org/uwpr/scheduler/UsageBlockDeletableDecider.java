@@ -37,8 +37,7 @@ public class UsageBlockDeletableDecider {
 		Groups groupsMan = Groups.getInstance();
 
 		// If this block has already been billed it cannot be edited even by admins
-		InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(block.getID());
-		if(billedBlock != null) {
+		if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(block.getID())) {
 			errorMessage.append("Block cannot be edited. It has already been billed.");
 			return false;
 		}
@@ -80,8 +79,7 @@ public class UsageBlockDeletableDecider {
 	public boolean isBlockDeletable(UsageBlockBase block, User user, StringBuilder errorMessage) throws SQLException  {
 
 		// If this block has already been billed it cannot be deleted even by admins
-		InvoiceInstrumentUsage billedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(block.getID());
-		if(billedBlock != null) {
+		if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(block.getID())) {
 			errorMessage.append("Block cannot be deleted. It has already been billed.");
 			return false;
 		}

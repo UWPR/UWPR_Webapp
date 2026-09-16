@@ -46,44 +46,36 @@ public class InvoiceInstrumentUsageDAO {
 		}
 	}
 	
-	public InvoiceInstrumentUsage getInvoiceBlock (int instrumentUsageId) throws SQLException {
+	/**
+	 * True if the block has any invoiceInstrumentUsage row.  Any row means the block is invoiced -- a live
+	 * invoice, or an orphan the pre-deploy cleanup was meant to remove -- so callers refuse to edit or
+	 * delete it either way.
+	 */
+	public boolean isBlockInvoiced (int instrumentUsageId) throws SQLException {
 
-		// Inner-join invoice so a link left behind by a deleted invoice does not report the block
-		// as billed.  Callers treat a non-null result as "already invoiced" and refuse to edit it.
-		String sql = "SELECT iiu.* FROM invoiceInstrumentUsage iiu"
-				+ " INNER JOIN invoice i ON i.id = iiu.invoiceID"
-				+ " WHERE iiu.instrumentUsageID="+instrumentUsageId;
+		String sql = "SELECT 1 FROM invoiceInstrumentUsage WHERE instrumentUsageID = ? LIMIT 1";
 		Connection conn = null;
-		Statement stmt = null;
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(sql);
-			
-			if(rs.next())
-			{
-				InvoiceInstrumentUsage invoiceBlock = new InvoiceInstrumentUsage();
-				invoiceBlock.setId(rs.getInt("id"));
-				invoiceBlock.setInvoiceId(rs.getInt("invoiceID"));
-				invoiceBlock.setInstrumentUsageId(rs.getInt("instrumentUsageID"));
-				return invoiceBlock;
-			}
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, instrumentUsageId);
+			rs = stmt.executeQuery();
+			return rs.next();
 		}
 		finally {
 			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 		}
-
-		return null;
 	}
 
 	/**
-	 * Returns every invoiceInstrumentUsage row for the block, without the invoice join getInvoiceBlock
-	 * uses.  getInvoiceBlock hides a row left by a deleted invoice (an orphan), so this exposes those
-	 * orphaned rows, letting the invoicing path refuse a block that still carries one.
+	 * Returns every invoiceInstrumentUsage row for the block.  blockExported uses this to skip a block
+	 * already on the invoice being built (a re-export) and to refuse one linked to any other invoice,
+	 * whether that invoice still exists or is an orphan left by a deleted one.
 	 */
 	public List<InvoiceInstrumentUsage> getAllInvoiceRowsForUsage (int instrumentUsageId) throws SQLException {
 

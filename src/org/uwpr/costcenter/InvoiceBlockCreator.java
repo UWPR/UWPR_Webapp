@@ -36,43 +36,42 @@ public class InvoiceBlockCreator implements
 	@Override
 	public void blockExported(UsageBlockBase block) throws BillingInformationExporterException
 	{
-		InvoiceInstrumentUsage oldSavedBlock = null;
-		List<InvoiceInstrumentUsage> allRows = null;
+		List<InvoiceInstrumentUsage> allRows;
 		try {
-			oldSavedBlock = invoiceBlockDao.getInvoiceBlock(block.getID());
 			allRows = invoiceBlockDao.getAllInvoiceRowsForUsage(block.getID());
 		}
 		catch(SQLException e) {
 			throw new BillingInformationExporterException("Error getting results from invoiceInstrumentUsage table.", e);
 		}
 
-		// If there is already an entry in the table for this block it means this block
-		// has already been included in an invoice.  If the invoice ID we have been given
-		// is different from the one associated with this block it means that this block
-		// is being included in multiple invoices.  This should never happen
-		if(oldSavedBlock != null) {
-			if(oldSavedBlock.getInvoiceId() != invoice.getId()) {
-				throw new BillingInformationExporterException("Usage block with ID "+block.getID()+" is already part of another invoice");
+		// A block with any invoiceInstrumentUsage row is already invoiced.  A row for this invoice means the
+		// block is already on it (a re-export) -- skip it so saveBlocks does not add a duplicate.  A row for
+		// any other invoice means the block is already invoiced elsewhere, or the row is an orphan left by a
+		// deleted invoice -- refuse rather than invoice over it.
+		boolean alreadyOnThisInvoice = false;
+		List<String> otherRows = new ArrayList<>();
+		for(InvoiceInstrumentUsage row: allRows) {
+			if(row.getInvoiceId() == invoice.getId()) {
+				alreadyOnThisInvoice = true;
+			}
+			else {
+				otherRows.add("id " + row.getId() + " (invoice " + row.getInvoiceId() + ")");
 			}
 		}
-		else if(!allRows.isEmpty()) {
-			// getInvoiceBlock inner-joins invoice, so a null result can still hide rows left by a deleted
-			// invoice (orphans).  The orphan cleanup should have removed these before deploy, so if any are
-			// here, refuse to invoice over them and name them rather than adding a second row.
-			List<String> orphanRows = new ArrayList<>();
-			for(InvoiceInstrumentUsage orphan: allRows) {
-				orphanRows.add("id " + orphan.getId() + " (deleted invoice " + orphan.getInvoiceId() + ")");
-			}
-			throw new BillingInformationExporterException("Usage block " + block.getID() + " has "
-					+ allRows.size() + " orphaned invoiceInstrumentUsage row(s), " + orphanRows
-					+ ".  Clean up these rows before invoicing this block.");
+		if(!otherRows.isEmpty()) {
+			throw new BillingInformationExporterException("Usage block " + block.getID()
+					+ " already has an invoiceInstrumentUsage row for another invoice, " + otherRows
+					+ ".  Resolve it before invoicing this block.");
 		}
 
-		// Add to blocks that will be invoiced
-		InvoiceInstrumentUsage invoiceBlock = new InvoiceInstrumentUsage();
-		invoiceBlock.setInvoiceId(invoice.getId());
-		invoiceBlock.setInstrumentUsageId(block.getID());
-		invoicedBlocks.add(invoiceBlock);
+		// Add to blocks that will be invoiced, unless the block already has a row for this invoice, which
+		// would make saveBlocks insert a duplicate.
+		if(!alreadyOnThisInvoice) {
+			InvoiceInstrumentUsage invoiceBlock = new InvoiceInstrumentUsage();
+			invoiceBlock.setInvoiceId(invoice.getId());
+			invoiceBlock.setInstrumentUsageId(block.getID());
+			invoicedBlocks.add(invoiceBlock);
+		}
 	}
 
 	public void updateBlock(UsageBlockBase block) throws BillingInformationExporterException
@@ -95,8 +94,7 @@ public class InvoiceBlockCreator implements
 			// This SHOULD NOT happen, unless blocks in the previous billing cycle were not invoiced.
 			try
 			{
-				InvoiceInstrumentUsage invoicedBlock = InvoiceInstrumentUsageDAO.getInstance().getInvoiceBlock(block.getID());
-				if(invoicedBlock != null)
+				if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(block.getID()))
 				{
 					throw new BillingInformationExporterException("Cannot split block.  It has already been invoiced. " + block.toString());
 				}
