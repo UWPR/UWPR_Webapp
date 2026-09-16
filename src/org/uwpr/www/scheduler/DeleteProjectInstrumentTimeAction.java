@@ -140,7 +140,7 @@ public class DeleteProjectInstrumentTimeAction extends Action {
         
         if(!UsageBlockDeletableDecider.getInstance().isBlockDeletable(usageBlock, user, errorMessage)) {
         	ActionErrors errors = new ActionErrors();
-    		errors.add("scheduler", new ActionMessage("error.scheduler.invalidaccess",
+    		errors.add("scheduler", new ActionMessage("error.costcenter.notallowed",
     				errorMessage.toString()));
     		saveErrors( request, errors );
     		ActionForward fwd = mapping.findForward("Failure");

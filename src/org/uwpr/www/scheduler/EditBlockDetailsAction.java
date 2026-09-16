@@ -199,7 +199,7 @@ public class EditBlockDetailsAction extends Action {
         for(UsageBlockBase block: blocksToUpdate) {
             if(InvoiceInstrumentUsageDAO.getInstance().isBlockInvoiced(block.getID())) {
                 return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.costcenter.invalidaccess",
+                        new ActionMessage("error.costcenter.notallowed",
                                 "Usage block : "+block.getID() +" has already been billed."),
                                 "viewScheduler", "?projectId="+projectId+"&instrumentId="+instrumentId);
             }
