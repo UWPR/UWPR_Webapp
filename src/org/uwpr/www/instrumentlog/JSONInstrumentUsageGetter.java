@@ -276,8 +276,8 @@ public class JSONInstrumentUsageGetter {
 		event.put("projectId", Integer.valueOf(blocks.get(0).getProjectID()));
 		event.put("instrumentId", Integer.valueOf(blocks.get(0).getInstrumentID()));
 		event.put("title", String.valueOf(blocks.get(0).getProjectID()));
-		event.put("start", sd.toString());
-		event.put("end", ed.toString());
+		event.put("start", formatEventTime(sd));
+		event.put("end", formatEventTime(ed));
 		event.put("allDay", Boolean.FALSE);
 		event.put("editable", Boolean.FALSE);
 		
@@ -361,6 +361,16 @@ public class JSONInstrumentUsageGetter {
 //		}
 		
 		return event;
+	}
+
+	/**
+	 * Formats a block time for fullCalendar as the server's local date and time with no zone, for example
+	 * 2026-09-17T10:00:00.  fullCalendar displays a time with no zone at that hour in every browser time zone.
+	 * Date.toString() carries the JVM's zone, and a browser in another time zone converts it to its own hour.
+	 */
+	static String formatEventTime(Date date)
+	{
+		return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(date);
 	}
 
 	private Object addToCalenderLink(UsageBlock block) throws UnsupportedEncodingException {
