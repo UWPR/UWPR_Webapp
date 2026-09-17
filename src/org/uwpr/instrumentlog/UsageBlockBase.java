@@ -188,6 +188,10 @@ public class UsageBlockBase implements Block
 		this.setupBlock = setupBlock;
 	}
 
+	/**
+	 * Returns the elapsed hours from start to end.  Across a daylight saving change this is one hour less or
+	 * more than the clock times.  Billing, the instrument time quota and the scheduled time totals use this count.
+	 */
 	public int getHours()
 	{
 		return TimeUtils.getHours(getStartDate(), getEndDate());

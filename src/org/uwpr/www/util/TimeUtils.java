@@ -36,21 +36,6 @@ public class TimeUtils
         return startCal.getTime();
     }
 
-//    public static Date makeEndOfDay(Date date)
-//    {
-//        if(date == null)
-//        {
-//            return null;
-//        }
-//        Calendar endCal = Calendar.getInstance();
-//        endCal.setTime(date);
-//        endCal.set(Calendar.MILLISECOND, 0);
-//        endCal.set(Calendar.SECOND, 0);
-//        endCal.set(Calendar.MINUTE, 0);
-//        endCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
-//        return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY - 1);
-//    }
-
     public static Date makeEndOfDay_12AM(Date date)
     {
         if(date == null)
@@ -63,7 +48,9 @@ public class TimeUtils
         endCal.set(Calendar.SECOND, 0);
         endCal.set(Calendar.MINUTE, 0);
         endCal.set(Calendar.HOUR_OF_DAY, 0); // 12:00 am
-        return new Date(endCal.getTime().getTime() + MILLIS_IN_DAY);
+        // Add a calendar day, not 24 hours.  The day the clocks change is 23 or 25 hours long.
+        endCal.add(Calendar.DAY_OF_MONTH, 1);
+        return endCal.getTime();
     }
 
     public static String format(Date date)
