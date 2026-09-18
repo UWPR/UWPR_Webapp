@@ -42,7 +42,7 @@ public class InstrumentUsageDAO {
 		return instance;
 	}
 
-	private void save(Connection conn, List<? extends UsageBlockBase> blocks, String message) throws Exception
+	private void save(Connection conn, List<? extends UsageBlockBase> blocks, String message, int researcherId) throws Exception
 	{
 		if (blocks == null || blocks.size() == 0)
 			return;
@@ -69,16 +69,15 @@ public class InstrumentUsageDAO {
 				stmt.setInt(4, block.getInstrumentRateID());
 				stmt.setTimestamp(5, makeTimestamp(block.getStartDate()));
 				stmt.setTimestamp(6, makeTimestamp(block.getEndDate()));
+				if (block.getResearcherID() == 0) {
+					throw new SQLException("No creator set. " + block);
+				}
 				stmt.setInt(7, block.getResearcherID());
 
 				block.setDateCreated(new java.util.Date(System.currentTimeMillis()));
 				stmt.setTimestamp(8, makeTimestamp(block.getDateCreated()));
 
-				if (block.getUpdaterResearcherID() != 0) {
-					stmt.setInt(9, block.getUpdaterResearcherID());
-				} else {
-					stmt.setNull(9, Types.INTEGER);
-				}
+				setUpdatedBy(stmt, 9, block);
 
 				stmt.setString(10, block.getNotes());
 
@@ -94,7 +93,7 @@ public class InstrumentUsageDAO {
 					throw new SQLException("Error inserting row in instrumentBlock table. No auto-generated ID returned.");
 				}
 
-				logDao.logSignupAdded(conn, Collections.singletonList(block), block.getResearcherID(), message);
+				logDao.logSignupAdded(conn, Collections.singletonList(block), researcherId, message);
 			}
 
 		} finally {
@@ -141,7 +140,7 @@ public class InstrumentUsageDAO {
 				stmt.setTimestamp(1, makeTimestamp(block.getStartDate()));
 				stmt.setTimestamp(2, makeTimestamp(block.getEndDate()));
 				stmt.setInt(3, block.getInstrumentRateID());
-				stmt.setInt(4, block.getUpdaterResearcherID());
+				setUpdatedBy(stmt, 4, block);
 				stmt.setInt(5, block.getID());
 				stmt.executeUpdate();
 			}
@@ -176,7 +175,7 @@ public class InstrumentUsageDAO {
             for(UsageBlockBase block: blocks)
             {
                 stmt.setInt(1, newProjectId);
-                stmt.setInt(2, block.getUpdaterResearcherID());
+                setUpdatedBy(stmt, 2, block);
                 stmt.setInt(3, block.getID());
                 stmt.executeUpdate();
 
@@ -216,7 +215,7 @@ public class InstrumentUsageDAO {
 			for(UsageBlockBase block: blocks)
 			{
 				stmt.setInt(1, newInstrumentOperator);
-				stmt.setInt(2, block.getUpdaterResearcherID());
+				setUpdatedBy(stmt, 2, block);
 				stmt.setInt(3, block.getID());
 				stmt.executeUpdate();
 
@@ -229,6 +228,29 @@ public class InstrumentUsageDAO {
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
 			if(conn != null) try {conn.close();} catch(SQLException e){}
+		}
+	}
+
+	/**
+	 * Sets updatedBy on each block from its updaterResearcherID.  Writes no instrumentLog row.
+	 */
+	public void updateBlocksUpdater(Connection conn, List<? extends UsageBlockBase> blocks) throws SQLException
+	{
+		if (blocks == null || blocks.size() == 0)
+			return;
+
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement("UPDATE instrumentUsage SET updatedBy = ? WHERE id = ?");
+			for(UsageBlockBase block: blocks)
+			{
+				setUpdatedBy(stmt, 1, block);
+				stmt.setInt(2, block.getID());
+				stmt.executeUpdate();
+			}
+		}
+		finally {
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 		}
 	}
 
@@ -507,6 +529,15 @@ public class InstrumentUsageDAO {
 
 	public String saveUsageBlocks(Connection conn,  List<UsageBlock> blocksWithPayment, String logMessage)
 	{
+		return saveUsageBlocks(conn, blocksWithPayment, logMessage, null);
+	}
+
+	/**
+	 * Logs researcherId as the user who added each block.  If researcherId is null, each block's researcherID
+	 * is logged.
+	 */
+	public String saveUsageBlocks(Connection conn, List<UsageBlock> blocksWithPayment, String logMessage, Integer researcherId)
+	{
 		if(blocksWithPayment == null || blocksWithPayment.size() == 0)
 		{
 			return null;
@@ -522,7 +553,8 @@ public class InstrumentUsageDAO {
 				log.info("Saving usage block: " + block.toString());
 
 				// save to the instrumentUsage table
-				InstrumentUsageDAO.getInstance().save(conn, Collections.singletonList(block), logMessage);
+				InstrumentUsageDAO.getInstance().save(conn, Collections.singletonList(block), logMessage,
+						researcherId != null ? researcherId : block.getResearcherID());
 
 
 				for (InstrumentUsagePayment iup: block.getPayments())
@@ -562,5 +594,17 @@ public class InstrumentUsageDAO {
 	private java.sql.Timestamp makeTimestamp(java.util.Date date)
 	{
 		return new Timestamp(date.getTime());
+	}
+
+	/**
+	 * Throws if the block has no updater.  A block loaded from the database holds 0 when updatedBy is NULL,
+	 * because ResultSet.getInt returns 0 for NULL, so every write path has to set the updater first.
+	 */
+	private static void setUpdatedBy(PreparedStatement stmt, int parameterIndex, UsageBlockBase block) throws SQLException
+	{
+		if (block.getUpdaterResearcherID() == 0) {
+			throw new SQLException("No updater set. " + block + "; id: " + block.getID());
+		}
+		stmt.setInt(parameterIndex, block.getUpdaterResearcherID());
 	}
 }

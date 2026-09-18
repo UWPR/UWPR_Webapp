@@ -8,6 +8,7 @@ package org.uwpr.costcenter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.uwpr.instrumentlog.*;
@@ -20,6 +21,8 @@ public class InvoiceBlockCreator implements
 		BillingInformationExporterListener {
 
 	private final Invoice invoice;
+	// Admin exporting the invoice.  Recorded as the updater of each split block and in its log rows.
+	private final int researcherId;
 	private final InvoiceInstrumentUsageDAO invoiceBlockDao;
 	private final InstrumentUsageDAO instrumentUsageDao;
 
@@ -27,8 +30,9 @@ public class InvoiceBlockCreator implements
 	private List<UsageBlockBase> _updatedBlocks = new ArrayList<>(); // Blocks whose start or end date has been updated;
 	private List<UsageBlock> _newBlocks = new ArrayList<>(); // Blocks that have been added.
 
-	public InvoiceBlockCreator (Invoice invoice) {
+	public InvoiceBlockCreator (Invoice invoice, int researcherId) {
 		this.invoice = invoice;
+		this.researcherId = researcherId;
 		invoiceBlockDao = InvoiceInstrumentUsageDAO.getInstance();
 		instrumentUsageDao = InstrumentUsageDAO.getInstance();
 	}
@@ -81,12 +85,14 @@ public class InvoiceBlockCreator implements
 			UsageBlockBase updatedBlock = new UsageBlockBase();
 			block.copyTo(updatedBlock);
 			updatedBlock.setEndDate(invoice.getBillEndDate());
+			updatedBlock.setUpdaterResearcherID(researcherId);
 			_updatedBlocks.add(updatedBlock);
 
 			UsageBlock nextCycleBlock = new UsageBlock(); // DO NOT reset the block ID here.  We will use it later to look up payment methods.
 			block.copyTo(nextCycleBlock);
 			nextCycleBlock.setStartDate(invoice.getBillEndDate());
 			nextCycleBlock.setSetupBlock(false);
+			nextCycleBlock.setUpdaterResearcherID(researcherId);
 			_newBlocks.add(nextCycleBlock);
 		}
 		else if(block.getStartDate().before(invoice.getBillStartDate()))
@@ -108,11 +114,13 @@ public class InvoiceBlockCreator implements
 			block.copyTo(updatedBlock);
 			updatedBlock.setStartDate(invoice.getBillStartDate());
 			updatedBlock.setSetupBlock(false);
+			updatedBlock.setUpdaterResearcherID(researcherId);
 			_updatedBlocks.add(updatedBlock);
 
 			UsageBlock prevCycleBlock = new UsageBlock(); // DO NOT reset the block ID here.  We will use it later to look up payment methods.
 			block.copyTo(prevCycleBlock);
 			prevCycleBlock.setEndDate(invoice.getBillStartDate());
+			prevCycleBlock.setUpdaterResearcherID(researcherId);
 			_newBlocks.add(prevCycleBlock);
 		}
 	}
@@ -130,7 +138,7 @@ public class InvoiceBlockCreator implements
 			// Update block start/end dates
 			if(_updatedBlocks.size() > 0)
 			{
-				InstrumentUsageDAO.getInstance().updateBlocksDates(conn, _updatedBlocks, "Update due to invoicing. Invoice: " + invoice.toString());
+				instrumentUsageDao.updateBlocksDates(conn, _updatedBlocks, "Update due to invoicing. Invoice: " + invoice.toString());
 			}
 
 			// If there are new blocks to be added
@@ -138,11 +146,25 @@ public class InvoiceBlockCreator implements
 			{
 				for(UsageBlock block: _newBlocks)
 				{
-					// We are using the ID of the block this was split from to get the payment methods.
-					List<InstrumentUsagePayment> usagePayments = InstrumentUsagePaymentDAO.getInstance().getPaymentsForUsage(conn, block.getID());
+					// block holds the ID of the block it was split from until saveUsageBlocks sets the new block's ID.
+					int splitFromId = block.getID();
+					List<InstrumentUsagePayment> usagePayments = InstrumentUsagePaymentDAO.getInstance().getPaymentsForUsage(conn, splitFromId);
+					// getPaymentsForUsage returns null when the lookup fails, and an empty list for a block with no payments.
+					if(usagePayments == null)
+					{
+						throw new BillingInformationExporterException("Error getting the payments of block " + splitFromId
+								+ " for invoice ID: " + invoice.getId() + ".");
+					}
 					block.setPayments(usagePayments);
+
+					String errorMessage = instrumentUsageDao.saveUsageBlocks(conn, Collections.singletonList(block),
+							"Added due to invoicing. Split from block " + splitFromId + ". Invoice: " + invoice.toString(), researcherId);
+					if(errorMessage != null)
+					{
+						throw new BillingInformationExporterException("Error saving the block split from block " + splitFromId
+								+ " for invoice ID: " + invoice.getId() + ". " + errorMessage);
+					}
 				}
-				InstrumentUsageDAO.getInstance().saveUsageBlocks(conn, _newBlocks, "Added due to invoicing. Invoice: " + invoice.toString());
 			}
 
 			conn.commit();

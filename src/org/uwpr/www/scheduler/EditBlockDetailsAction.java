@@ -244,7 +244,16 @@ public class EditBlockDetailsAction extends Action {
             InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
             // Delete the old payment methods and add new ones
+            Set<Integer> paymentChangedIds = new HashSet<Integer>();
             for (UsageBlockBase block : blocksToUpdate) {
+                List<InstrumentUsagePayment> currentPayments = paymentDao.getPaymentsForUsage(conn, block.getID());
+                if (currentPayments == null) {
+                    throw new SQLException("Error getting the payments of block " + block.getID());
+                }
+                if (paymentsChanged(currentPayments, paymentPercentList)) {
+                    paymentChangedIds.add(block.getID());
+                }
+
                 paymentDao.deletePaymentsForUsage(conn, block.getID());
 
                 block.setUpdaterResearcherID(user.getResearcher().getID());
@@ -267,13 +276,21 @@ public class EditBlockDetailsAction extends Action {
 
             // If the project associated with the blocks have changed, update the blocks in the database
             List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
+            List<UsageBlockBase> paymentChangedBlocks = new ArrayList<UsageBlockBase>();
             for (UsageBlockBase blk : blocksToUpdate) {
                 if (blk.getProjectID() != projectId) {
                     changedBlocks.add(blk);
                 }
+                else if (paymentChangedIds.contains(blk.getID())) {
+                    paymentChangedBlocks.add(blk);
+                }
             }
             InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
             instrumentUsageDAO.updateBlocksProject(conn, changedBlocks, projectId);
+
+            // updateBlocksProject sets updatedBy on a block moved to another project.  Set it on a block whose
+            // only change is its payment methods.
+            instrumentUsageDAO.updateBlocksUpdater(conn, paymentChangedBlocks);
 
             conn.commit();
         }
@@ -290,6 +307,30 @@ public class EditBlockDetailsAction extends Action {
 
         ActionForward fwd = mapping.findForward("viewScheduler");
         return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);
+	}
+
+	/**
+	 * Returns true if the submitted payment methods or percentages differ from the block's current payments.
+	 */
+	private static boolean paymentsChanged(List<InstrumentUsagePayment> currentPayments,
+			List<EditBlockDetailsForm.PaymentPercent> paymentPercentList) {
+		Map<Integer, BigDecimal> current = new HashMap<Integer, BigDecimal>();
+		for (InstrumentUsagePayment payment : currentPayments) {
+			current.put(payment.getPaymentMethod().getId(), payment.getPercent());
+		}
+		Map<Integer, BigDecimal> submitted = new HashMap<Integer, BigDecimal>();
+		for (EditBlockDetailsForm.PaymentPercent paymentPercent : paymentPercentList) {
+			if (paymentPercent.getPaymentPercentInteger() == 0.0)
+				continue;
+			submitted.put(paymentPercent.getPaymentMethodId(), BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()));
+		}
+		if (!current.keySet().equals(submitted.keySet()))
+			return true;
+		for (Integer paymentMethodId : current.keySet()) {
+			if (current.get(paymentMethodId).compareTo(submitted.get(paymentMethodId)) != 0)
+				return true;
+		}
+		return false;
 	}
 
 	private ActionForward returnError(ActionMapping mapping,

@@ -220,6 +220,7 @@ public class UsageBlockBase implements Block
         blk.setInstrumentRateID(instrumentRateID);
         blk.setProjectID(projectID);
         blk.setResearcherID(researcherID);
+        blk.setUpdaterResearcherID(updaterResearcherID);
         blk.setStartDate(startDate);
         blk.setEndDate(endDate);
         blk.setDateCreated(dateCreated);
