@@ -232,7 +232,9 @@ public class InstrumentUsageDAO {
 	}
 
 	/**
-	 * Sets updatedBy on each block from its updaterResearcherID.  Writes no instrumentLog row.
+	 * Sets updatedBy on each block from its updaterResearcherID, and lastChanged to now.  Writes no
+	 * instrumentLog row.  lastChanged is set explicitly because MariaDB moves it only when a column changes,
+	 * and the updater may already be the stored one.
 	 */
 	public void updateBlocksUpdater(Connection conn, List<? extends UsageBlockBase> blocks) throws SQLException
 	{
@@ -241,7 +243,7 @@ public class InstrumentUsageDAO {
 
 		PreparedStatement stmt = null;
 		try {
-			stmt = conn.prepareStatement("UPDATE instrumentUsage SET updatedBy = ? WHERE id = ?");
+			stmt = conn.prepareStatement("UPDATE instrumentUsage SET updatedBy = ?, lastChanged = CURRENT_TIMESTAMP WHERE id = ?");
 			for(UsageBlockBase block: blocks)
 			{
 				setUpdatedBy(stmt, 1, block);

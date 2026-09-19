@@ -7,9 +7,12 @@ import org.yeastrc.db.DBConnectionManager;
 import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * InstrumentUsagePaymentDAO.java
@@ -102,6 +105,31 @@ public class InstrumentUsagePaymentDAO {
             }
             return null;
     	}
+
+	/**
+	 * Returns the block's payments as payment method ID to percent, with trailing zeros stripped from each
+	 * percent so that equal amounts are equal.  Unlike getPaymentsForUsage it does not load the payment methods,
+	 * and a failed lookup throws.
+	 */
+	public Map<Integer, BigDecimal> getPaymentPercentsForUsage(Connection conn, int instrumentUsageId) throws SQLException
+	{
+		Map<Integer, BigDecimal> percents = new HashMap<Integer, BigDecimal>();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = conn.prepareStatement("SELECT paymentMethodID, percentPayment FROM instrumentUsagePayment WHERE instrumentUsageID = ?");
+			stmt.setInt(1, instrumentUsageId);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				percents.put(rs.getInt("paymentMethodID"), rs.getBigDecimal("percentPayment").stripTrailingZeros());
+			}
+			return percents;
+		}
+		finally {
+			if(rs != null) try {rs.close();} catch(SQLException e){}
+			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+		}
+	}
 
 	public void savePayment(Connection conn, InstrumentUsagePayment payment) throws SQLException {
 

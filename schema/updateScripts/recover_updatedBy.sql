@@ -12,10 +12,13 @@
 --  - A change to only the payment methods never wrote updatedBy.
 --  - An operator-only edit wrote the block's previous updater back.
 --
--- instrumentLog still names the researcher for the block splits due to invoicing, the
--- scheduled date edits and the payment changes. Rules 1 to 3 copy that id into updatedBy.
--- The operator-only edit logged the previous updater too, so it cannot be recovered. Rule 4
--- then fills every block still NULL or 0 with the researcher who booked it.
+-- instrumentLog still identifies the researcher for the splits, the dates edits and the
+-- payment changes. A split's log rows name the invoice, whose createdBy is the admin who
+-- ran the export. A dates edit logs the editor on the delete row for the old block. A
+-- payment change logs the editor on its own row. Rules 1 to 3 copy that researcher into
+-- updatedBy. The operator-only edit logged the previous updater too, so it cannot be
+-- recovered. Rule 4 then fills every block still NULL or 0 with the researcher who
+-- booked it.
 --
 -- Rules 1 to 3 look only at the block's latest instrumentLog row, and recover an
 -- updater only when that row is the change that lost it. A block changed again
@@ -31,6 +34,21 @@
 --   mysqldump -u <user> -p mainDb instrumentUsage \
 --     --result-file="$HOME/backups/instrumentUsage-pre-recover-<date>.sql"
 --
+-- Stop Tomcat before taking the dump, and start it again only after checking the
+-- counts this script prints. With the app stopped, restoring the dump undoes the script
+-- and nothing else. Once the app has run again, restoring it would also undo every
+-- booking, edit and invoice split made since. Undo then by copying updatedBy back by
+-- id, as described in recovery.md.
+--
+-- RUN IT AS
+--
+--   mysql -u <user> -p mainDb < recover_updatedBy.sql
+--
+-- In that form the client stops at the first error. The client's source command, --force
+-- and most GUI clients carry on after an error. If an early statement failed, rule 4 would
+-- then fill the blocks rules 1 to 3 should have recovered, and the counts at the end would
+-- still look clean.
+--
 -- Every UPDATE assigns lastChanged to itself. lastChanged is ON UPDATE
 -- CURRENT_TIMESTAMP, and without that it would be restamped with the time this runs.
 --
@@ -42,6 +60,12 @@
 
 -- The temporary tables are created in mainDb.
 USE mainDb;
+
+-- instrumentLog.created is a DATETIME the app wrote in the server's time zone, while
+-- invoice.createDate and instrumentUsage.lastChanged are TIMESTAMPs, which MariaDB converts
+-- to the session's zone. Rules 1 and 3 compare the two, so the session uses the server's
+-- zone. A client that sets its own zone would otherwise match nothing in rule 1.
+SET SESSION time_zone = DEFAULT;
 
 -- The latest instrumentLog row for every block.
 CREATE TEMPORARY TABLE recover_latest_log AS
@@ -61,9 +85,13 @@ UNION ALL SELECT 'updatedBy IS NULL', COUNT(*) FROM mainDb.instrumentUsage WHERE
 -- invoice, and invoice.createdBy is the admin who created it. In the production data
 -- every split was logged 0 to 3 seconds after its invoice was created, by the export
 -- that created it, so createdBy is the admin who ran that export. The rule requires
--- the log row to be at most 10 seconds after invoice.createDate. A later re-export
--- splits a block only if an admin booked or moved it across the period end after the
--- invoice was created, and the rule leaves such a split alone.
+-- the log row to be at most 10 seconds after invoice.createDate.
+--
+-- A later export for the same period reuses the invoice, so a split it makes is not
+-- by invoice.createdBy. That happens when the invoice was first created for one project
+-- and the other projects were exported afterwards, or when an admin booked or moved a
+-- block across the period end after the invoice was created. The rule leaves such a
+-- split to rule 4.
 -- ================================================================================
 
 UPDATE mainDb.instrumentUsage u
@@ -95,13 +123,16 @@ SELECT ROW_COUNT() AS invoice_splits_recovered;
 -- The rule was checked on the 591 blocks created by a dates edit before 2018-04-24,
 -- when a dates edit still stored its editor in updatedBy. For every one it gives the
 -- stored updatedBy.
+--
+-- FORCE INDEX makes the delete rows be found by time. Without it MariaDB reads them by
+-- project, about 4.6 million rows in 3 seconds instead of 0.03, with the same result.
 -- ================================================================================
 
 CREATE TEMPORARY TABLE recover_edit_editor AS
 SELECT x.blockId, MIN(d.userId) AS editor, COUNT(DISTINCT d.userId) AS editors
 FROM recover_latest_log x
 JOIN mainDb.instrumentLog l ON l.id = x.logId
-JOIN mainDb.instrumentLog d
+JOIN mainDb.instrumentLog d FORCE INDEX (created)
   ON d.projectId = l.projectId AND d.instrumentID = l.instrumentID
  AND d.created BETWEEN l.created - INTERVAL 1 SECOND AND l.created + INTERVAL 1 SECOND
  AND d.action IN ('DELETED', 'PURGED') AND d.log LIKE 'Deleted by edit action%'
@@ -126,13 +157,16 @@ SELECT ROW_COUNT() AS dates_edits_recovered;
 -- The rule sets updatedBy to the researcher on the block's latest log row when that
 -- row is a "Changed payment method" row.
 --
--- A payment-only change does not write the instrumentUsage row, so lastChanged stays
--- older than its log row. A block whose lastChanged is newer was changed afterwards
--- by something that logs nothing, for example updateSetupBlocks, which records the
--- researcher who moved the setup flag. The rule leaves that block alone.
+-- Before the fix, a payment-only change did not write the instrumentUsage row, so
+-- lastChanged stayed older than its log row. A block whose lastChanged is newer was
+-- changed afterwards by something that logs nothing, for example updateSetupBlocks,
+-- which records the researcher who moved the setup flag. The rule leaves that block
+-- alone. Since the fix, a payment change writes updatedBy itself, so the rule changes
+-- nothing for it.
 --
--- Saving the form with the payments unchanged also wrote these log rows, so the
--- recovered researcher may be someone who saved the form without changing anything.
+-- Before the fix, saving the form with the payments unchanged also wrote these log rows,
+-- so the recovered researcher may be someone who saved the form without changing
+-- anything. Since the fix, an unchanged save writes nothing.
 -- ================================================================================
 
 UPDATE mainDb.instrumentUsage u
@@ -154,10 +188,14 @@ SELECT ROW_COUNT() AS payment_changes_recovered;
 -- for a block never changed after booking. For a block changed before instrumentLog
 -- began in May 2017, or changed by a path that logged no researcher, the researcher
 -- who changed it is unknown and the booker stands in.
+--
+-- The join on recover_latest_log makes this statement fail if that table is missing,
+-- so a run whose first statements failed stops here instead of filling every block.
 -- ================================================================================
 
 UPDATE mainDb.instrumentUsage u
 JOIN mainDb.tblResearchers r ON r.researcherID = u.enteredBy
+CROSS JOIN (SELECT COUNT(*) AS n FROM recover_latest_log) AS require_rules_1_to_3
 SET u.updatedBy = u.enteredBy, u.lastChanged = u.lastChanged
 WHERE u.updatedBy IS NULL OR u.updatedBy = 0;
 
