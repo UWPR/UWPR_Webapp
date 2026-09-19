@@ -207,6 +207,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		usageBlock.setInstrumentOperatorId(instrumentOperator.getID());
 		usageBlock.setInstrumentRateID(rate.getId());
 		usageBlock.setResearcherID(user.getResearcher().getID());
+		usageBlock.setUpdaterResearcherID(user.getResearcher().getID());
 		usageBlock.setStartDate(rangeStartDate /*timeRange.startDate*/);
 		usageBlock.setEndDate(rangeEndDate/*timeRange.endDate*/);
 		usageBlock.setRate(rate);
@@ -347,7 +348,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
-			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo);
+			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo, user.getID());
 			if (errorMessage != null)
 			{
 				return errorMessage;

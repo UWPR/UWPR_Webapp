@@ -210,6 +210,7 @@ public class EditBlockDetailsAction extends Action {
         PaymentMethodDAO paymentMethodDao = PaymentMethodDAO.getInstance();
         List<EditBlockDetailsForm.PaymentPercent> paymentPercentList = editForm.getPaymentPercentList();
         Map<Integer, PaymentMethod> paymentMethodMap = new HashMap<Integer, PaymentMethod>();
+        Map<Integer, BigDecimal> submittedPercents = new HashMap<Integer, BigDecimal>();
 
         // Load the payment methods
         for(EditBlockDetailsForm.PaymentPercent paymentPercent: paymentPercentList)
@@ -219,6 +220,8 @@ public class EditBlockDetailsAction extends Action {
 
             PaymentMethod paymentMethod = paymentMethodDao.getPaymentMethod(paymentPercent.getPaymentMethodId());
             paymentMethodMap.put(paymentPercent.getPaymentMethodId(), paymentMethod);
+            submittedPercents.put(paymentPercent.getPaymentMethodId(),
+                    BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()).stripTrailingZeros());
         }
 
         // If the payment method(s) is expiring before the end data, throw an error.
@@ -243,8 +246,18 @@ public class EditBlockDetailsAction extends Action {
 
             InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
-            // Delete the old payment methods and add new ones
+            // All the blocks are from blkProjId, checked above.
+            boolean projectChanged = blkProjId != projectId;
+
+            // Delete the old payment methods and add new ones.  A block whose project and payments are both
+            // unchanged is left alone and gets no log row.
+            List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
             for (UsageBlockBase block : blocksToUpdate) {
+                if (!projectChanged && paymentDao.getPaymentPercentsForUsage(conn, block.getID()).equals(submittedPercents)) {
+                    continue;
+                }
+                changedBlocks.add(block);
+
                 paymentDao.deletePaymentsForUsage(conn, block.getID());
 
                 block.setUpdaterResearcherID(user.getResearcher().getID());
@@ -265,15 +278,16 @@ public class EditBlockDetailsAction extends Action {
                 }
             }
 
-            // If the project associated with the blocks have changed, update the blocks in the database
-            List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
-            for (UsageBlockBase blk : blocksToUpdate) {
-                if (blk.getProjectID() != projectId) {
-                    changedBlocks.add(blk);
-                }
-            }
+            // Both branches record the editor in updatedBy.  A project move writes it together with the new
+            // project in updateBlocksProject.  A change to only the payment methods writes it through
+            // updateBlocksUpdater.
             InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
-            instrumentUsageDAO.updateBlocksProject(conn, changedBlocks, projectId);
+            if (projectChanged) {
+                instrumentUsageDAO.updateBlocksProject(conn, changedBlocks, projectId);
+            }
+            else {
+                instrumentUsageDAO.updateBlocksUpdater(conn, changedBlocks);
+            }
 
             conn.commit();
         }

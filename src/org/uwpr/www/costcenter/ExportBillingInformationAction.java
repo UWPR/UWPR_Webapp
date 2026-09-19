@@ -99,7 +99,7 @@ public class ExportBillingInformationAction extends Action {
             		invoiceCreated = true;
             	}
             	
-            	InvoiceBlockCreator invoiceBlockCreator = new InvoiceBlockCreator(invoice);
+            	InvoiceBlockCreator invoiceBlockCreator = new InvoiceBlockCreator(invoice, user.getResearcher().getID());
             	exporter.setBillinInformationExporterListener(invoiceBlockCreator);
         	}
         	

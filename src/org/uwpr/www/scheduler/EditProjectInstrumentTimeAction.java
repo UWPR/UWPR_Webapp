@@ -220,7 +220,16 @@ public class EditProjectInstrumentTimeAction extends Action {
 		Date blksEnd = blocksToDelete.get(blocksToDelete.size() - 1).getEndDate();
 		if(blksStart.equals(editForm.getStartDateDate()) && blksEnd.equals(editForm.getEndDateDate()))
 		{
-			InstrumentUsageDAO.getInstance().updateBlocksInstrumentOperator(blocksToDelete, instrumentOperatorId);
+			List<UsageBlockBase> changedBlocks = new ArrayList<UsageBlockBase>();
+			for(UsageBlockBase block: blocksToDelete)
+			{
+				if(block.getInstrumentOperatorId() != instrumentOperatorId)
+				{
+					block.setUpdaterResearcherID(user.getResearcher().getID());
+					changedBlocks.add(block);
+				}
+			}
+			InstrumentUsageDAO.getInstance().updateBlocksInstrumentOperator(changedBlocks, instrumentOperatorId);
 			ActionForward fwd = mapping.findForward("viewScheduler");
 			return new ActionForward(fwd.getPath()+"?projectId="+projectId+"&instrumentId="+instrumentId, true);
 		}
@@ -431,7 +440,8 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
 
 				// Save the blocks
-				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo);
+				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo,
+						user.getResearcher().getID());
 				if (errorMessage != null)
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),
