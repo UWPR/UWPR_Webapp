@@ -123,16 +123,13 @@ SELECT ROW_COUNT() AS invoice_splits_recovered;
 -- The rule was checked on the 591 blocks created by a dates edit before 2018-04-24,
 -- when a dates edit still stored its editor in updatedBy. For every one it gives the
 -- stored updatedBy.
---
--- FORCE INDEX makes the delete rows be found by time. Without it MariaDB reads them by
--- project, about 4.6 million rows in 3 seconds instead of 0.03, with the same result.
 -- ================================================================================
 
 CREATE TEMPORARY TABLE recover_edit_editor AS
 SELECT x.blockId, MIN(d.userId) AS editor, COUNT(DISTINCT d.userId) AS editors
 FROM recover_latest_log x
 JOIN mainDb.instrumentLog l ON l.id = x.logId
-JOIN mainDb.instrumentLog d FORCE INDEX (created)
+JOIN mainDb.instrumentLog d
   ON d.projectId = l.projectId AND d.instrumentID = l.instrumentID
  AND d.created BETWEEN l.created - INTERVAL 1 SECOND AND l.created + INTERVAL 1 SECOND
  AND d.action IN ('DELETED', 'PURGED') AND d.log LIKE 'Deleted by edit action%'
