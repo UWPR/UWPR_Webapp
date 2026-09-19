@@ -474,23 +474,25 @@ public class InstrumentUsageDAO {
 	public String saveUsageBlocks(
 			Connection conn,
 			List<? extends UsageBlockBase> usageBlocks,
-			UsageBlockPaymentInformation paymentInfo)
+			UsageBlockPaymentInformation paymentInfo,
+			int researcherId)
 	{
-		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, null);
+		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, null, researcherId);
 	}
 
 	public String saveUsageBlocksByEditAction(
 			Connection conn,
 			List<? extends UsageBlockBase> usageBlocks,
-			UsageBlockPaymentInformation paymentInfo)
+			UsageBlockPaymentInformation paymentInfo,
+			int researcherId)
 	{
-		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, addedByEditAction);
+		return saveUsageBlocksForBilledProject(conn, usageBlocks, paymentInfo, addedByEditAction, researcherId);
 	}
 
 	private String saveUsageBlocksForBilledProject(
 			Connection conn,
 			List<? extends UsageBlockBase> usageBlocks,
-			UsageBlockPaymentInformation paymentInfo, String logMessage) {
+			UsageBlockPaymentInformation paymentInfo, String logMessage, int researcherId) {
 
 		if(usageBlocks == null || usageBlocks.size() == 0)
 		{
@@ -518,7 +520,7 @@ public class InstrumentUsageDAO {
 			}
 		}
 
-		String message = saveUsageBlocks(conn, blocksWithPayment, logMessage);
+		String message = saveUsageBlocks(conn, blocksWithPayment, logMessage, researcherId);
 		int i;
 		for(i = 0; i < blocksWithPayment.size(); i++)
 		{
@@ -529,16 +531,10 @@ public class InstrumentUsageDAO {
 		return message;
 	}
 
-	public String saveUsageBlocks(Connection conn,  List<UsageBlock> blocksWithPayment, String logMessage)
-	{
-		return saveUsageBlocks(conn, blocksWithPayment, logMessage, null);
-	}
-
 	/**
-	 * Logs researcherId as the user who added each block.  If researcherId is null, each block's researcherID
-	 * is logged.
+	 * Logs researcherId as the user who added each block.
 	 */
-	public String saveUsageBlocks(Connection conn, List<UsageBlock> blocksWithPayment, String logMessage, Integer researcherId)
+	public String saveUsageBlocks(Connection conn, List<UsageBlock> blocksWithPayment, String logMessage, int researcherId)
 	{
 		if(blocksWithPayment == null || blocksWithPayment.size() == 0)
 		{
@@ -555,8 +551,7 @@ public class InstrumentUsageDAO {
 				log.info("Saving usage block: " + block.toString());
 
 				// save to the instrumentUsage table
-				InstrumentUsageDAO.getInstance().save(conn, Collections.singletonList(block), logMessage,
-						researcherId != null ? researcherId : block.getResearcherID());
+				save(conn, Collections.singletonList(block), logMessage, researcherId);
 
 
 				for (InstrumentUsagePayment iup: block.getPayments())

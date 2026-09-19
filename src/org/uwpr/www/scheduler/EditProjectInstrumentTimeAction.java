@@ -440,7 +440,8 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
 
 				// Save the blocks
-				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo);
+				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo,
+						user.getResearcher().getID());
 				if (errorMessage != null)
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),

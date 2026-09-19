@@ -348,7 +348,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
-			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo);
+			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo, user.getID());
 			if (errorMessage != null)
 			{
 				return errorMessage;

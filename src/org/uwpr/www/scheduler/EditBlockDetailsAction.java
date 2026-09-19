@@ -278,9 +278,9 @@ public class EditBlockDetailsAction extends Action {
                 }
             }
 
-            // If the project associated with the blocks have changed, update the blocks in the database.
-            // updateBlocksProject also sets updatedBy.  A block whose only change is its payment methods gets
-            // updatedBy from updateBlocksUpdater.
+            // Both branches record the editor in updatedBy.  A project move writes it together with the new
+            // project in updateBlocksProject.  A change to only the payment methods writes it through
+            // updateBlocksUpdater.
             InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
             if (projectChanged) {
                 instrumentUsageDAO.updateBlocksProject(conn, changedBlocks, projectId);

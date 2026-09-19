@@ -113,8 +113,8 @@ SELECT ROW_COUNT() AS invoice_splits_recovered;
 -- 2. Dates edits
 --
 -- A dates edit deletes the old block and inserts a replacement in one transaction.
--- The replacement's "Added by edit action" row logs the original booker, but the
--- "Deleted by edit action" row for the old block logs the editor.
+-- Before the fix, the replacement's "Added by edit action" row logged the original
+-- booker, but the "Deleted by edit action" row for the old block logs the editor.
 --
 -- The rule takes the editor from a delete row for the same project and instrument
 -- within one second. If delete rows from two different researchers match, the rule
