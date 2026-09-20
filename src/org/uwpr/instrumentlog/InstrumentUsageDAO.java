@@ -417,18 +417,18 @@ public class InstrumentUsageDAO {
 	public void purge(UsageBlockBase block, Researcher researcher) throws SQLException {
 
 		Connection conn = null;
+		boolean committed = false;
 
 		try {
 
 			conn = getConnection();
 			conn.setAutoCommit(false);
 			delete(conn, Collections.singletonList(block), researcher, null);
-			conn.commit();;
-			
+			conn.commit();
+			committed = true;
+
 		} finally {
-				if (conn != null) {
-					try { conn.close(); } catch (SQLException ignored) { ; }
-				}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 

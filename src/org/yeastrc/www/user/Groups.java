@@ -354,6 +354,7 @@ public class Groups {
 		// Get our connection to the database.
 		Connection conn = null;
 		PreparedStatement stmt = null;
+		boolean committed = false;
 
 		String sqlStr = "INSERT INTO tblYRCGroupMembers (groupID, researcherID) VALUES (?, ?)";
 		try {
@@ -368,6 +369,7 @@ public class Groups {
                 stmt.executeUpdate();
             }
 			conn.commit();
+			committed = true;
 
 		} finally {
 
@@ -376,11 +378,9 @@ public class Groups {
 			if (stmt != null) {
 				try { stmt.close(); } catch (SQLException ignored) { ; }
 			}
-			if (conn != null) {
-				try { conn.close(); } catch (SQLException ignored) { ; }
-			}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
-		
+
 		// Refresh the group list.
 		this.reloadGroups();
 	}

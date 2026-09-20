@@ -15,6 +15,7 @@ import org.uwpr.costcenter.*;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
@@ -345,12 +346,16 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			UsageBlockPaymentInformation paymentInfo, RateType rateType, Researcher user) {
 
 		Connection conn = null;
+		boolean committed = false;
 		InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
 		try
 		{
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
+			// The return below leaves the instrumentUsage rows written and the instrumentUsagePayment
+			// rows not.  A block saved without its payment rows is left out of the billing export, so
+			// the finally rolls it back.
 			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo, user.getID());
 			if (errorMessage != null)
 			{
@@ -368,15 +373,16 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			// 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee. No need to delete or adjust old sign-up only blocks.
 
 			conn.commit();
+			committed = true;
 		}
 		catch(Exception e)
 		{
 			log.error("Error saving usage blocks", e);
-			return "There was an error saving usage block. Error was: " + e.getMessage();
+			return DbErrorUtils.messageFor(e, "There was an error saving usage block. Error was: " + e.getMessage());
 		}
 		finally
 		{
-			if(conn != null) try {conn.close();} catch(Exception ignored){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 		return null;
 	}

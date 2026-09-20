@@ -4,6 +4,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.uwpr.instrumentlog.MsInstrument;
 import org.uwpr.instrumentlog.MsInstrumentUtils;
 import org.uwpr.instrumentlog.UsageBlockBaseDAO;
+import org.yeastrc.db.DBConnectionManager;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -59,6 +60,7 @@ public class ParseAndUploadRates
         int countUpdate = 0;
         int countInsert = 0;
         int countUpdateInstrUsage = 0;
+        boolean committed = false;
 
         String updateInstrumentUsageSql = "UPDATE instrumentUsage SET instrumentRateID=? WHERE instrumentRateID=? AND endDate >= ?";
 
@@ -102,14 +104,10 @@ public class ParseAndUploadRates
 
                 }
                 conn.commit();
+                committed = true;
             } finally
             {
-                if (conn != null) try
-                {
-                    conn.close();
-                } catch (SQLException e)
-                {
-                }
+                DBConnectionManager.endTransactionAndClose(conn, committed);
                 if (insertStmt != null) try
                 {
                     insertStmt.close();

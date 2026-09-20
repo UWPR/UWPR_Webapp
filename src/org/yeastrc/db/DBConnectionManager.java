@@ -48,6 +48,33 @@ public class DBConnectionManager {
 		}
 	}
 
+    /**
+     * Ends a transaction and returns the connection to the pool.  Rolls the transaction back unless
+     * committed is true, restores autocommit, then closes the connection.  Does nothing for a null
+     * connection, so it can be called from a finally block that may not have got one.
+     *
+     * The rollback comes first.  setAutoCommit(true) on a connection with an open transaction commits
+     * that transaction, so restoring autocommit over an abandoned one writes the part of it that ran.
+     * Checked against MySQL Connector/J 5.1.32 and MariaDB 10.6 on 2026-09-20.
+     *
+     * Call this from the finally block of every site that calls setAutoCommit(false), with a committed
+     * flag set on the line after commit().  A flag rather than a catch block, because an early return or
+     * a RuntimeException leaves the try without reaching either the commit or a catch.
+     */
+    public static void endTransactionAndClose(Connection conn, boolean committed)
+    {
+        if(conn == null)
+        {
+            return;
+        }
+        if(!committed)
+        {
+            try { conn.rollback(); } catch(SQLException ignored) {}
+        }
+        try { conn.setAutoCommit(true); } catch(SQLException ignored) {}
+        try { conn.close(); } catch(SQLException ignored) {}
+    }
+
     public static Connection getPrConnection() throws SQLException
     {
         return getConnection(PR);

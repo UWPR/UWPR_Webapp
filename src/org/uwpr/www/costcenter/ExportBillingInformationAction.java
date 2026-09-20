@@ -11,6 +11,7 @@ import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.InvalidProjectTypeException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -155,7 +156,8 @@ public class ExportBillingInformationAction extends Action {
 			//}
 
 			ActionErrors errors = new ActionErrors();
-			errors.add("costcenter", new ActionMessage("error.costcenter.export", exception.getMessage()));
+			errors.add("costcenter", new ActionMessage("error.costcenter.export",
+					DbErrorUtils.messageFor(exception, exception.getMessage())));
 			saveErrors( request, errors );
 			return mapping.findForward("Failure");
 		}

@@ -129,6 +129,7 @@ public class InvoiceBlockCreator implements
 	public void exportDone() throws BillingInformationExporterException {
 
 		Connection conn = null;
+		boolean committed = false;
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
@@ -168,6 +169,7 @@ public class InvoiceBlockCreator implements
 			}
 
 			conn.commit();
+			committed = true;
 		}
 		catch(SQLException e)
 		{
@@ -175,7 +177,9 @@ public class InvoiceBlockCreator implements
 		}
 		finally
 		{
-			if(conn != null) try {conn.close();} catch(SQLException e){}
+			// The BillingInformationExporterException thrown above for a block that cannot be split, a
+			// missing payment list or a failed save also leaves this transaction open.
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 }

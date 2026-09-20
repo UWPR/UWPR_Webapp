@@ -11,6 +11,7 @@ import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.*;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.*;
 import org.yeastrc.www.user.Groups;
 import org.yeastrc.www.user.User;
@@ -19,7 +20,6 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.util.*;
 
@@ -428,6 +428,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 			}
 
 			Connection conn = null;
+			boolean committed = false;
 			InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
 			try {
 				conn = DBConnectionManager.getMainDbConnection();
@@ -440,9 +441,9 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
 
 				catch (Exception e) {
-					try {conn.rollback();} catch(SQLException ignored){}
 					return returnError(mapping, request, "scheduler",
-							new ActionMessage("error.costcenter.delete", e.getMessage()),
+							new ActionMessage("error.costcenter.delete",
+									DbErrorUtils.messageFor(e, e.getMessage())),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 				}
 
@@ -457,7 +458,6 @@ public class EditProjectInstrumentTimeAction extends Action {
 						user.getResearcher().getID());
 				if (errorMessage != null)
 				{
-					try {conn.rollback();} catch(SQLException ignored){}
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
@@ -474,17 +474,20 @@ public class EditProjectInstrumentTimeAction extends Action {
 				// 10.28.2022 - No longer need this since we the older blocks are fully deleted. No need to delete and/or adjust sign-up only blocks
 
 				conn.commit();
+				committed = true;
 			}
 			catch(Exception e)
 			{
-				if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
 				return returnError(mapping, request, "scheduler",
-						new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. " + e.getMessage()),
+						new ActionMessage("error.costcenter.invaliddata", DbErrorUtils.messageFor(e,
+								"There was an error saving changes to usage blocks. " + e.getMessage())),
 						"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
 			}
 			finally
 			{
-				if(conn != null) try {conn.close();} catch(SQLException ignored){}
+				// The two returns inside the try, for a failed delete and for a failed save, also leave
+				// this transaction open.
+				DBConnectionManager.endTransactionAndClose(conn, committed);
 			}
 
 			// Email admins

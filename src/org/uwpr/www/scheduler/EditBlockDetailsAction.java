@@ -12,6 +12,7 @@ import org.uwpr.scheduler.PatternToDateConverter;
 import org.uwpr.scheduler.SchedulerException;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
 import org.yeastrc.project.payment.PaymentMethod;
@@ -23,7 +24,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -247,6 +247,7 @@ public class EditBlockDetailsAction extends Action {
         }
 
         Connection conn = null;
+        boolean committed = false;
         try {
             conn = DBConnectionManager.getMainDbConnection();
             conn.setAutoCommit(false);
@@ -298,17 +299,18 @@ public class EditBlockDetailsAction extends Action {
             }
 
             conn.commit();
+            committed = true;
         }
         catch(Exception e)
         {
-            if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
             return returnError(mapping, request, "scheduler",
-                    new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. Error: " + e.getMessage()),
+                    new ActionMessage("error.costcenter.invaliddata", DbErrorUtils.messageFor(e,
+                            "There was an error saving changes to usage blocks. Error: " + e.getMessage())),
                     "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
         }
         finally
         {
-            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+            DBConnectionManager.endTransactionAndClose(conn, committed);
         }
 
         ActionForward fwd = mapping.findForward("viewScheduler");
