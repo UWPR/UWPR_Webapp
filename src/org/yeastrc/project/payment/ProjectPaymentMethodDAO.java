@@ -165,7 +165,8 @@ public class ProjectPaymentMethodDAO {
 
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		
+		boolean committed = false;
+
 		try {
 			conn = getConnection();
 			conn.setAutoCommit(false);
@@ -177,30 +178,31 @@ public class ProjectPaymentMethodDAO {
 			stmt = conn.prepareStatement(sql);
 			stmt.setInt(1, projectId);
 			stmt.setInt(2, paymentMethodId);
-			
+
 			int numRowsInserted = stmt.executeUpdate();
 			if(numRowsInserted == 0) {
 				throw new SQLException("Creating project payment method failed, no rows affected.");
 			}
 
 			conn.commit();
+			committed = true;
 		}
 		finally {
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 	
 	public void deletePaymentMethod(int paymentMethodId) throws SQLException {
 
 		// No trigger cleans up the child rows, so delete the projectPaymentMethod bridge rows before the
-		// payment method.  projectPaymentMethod is InnoDB and shares this transaction, so a failure rolls
-		// back and deletes nothing.  paymentMethod is MyISAM, so it commits immediately.  The one case
-		// left uncovered is a commit failure after the paymentMethod delete, which leaves orphaned
-		// projectPaymentMethod rows.  getPaymentMethod logs those on load, and only paymentMethod on
-		// InnoDB would close the window.
+		// payment method.  Both deletes share this transaction, so a failure rolls back and deletes
+		// nothing.  That holds once paymentMethod is InnoDB.  Until the migration runs it is MyISAM and
+		// commits on its own, so a later failure leaves orphaned bridge rows, which getPaymentMethod
+		// logs on load.
 		Connection conn = null;
+		boolean committed = false;
 		try {
 			conn = getConnection();
 			conn.setAutoCommit(false);
@@ -224,14 +226,10 @@ public class ProjectPaymentMethodDAO {
 			PaymentMethodDAO.getInstance().deletePaymentMethod(conn, paymentMethodId);
 
 			conn.commit();
-		}
-		catch(SQLException e) {
-			if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
-			throw e;
+			committed = true;
 		}
 		finally {
-			if(conn != null) try {conn.setAutoCommit(true);} catch(SQLException ignored){}
-			if(conn != null) try {conn.close();} catch(SQLException e){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 

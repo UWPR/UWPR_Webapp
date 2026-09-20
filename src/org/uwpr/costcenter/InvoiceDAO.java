@@ -97,31 +97,28 @@ public class InvoiceDAO {
 		String sql = "DELETE FROM invoice WHERE id="+invoice.getId();
 		Connection conn = null;
 		Statement stmt = null;
+		boolean committed = false;
 
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
 
 			// Delete the invoice's usage links, then the invoice, on one connection.  No trigger
-			// removes the links, and a link left behind reports its block as billed.
-			// invoiceInstrumentUsage is InnoDB, so a failure on the invoice delete rolls back the
-			// link delete and leaves the invoice re-deletable.  invoice is MyISAM and commits on its
-			// own, so a commit failure after it still strands the links.
+			// removes the links, and a link left behind reports its block as billed.  Both deletes
+			// share this transaction, so a failure on either rolls back the other and leaves the
+			// invoice re-deletable.  That holds once invoice is InnoDB.  Until the migration runs it is
+			// MyISAM and commits on its own, so a later failure still strands the links.
 			InvoiceInstrumentUsageDAO.getInstance().deleteBlocksForInvoice(conn, invoice.getId());
 
 			stmt = conn.createStatement();
 			stmt.execute(sql);
 
 			conn.commit();
-		}
-		catch(SQLException e) {
-			if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
-			throw e;
+			committed = true;
 		}
 		finally {
-			if(conn != null) try {conn.setAutoCommit(true);} catch(SQLException ignored){}
-			if(conn != null) try {conn.close();} catch(SQLException e){}
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 }

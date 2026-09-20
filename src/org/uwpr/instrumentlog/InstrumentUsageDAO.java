@@ -12,6 +12,7 @@ import org.uwpr.costcenter.*;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
 
@@ -417,18 +418,18 @@ public class InstrumentUsageDAO {
 	public void purge(UsageBlockBase block, Researcher researcher) throws SQLException {
 
 		Connection conn = null;
+		boolean committed = false;
 
 		try {
 
 			conn = getConnection();
 			conn.setAutoCommit(false);
 			delete(conn, Collections.singletonList(block), researcher, null);
-			conn.commit();;
-			
+			conn.commit();
+			committed = true;
+
 		} finally {
-				if (conn != null) {
-					try { conn.close(); } catch (SQLException ignored) { ; }
-				}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 
@@ -568,7 +569,10 @@ public class InstrumentUsageDAO {
 		catch(Exception e)
 		{
 			log.error("Error saving usage blocks", e);
-			return "There was an error saving usage block. Error was: " + e.getMessage();
+			// This method returns a string rather than throwing, so its callers never see the exception.
+			// A deadlock has to be recognized here, and returned unprefixed because InvoiceBlockCreator
+			// matches it with isRetryMessage.
+			return DbErrorUtils.messageFor(e, e.getMessage());
 		}
 
 		return null;

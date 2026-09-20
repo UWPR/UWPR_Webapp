@@ -11,6 +11,7 @@ import org.apache.struts.action.*;
 import org.uwpr.costcenter.*;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.data.InvalidIDException;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.InvalidProjectTypeException;
 import org.yeastrc.project.Project;
 import org.yeastrc.project.ProjectFactory;
@@ -137,6 +138,7 @@ public class ExportBillingInformationAction extends Action {
 			// Only delete an invoice this request created.  A reused invoice's links are committed billing
 			// records and delete() now cascades to them, so deleting it after a failed re-export would
 			// erase that invoice and its links.
+			boolean invoiceLeftBehind = false;
 			if(invoice != null && invoiceCreated) {
 				log.info("Deleting invoice ID: "+invoice.getId());
 				try {
@@ -144,7 +146,8 @@ public class ExportBillingInformationAction extends Action {
 				}
 				catch(Exception e)
 				{
-					log.error("Error deleting invoice ID " + invoice.getId());
+					log.error("Error deleting invoice ID " + invoice.getId(), e);
+					invoiceLeftBehind = true;
 				}
 			}
 
@@ -155,7 +158,15 @@ public class ExportBillingInformationAction extends Action {
 			//}
 
 			ActionErrors errors = new ActionErrors();
-			errors.add("costcenter", new ActionMessage("error.costcenter.export", exception.getMessage()));
+			// The retry message says nothing was saved, which holds only once the invoice this request
+			// created has been deleted again.
+			String message = invoiceLeftBehind
+					? exception.getMessage() + " Invoice " + invoice.getId() + " was created by this"
+						+ " request and could not be removed. Ask an administrator to check it before"
+						+ " exporting this period again."
+					: DbErrorUtils.messageFor(exception, exception.getMessage());
+
+			errors.add("costcenter", new ActionMessage("error.costcenter.export", message));
 			saveErrors( request, errors );
 			return mapping.findForward("Failure");
 		}

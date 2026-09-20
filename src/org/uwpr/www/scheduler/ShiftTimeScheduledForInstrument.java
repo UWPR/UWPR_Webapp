@@ -17,7 +17,6 @@ import org.yeastrc.www.user.UserUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
 
@@ -199,6 +198,7 @@ public class ShiftTimeScheduledForInstrument extends Action
         log.info(("Shifting blocks on instrument " + instrumentId + " by " + shiftByDays + ". Range " + startDateString + " TO " + endDateString));
 
         Connection conn = null;
+        boolean committed = false;
         InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
         try {
             conn = DBConnectionManager.getMainDbConnection();
@@ -209,10 +209,11 @@ public class ShiftTimeScheduledForInstrument extends Action
             // 10.28.2022 - We no longer keep deleted blocks for billing sign-up fee. No need to delete or adjust old sign-up only blocks.
 
             conn.commit();
+            committed = true;
         }
         finally
         {
-            if(conn != null) try {conn.close();} catch(SQLException ignored){}
+            DBConnectionManager.endTransactionAndClose(conn, committed);
         }
 
         // Get the updated usage blocks

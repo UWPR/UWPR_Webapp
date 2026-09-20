@@ -1,5 +1,6 @@
 <%@ page isErrorPage="true" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="org.apache.logging.log4j.LogManager,org.apache.logging.log4j.Logger" %>
+<%@ page import="org.yeastrc.db.DbErrorUtils" %>
 <%--
   Generic error page, reached from the <error-page> entries in web.xml for an uncaught exception or
   a 500.  The failure detail is logged on the server.  Nothing about it, in particular any SQL a
@@ -18,6 +19,15 @@
 
     Logger errorLog = LogManager.getLogger("org.uwpr.www.ErrorPage");
     errorLog.error("Unhandled error [" + reference + "] on " + failedUri + " (status " + statusCode + ")", failure);
+
+    // A deadlock or a lock wait timeout is worth naming, because the request changed nothing and the
+    // same submission usually succeeds.  The transaction sites with a finally and no catch reach this
+    // page rather than a message of their own.  Guarded so this page still cannot throw.
+    boolean retryable = false;
+    try {
+        retryable = DbErrorUtils.isRetryable(failure);
+    } catch (Throwable ignored) {
+    }
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -29,7 +39,11 @@
 <body>
  <div style="max-width: 600px; margin: 40px auto; padding: 0 20px;">
   <h2>Something went wrong</h2>
+<% if (retryable) { %>
+  <p><%= DbErrorUtils.RETRY_MESSAGE %></p>
+<% } else { %>
   <p>An error on the server stopped this request from completing. Please try again.</p>
+<% } %>
   <p>If it keeps happening, email the UWPR administrators and quote the reference below so they can
      find the matching log entry.</p>
   <p><b>Reference:</b> <%= reference %></p>

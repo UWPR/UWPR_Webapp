@@ -11,14 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.instrumentlog.*;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 
 /**
  * 
  */
 public class InvoiceBlockCreator implements
 		BillingInformationExporterListener {
+
+	private static final Logger log = LogManager.getLogger(InvoiceBlockCreator.class);
 
 	private final Invoice invoice;
 	// Admin exporting the invoice.  Recorded as the updater of each split block and in its log rows.
@@ -129,6 +134,7 @@ public class InvoiceBlockCreator implements
 	public void exportDone() throws BillingInformationExporterException {
 
 		Connection conn = null;
+		boolean committed = false;
 		try {
 			conn = DBConnectionManager.getMainDbConnection();
 			conn.setAutoCommit(false);
@@ -161,13 +167,22 @@ public class InvoiceBlockCreator implements
 							"Added due to invoicing. Split from block " + splitFromId + ". Invoice: " + invoice.toString(), researcherId);
 					if(errorMessage != null)
 					{
-						throw new BillingInformationExporterException("Error saving the block split from block " + splitFromId
-								+ " for invoice ID: " + invoice.getId() + ". " + errorMessage);
+						String detail = "Error saving the block split from block " + splitFromId
+								+ " for invoice ID: " + invoice.getId() + ".";
+						if(DbErrorUtils.isRetryMessage(errorMessage))
+						{
+							// saveUsageBlocks already turned a deadlock into the message the admin should see, so
+							// the block and invoice ids go to the log rather than in front of it.
+							log.error(detail + " " + errorMessage);
+							throw new BillingInformationExporterException(errorMessage);
+						}
+						throw new BillingInformationExporterException(detail + " " + errorMessage);
 					}
 				}
 			}
 
 			conn.commit();
+			committed = true;
 		}
 		catch(SQLException e)
 		{
@@ -175,7 +190,9 @@ public class InvoiceBlockCreator implements
 		}
 		finally
 		{
-			if(conn != null) try {conn.close();} catch(SQLException e){}
+			// The BillingInformationExporterException thrown above for a block that cannot be split, a
+			// missing payment list or a failed save also leaves this transaction open.
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 }
