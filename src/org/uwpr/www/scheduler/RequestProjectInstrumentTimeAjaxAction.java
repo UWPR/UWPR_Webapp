@@ -334,6 +334,9 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			paymentInfo.add(request.getParameter("paymentMethodId2"), request.getParameter("paymentMethod2Percent"), endDate);
 		}
 
+		// Throws SchedulerException
+		paymentInfo.checkPercents();
+
 		return paymentInfo;
 	}
 

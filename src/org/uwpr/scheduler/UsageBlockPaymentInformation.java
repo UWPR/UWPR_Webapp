@@ -17,8 +17,6 @@ import org.yeastrc.project.payment.PaymentMethod;
 import org.yeastrc.project.payment.PaymentMethodDAO;
 import org.yeastrc.project.payment.ProjectPaymentMethodDAO;
 
-import javax.print.attribute.standard.DateTimeAtCompleted;
-
 /**
  * 
  */
@@ -28,14 +26,23 @@ public class UsageBlockPaymentInformation {
 	private final List<PaymentMethod> projectPaymentMethodList;
 	
 	public UsageBlockPaymentInformation(int projectId) throws SchedulerException {
-		// get a list of payment methods for this project
+		this(getCurrentPaymentMethods(projectId));
+	}
+
+	/**
+	 * @param projectPaymentMethodList the project's current payment methods, the only ones add() accepts
+	 */
+	UsageBlockPaymentInformation(List<PaymentMethod> projectPaymentMethodList) {
+		this.projectPaymentMethodList = projectPaymentMethodList;
+		paymentMethodList = new ArrayList<PaymentMethodAndPercent>();
+	}
+
+	private static List<PaymentMethod> getCurrentPaymentMethods(int projectId) throws SchedulerException {
 		try {
-			projectPaymentMethodList = ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
+			return ProjectPaymentMethodDAO.getInstance().getCurrentPaymentMethods(projectId);
 		} catch (SQLException e) {
 			throw new SchedulerException("Error getting payment methods for project ID "+projectId, e);
 		}
-		
-		paymentMethodList = new ArrayList<PaymentMethodAndPercent>();
 	}
 	
 	public void add(String paymentMethodIdString, String percentString, Date endDate) throws SchedulerException {
@@ -71,6 +78,9 @@ public class UsageBlockPaymentInformation {
 			} catch (SQLException e) {
 				throw new SchedulerException("Error getting details for payment method ID "+paymentMethodId);
 			}
+			if(method == null) {
+				throw new SchedulerException("No payment method found for ID "+paymentMethodId);
+			}
         	throw new SchedulerException("Payment method selected: "+method.getDisplayString()+" is not associated with the project");
         }
 
@@ -100,8 +110,19 @@ public class UsageBlockPaymentInformation {
         catch(NumberFormatException e) {
         	throw new SchedulerException("Error parsing percent billed to payment method: "+percentString);
         }
-        
-        
+
+		// Checked before the percent is stored, so every percent in paymentMethodList is a whole number
+		// above 0.  The getters can be read without calling checkPercents().
+		if(paymentMethodPerc.signum() <= 0) {
+			throw new SchedulerException("Percent billed to a payment method must be greater than 0. Found "
+					+ paymentMethodPerc.toPlainString() + "% for " + paymentMethod.getShortDisplayString());
+		}
+		if(paymentMethodPerc.remainder(BigDecimal.ONE).signum() != 0) {
+			throw new SchedulerException("Percent billed to a payment method must be a whole number. Found "
+					+ paymentMethodPerc.toPlainString() + "% for " + paymentMethod.getShortDisplayString());
+		}
+
+
         // If this payment method is already part of the list throw an exception
         for(PaymentMethodAndPercent method: this.paymentMethodList) {
         	if(method.getPaymentMethod().getId() == paymentMethodId) {
@@ -109,19 +130,36 @@ public class UsageBlockPaymentInformation {
         	}
         }
         
-        PaymentMethodAndPercent methodAndPerc = new PaymentMethodAndPercent(paymentMethod, paymentMethodPerc);
-        this.paymentMethodList.add(methodAndPerc);
-        
-        // Total percent billed to each payment method must not exceed 100%
+        // Checked before the payment method is added, so a refused one is left out of the list.  This is
+        // not checkPercents(), which refuses a finished list that does not total exactly 100.
         BigDecimal total = BigDecimal.ZERO;
         for(PaymentMethodAndPercent mp: this.paymentMethodList) {
-        	total.add(mp.percent);
-        	if(total.compareTo(new BigDecimal("100.0")) == 1) {
-        		throw new SchedulerException("Total percent billed to individual payment methods cannot exceed 100%");
-        	}
+        	total = total.add(mp.percent);
         }
+        total = total.add(paymentMethodPerc);
+        if(total.compareTo(new BigDecimal("100")) > 0) {
+        	throw new SchedulerException("Total percent billed to individual payment methods cannot exceed 100%");
+        }
+
+        this.paymentMethodList.add(new PaymentMethodAndPercent(paymentMethod, paymentMethodPerc));
 	}
 	
+	/**
+	 * Throws a SchedulerException unless the percents added total 100.  add() has already refused any
+	 * percent that is not a whole number above 0.
+	 */
+	public void checkPercents() throws SchedulerException {
+
+		BigDecimal total = BigDecimal.ZERO;
+		for(PaymentMethodAndPercent mp: this.paymentMethodList) {
+			total = total.add(mp.percent);
+		}
+		if(total.compareTo(new BigDecimal("100")) != 0) {
+			throw new SchedulerException("Total percent billed to individual payment methods must be 100%. Found "
+					+ total.toPlainString() + "%");
+		}
+	}
+
 	public PaymentMethod getPaymentMethod(int index) {
 		
 		return this.paymentMethodList.get(index).getPaymentMethod();

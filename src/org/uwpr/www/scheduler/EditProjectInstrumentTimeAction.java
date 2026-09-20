@@ -415,6 +415,18 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
     		}
 
+			// The replacement blocks are saved with these percents, so they have to total 100 here too.
+			try
+			{
+				paymentInfo.checkPercents();
+			}
+			catch(SchedulerException e)
+			{
+				return returnError(mapping, request, "scheduler",
+						new ActionMessage("error.costcenter.invaliddata", e.getMessage()),
+						"viewEditInstrumentTimeForm", "?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+usageBlockIdString);
+			}
+
 			Connection conn = null;
 			InstrumentUsageDAO instrumentUsageDAO = InstrumentUsageDAO.getInstance();
 			try {
@@ -428,6 +440,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 				}
 
 				catch (Exception e) {
+					try {conn.rollback();} catch(SQLException ignored){}
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.delete", e.getMessage()),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
@@ -443,9 +456,12 @@ public class EditProjectInstrumentTimeAction extends Action {
 				String errorMessage = instrumentUsageDAO.saveUsageBlocksByEditAction(conn, allBlocks, paymentInfo,
 						user.getResearcher().getID());
 				if (errorMessage != null)
+				{
+					try {conn.rollback();} catch(SQLException ignored){}
 					return returnError(mapping, request, "scheduler",
 							new ActionMessage("error.costcenter.invaliddata", errorMessage),
 							"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
+				}
 
 
 				// If there is a setup block adjacent to the last block, remove the setup flag from that block
@@ -461,6 +477,7 @@ public class EditProjectInstrumentTimeAction extends Action {
 			}
 			catch(Exception e)
 			{
+				if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
 				return returnError(mapping, request, "scheduler",
 						new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. " + e.getMessage()),
 						"viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);

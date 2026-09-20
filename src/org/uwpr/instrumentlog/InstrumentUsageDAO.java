@@ -152,6 +152,10 @@ public class InstrumentUsageDAO {
 		}
 	}
 
+    /**
+     * Moves each block to newProjectId, and writes the block's updater with it.  A moved block keeps the
+     * instrument rate it was scheduled at.
+     */
     public void updateBlocksProject(Connection conn, List<? extends UsageBlockBase> blocks, int newProjectId) throws Exception {
 
         if (blocks == null || blocks.size() == 0)

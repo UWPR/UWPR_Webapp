@@ -6,7 +6,6 @@
 package org.uwpr.www.scheduler;
 
 import org.apache.struts.action.*;
-import org.uwpr.costcenter.InvoiceInstrumentUsage;
 import org.uwpr.costcenter.InvoiceInstrumentUsageDAO;
 import org.uwpr.instrumentlog.*;
 import org.uwpr.scheduler.PatternToDateConverter;
@@ -224,19 +223,27 @@ public class EditBlockDetailsAction extends Action {
                     BigDecimal.valueOf(paymentPercent.getPaymentPercentInteger()).stripTrailingZeros());
         }
 
-        // If the payment method(s) is expiring before the end data, throw an error.
+        // add() refuses a payment method that is not current for the project, that expires before the
+        // blocks end, that is named twice, or whose percent takes the total past 100.  The save below has
+        // no ownership check of its own.  checkPercents() refuses percents that do not total 100.  Both
+        // read the submitted list, the same rows the save writes.
         UsageBlockPaymentInformation paymentInfo = new UsageBlockPaymentInformation(projectId);
-        for(Integer paymentMethodId: paymentMethodMap.keySet()) {
-            try
-            {
-                paymentInfo.add(String.valueOf(paymentMethodId), String.valueOf(paymentMethodId), rangeEndDate);
+        try
+        {
+            for(EditBlockDetailsForm.PaymentPercent paymentPercent: paymentPercentList) {
+                if(paymentPercent.getPaymentPercentInteger() == 0)
+                    continue;
+
+                paymentInfo.add(String.valueOf(paymentPercent.getPaymentMethodId()),
+                        String.valueOf(paymentPercent.getPaymentPercentInteger()), rangeEndDate);
             }
-            catch(SchedulerException e)
-            {
-                return returnError(mapping, request, "scheduler",
-                        new ActionMessage("error.costcenter.invaliddata", e.getMessage()),
-                        "viewEditBlockDetailsForm", "?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+usageBlockIdString);
-            }
+            paymentInfo.checkPercents();
+        }
+        catch(SchedulerException e)
+        {
+            return returnError(mapping, request, "scheduler",
+                    new ActionMessage("error.costcenter.invaliddata", e.getMessage()),
+                    "viewEditBlockDetailsForm", "?projectId="+projectId+"&instrumentId="+instrumentId+"&usageBlockIds="+usageBlockIdString);
         }
 
         Connection conn = null;
@@ -246,7 +253,8 @@ public class EditBlockDetailsAction extends Action {
 
             InstrumentLogDao logDao = InstrumentLogDao.getInstance();
 
-            // All the blocks are from blkProjId, checked above.
+            // All the blocks are from blkProjId, already checked above. A blkProjId that does not match the form's
+            // projectId means the blocks are moving to another project.
             boolean projectChanged = blkProjId != projectId;
 
             // Delete the old payment methods and add new ones.  A block whose project and payments are both
@@ -293,13 +301,14 @@ public class EditBlockDetailsAction extends Action {
         }
         catch(Exception e)
         {
+            if(conn != null) try {conn.rollback();} catch(SQLException ignored){}
             return returnError(mapping, request, "scheduler",
                     new ActionMessage("error.costcenter.invaliddata", "There was an error saving changes to usage blocks. Error: " + e.getMessage()),
                     "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
         }
         finally
         {
-            if(conn != null) {try {conn.close();} catch(SQLException ignored){}};
+            if(conn != null) try {conn.close();} catch(SQLException ignored){}
         }
 
         ActionForward fwd = mapping.findForward("viewScheduler");

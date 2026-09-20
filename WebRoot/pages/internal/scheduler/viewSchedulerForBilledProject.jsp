@@ -141,8 +141,37 @@ function getRequestInformation() {
 		return information;
 	}
 	
-	if (information.paymentMethodId2 !== 0 && information.paymentMethod2Perc === 0.0) {
-		information.errorMessage = "Percent entered for the second payment method should be greater than 0.";
+	// Compare as numbers.
+	var percent1 = parseFloat(information.paymentMethod1Perc);
+	var percent2 = parseFloat(information.paymentMethod2Perc);
+	var hasSecondMethod = Number(information.paymentMethodId2) !== 0;
+
+	if (!(percent1 > 0)) {
+		information.errorMessage = "Percent entered for the first payment method should be greater than 0.";
+		return information;
+	}
+
+	// The second percent field is disabled and updatePercent() sets it to 100 minus the first, so the
+	// first field is the one to name in the message.
+	if (hasSecondMethod && !(percent2 > 0)) {
+		information.errorMessage = "Percent entered for the first payment method should be less than 100 "
+			+ "when a second payment method is selected.";
+		return information;
+	}
+
+	if (percent1 !== Math.floor(percent1) || (hasSecondMethod && percent2 !== Math.floor(percent2))) {
+		information.errorMessage = "Percents billed to the payment methods have to be whole numbers.";
+		return information;
+	}
+
+	if (!hasSecondMethod) {
+		if (percent1 !== 100) {
+			information.errorMessage = "Please select a second payment method, or bill 100 percent to the first.";
+			return information;
+		}
+	}
+	else if (percent1 + percent2 !== 100) {
+		information.errorMessage = "Percents billed to the payment methods have to total 100.";
 		return information;
 	}
        						
@@ -363,14 +392,17 @@ function updatePercent() {
 	var percent1 = parseFloat($("#paymentMethodPercent_1").val());
 	if(isNaN(percent1)) {
 		alert("Invalid number entered in the percent field. Please enter a number between 0 and 100");
+		return;
 	}
 	if(percent1 > 100.0)
 		percent1 = 100.0;
 	if(percent1 < 0.0)
 		percent1 = 0;
-	var percent2 = 100.0 - percent1;
-	$("#paymentMethodPercent_2").val(Math.round(percent2*100.0)/100.0);
-	$("#paymentMethodPercent_1").val(Math.round(percent1*100.0)/100.0);
+	// Only whole percents are billed, so round here and let the two fields stay a pair that totals 100.
+	percent1 = Math.round(percent1);
+	var percent2 = 100 - percent1;
+	$("#paymentMethodPercent_2").val(percent2);
+	$("#paymentMethodPercent_1").val(percent1);
 }
 
 </script>
@@ -463,7 +495,7 @@ Payment method:
 </select>
 </td>
 <td>
-<input id="paymentMethodPercent_1" type="text" value="100" size="3" maxlength="3" onkeyup="updatePercent()" disabled="disabled" />%
+<input id="paymentMethodPercent_1" type="text" value="100" size="3" maxlength="3" oninput="updatePercent()" disabled="disabled" />%
 </td>
 <td></td>
 </tr>
