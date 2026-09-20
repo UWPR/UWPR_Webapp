@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.sql.SQLTransactionRollbackException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * Recognises the database failures a user can recover from by submitting the same request again.
@@ -36,8 +38,12 @@ public class DbErrorUtils
             "The database was busy with another request, so this one was cancelled and nothing was "
             + "saved.  Please submit it again.";
 
-    /** An exception chain can link back into itself.  Stop after this many links. */
-    private static final int MAX_CHAIN_LENGTH = 25;
+    /**
+     * An exception chain can link back into itself, so the walk stops after this many exceptions.  The
+     * walk branches, following getCause and getNextException from each one, so this is a count of
+     * exceptions examined rather than a depth.
+     */
+    private static final int MAX_EXCEPTIONS_EXAMINED = 250;
 
     private DbErrorUtils() {}
 
@@ -54,11 +60,18 @@ public class DbErrorUtils
         // A SQLException reaches a caller wrapped in whatever that layer throws.  It can also carry a
         // chain of further SQLExceptions.  Follow both getCause and getNextException.
         Deque<Throwable> pending = new ArrayDeque<Throwable>();
+        Map<Throwable, Boolean> examined = new IdentityHashMap<Throwable, Boolean>();
         pending.add(failure);
 
-        for(int seen = 0; !pending.isEmpty() && seen < MAX_CHAIN_LENGTH; seen++)
+        while(!pending.isEmpty() && examined.size() < MAX_EXCEPTIONS_EXAMINED)
         {
             Throwable t = pending.poll();
+
+            // An exception reached twice has been examined already, and re-adding it would loop.
+            if(examined.put(t, Boolean.TRUE) != null)
+            {
+                continue;
+            }
 
             if(t instanceof SQLException)
             {
@@ -89,6 +102,15 @@ public class DbErrorUtils
     public static String messageFor(Throwable failure, String otherMessage)
     {
         return isRetryable(failure) ? RETRY_MESSAGE : otherMessage;
+    }
+
+    /**
+     * Returns true when message is the one messageFor produces for a retryable failure.  A caller that
+     * would otherwise wrap an error string in its own text uses this to pass the message through whole.
+     */
+    public static boolean isRetryMessage(String message)
+    {
+        return RETRY_MESSAGE.equals(message);
     }
 
     private static boolean carriesRetryableCode(SQLException sqle)

@@ -104,9 +104,10 @@ public class InvoiceDAO {
 			conn.setAutoCommit(false);
 
 			// Delete the invoice's usage links, then the invoice, on one connection.  No trigger
-			// removes the links, and a link left behind reports its block as billed.  Both tables are
-			// InnoDB and share this transaction, so a failure on either delete rolls back the other
-			// and leaves the invoice re-deletable.
+			// removes the links, and a link left behind reports its block as billed.  Both deletes
+			// share this transaction, so a failure on either rolls back the other and leaves the
+			// invoice re-deletable.  That holds once invoice is InnoDB.  Until the migration runs it is
+			// MyISAM and commits on its own, so a later failure still strands the links.
 			InvoiceInstrumentUsageDAO.getInstance().deleteBlocksForInvoice(conn, invoice.getId());
 
 			stmt = conn.createStatement();
@@ -116,8 +117,8 @@ public class InvoiceDAO {
 			committed = true;
 		}
 		finally {
-			DBConnectionManager.endTransactionAndClose(conn, committed);
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 }

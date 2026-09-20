@@ -188,17 +188,19 @@ public class ProjectPaymentMethodDAO {
 			committed = true;
 		}
 		finally {
-			DBConnectionManager.endTransactionAndClose(conn, committed);
 			if(stmt != null) try {stmt.close();} catch(SQLException e){}
 			if(rs != null) try {rs.close();} catch(SQLException e){}
+			DBConnectionManager.endTransactionAndClose(conn, committed);
 		}
 	}
 	
 	public void deletePaymentMethod(int paymentMethodId) throws SQLException {
 
 		// No trigger cleans up the child rows, so delete the projectPaymentMethod bridge rows before the
-		// payment method.  Both tables are InnoDB and share this transaction, so a failure rolls back and
-		// deletes nothing.  getPaymentMethod logs an orphaned bridge row on load.
+		// payment method.  Both deletes share this transaction, so a failure rolls back and deletes
+		// nothing.  That holds once paymentMethod is InnoDB.  Until the migration runs it is MyISAM and
+		// commits on its own, so a later failure leaves orphaned bridge rows, which getPaymentMethod
+		// logs on load.
 		Connection conn = null;
 		boolean committed = false;
 		try {

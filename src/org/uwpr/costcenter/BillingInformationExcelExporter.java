@@ -193,7 +193,7 @@ public class BillingInformationExcelExporter {
 			} catch (SQLException e) {
 				throw new BillingInformationExporterException("Error getting instrument rate for block; block ID: "
 						+block.getID()+"; instrument rate ID: "+block.getInstrumentRateID()
-						+"; ");
+						+"; ", e);
 			}
 			
 			try {
@@ -314,7 +314,7 @@ public class BillingInformationExcelExporter {
 		try {
 			researcher.load(researcherId);
 		} catch (InvalidIDException e) {
-			throw new BillingInformationExporterException("Error getting researcher with ID: "+researcherId+"; Error message was: "+e.getMessage());
+			throw new BillingInformationExporterException("Error getting researcher with ID: "+researcherId+"; Error message was: "+e.getMessage(), e);
 		}
 
 		// get the instrument

@@ -11,14 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.uwpr.instrumentlog.*;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 
 /**
  * 
  */
 public class InvoiceBlockCreator implements
 		BillingInformationExporterListener {
+
+	private static final Logger log = LogManager.getLogger(InvoiceBlockCreator.class);
 
 	private final Invoice invoice;
 	// Admin exporting the invoice.  Recorded as the updater of each split block and in its log rows.
@@ -162,8 +167,16 @@ public class InvoiceBlockCreator implements
 							"Added due to invoicing. Split from block " + splitFromId + ". Invoice: " + invoice.toString(), researcherId);
 					if(errorMessage != null)
 					{
-						throw new BillingInformationExporterException("Error saving the block split from block " + splitFromId
-								+ " for invoice ID: " + invoice.getId() + ". " + errorMessage);
+						String detail = "Error saving the block split from block " + splitFromId
+								+ " for invoice ID: " + invoice.getId() + ".";
+						if(DbErrorUtils.isRetryMessage(errorMessage))
+						{
+							// saveUsageBlocks already turned a deadlock into the message the admin should see, so
+							// the block and invoice ids go to the log rather than in front of it.
+							log.error(detail + " " + errorMessage);
+							throw new BillingInformationExporterException(errorMessage);
+						}
+						throw new BillingInformationExporterException(detail + " " + errorMessage);
 					}
 				}
 			}

@@ -107,7 +107,6 @@ public class ParseAndUploadRates
                 committed = true;
             } finally
             {
-                DBConnectionManager.endTransactionAndClose(conn, committed);
                 if (insertStmt != null) try
                 {
                     insertStmt.close();
@@ -126,6 +125,7 @@ public class ParseAndUploadRates
                 } catch (SQLException ignored)
                 {
                 }
+                DBConnectionManager.endTransactionAndClose(conn, committed);
             }
         }
         System.out.println("Updated " + countUpdate + " old rates.");

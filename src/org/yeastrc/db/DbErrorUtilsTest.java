@@ -98,6 +98,22 @@ public class DbErrorUtilsTest extends TestCase
                 DbErrorUtils.isRetryable(self));
     }
 
+    /**
+     * The walk follows both getCause and getNextException, so the number of exceptions it reaches grows
+     * faster than the depth.  A deadlock must be found however deeply it is wrapped.
+     */
+    public final void testDeadlockUnderABranchingChain() {
+        Throwable failure = deadlock();
+        for(int layer = 0; layer < 20; layer++) {
+            SQLException wrapper = new SQLException("layer " + layer, "HY000", 0, failure);
+            // A sibling on each layer, so the walk branches instead of following one line of causes.
+            wrapper.setNextException(duplicateKey());
+            failure = new RuntimeException("wrapped " + layer, wrapper);
+        }
+        assertTrue("A deadlock under twenty branching layers should be retryable",
+                DbErrorUtils.isRetryable(failure));
+    }
+
     public final void testMessageForADeadlock() {
         assertEquals("A deadlock should be reported with the message asking for another attempt",
                 DbErrorUtils.RETRY_MESSAGE, DbErrorUtils.messageFor(deadlock(), OTHER_MESSAGE));
@@ -106,5 +122,17 @@ public class DbErrorUtilsTest extends TestCase
     public final void testMessageForAnOrdinaryFailure() {
         assertEquals("An ordinary failure should be reported with the caller's own message",
                 OTHER_MESSAGE, DbErrorUtils.messageFor(duplicateKey(), OTHER_MESSAGE));
+    }
+
+    public final void testIsRetryMessage() {
+        assertTrue("The message messageFor produces for a deadlock should be recognised",
+                DbErrorUtils.isRetryMessage(DbErrorUtils.messageFor(deadlock(), OTHER_MESSAGE)));
+    }
+
+    public final void testIsRetryMessageOnAnOrdinaryMessage() {
+        assertFalse("A caller's own message should not be recognised as the retry message",
+                DbErrorUtils.isRetryMessage(OTHER_MESSAGE));
+        assertFalse("A null message should not be recognised as the retry message",
+                DbErrorUtils.isRetryMessage(null));
     }
 }
