@@ -125,14 +125,14 @@ public class DbErrorUtilsTest extends TestCase
     }
 
     public final void testIsRetryMessage() {
-        assertTrue("The message messageFor produces for a deadlock should be recognised",
+        assertTrue("The message messageFor produces for a deadlock should be recognized",
                 DbErrorUtils.isRetryMessage(DbErrorUtils.messageFor(deadlock(), OTHER_MESSAGE)));
     }
 
     public final void testIsRetryMessageOnAnOrdinaryMessage() {
-        assertFalse("A caller's own message should not be recognised as the retry message",
+        assertFalse("A caller's own message should not be recognized as the retry message",
                 DbErrorUtils.isRetryMessage(OTHER_MESSAGE));
-        assertFalse("A null message should not be recognised as the retry message",
+        assertFalse("A null message should not be recognized as the retry message",
                 DbErrorUtils.isRetryMessage(null));
     }
 }

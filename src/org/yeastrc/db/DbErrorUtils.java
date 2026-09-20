@@ -8,7 +8,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Recognises the database failures a user can recover from by submitting the same request again.
+ * Recognizes the database failures a user can recover from by submitting the same request again.
  *
  * InnoDB takes row locks, and with foreign keys it locks parent rows too.  Two requests that touch the
  * same project or block in a different order can deadlock.  MariaDB rolls one of them back and returns

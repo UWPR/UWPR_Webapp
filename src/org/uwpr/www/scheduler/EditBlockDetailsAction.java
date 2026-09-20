@@ -304,8 +304,8 @@ public class EditBlockDetailsAction extends Action {
         catch(Exception e)
         {
             return returnError(mapping, request, "scheduler",
-                    new ActionMessage("error.costcenter.invaliddata", DbErrorUtils.messageFor(e,
-                            "There was an error saving changes to usage blocks. Error: " + e.getMessage())),
+                    new ActionMessage("error.costcenter.saveblocks",
+                            DbErrorUtils.messageFor(e, e.getMessage())),
                     "viewScheduler", "?projectId=" + projectId + "&instrumentId=" + instrumentId);
         }
         finally

@@ -359,7 +359,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 			String errorMessage = instrumentUsageDAO.saveUsageBlocks(conn, usageBlocks, paymentInfo, user.getID());
 			if (errorMessage != null)
 			{
-				return errorMessage;
+				return "Error saving instrument time: " + errorMessage;
 			}
 
 			// If there is a setup block adjacent to the last block, remove the setup flag from the block
@@ -378,7 +378,7 @@ public class RequestProjectInstrumentTimeAjaxAction extends Action{
 		catch(Exception e)
 		{
 			log.error("Error saving usage blocks", e);
-			return DbErrorUtils.messageFor(e, "There was an error saving usage block. Error was: " + e.getMessage());
+			return "Error saving instrument time: " + DbErrorUtils.messageFor(e, e.getMessage());
 		}
 		finally
 		{

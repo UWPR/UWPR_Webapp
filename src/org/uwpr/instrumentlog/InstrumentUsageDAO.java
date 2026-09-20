@@ -570,8 +570,9 @@ public class InstrumentUsageDAO {
 		{
 			log.error("Error saving usage blocks", e);
 			// This method returns a string rather than throwing, so its callers never see the exception.
-			// A deadlock has to be recognised here.
-			return DbErrorUtils.messageFor(e, "There was an error saving usage block. Error was: " + e.getMessage());
+			// A deadlock has to be recognized here, and returned unprefixed because InvoiceBlockCreator
+			// matches it with isRetryMessage.
+			return DbErrorUtils.messageFor(e, e.getMessage());
 		}
 
 		return null;
