@@ -13,11 +13,12 @@ import java.util.Deque;
  * error 1213, SQLState 40001.  A lock wait timeout returns error 1205 and rolls back only the statement,
  * leaving the transaction for the finally block of the site that opened it.
  *
- * Either failure leaves the database as it was, and the same request usually succeeds on a second
- * attempt.  Nothing retries on its own, because a retry would not start from the values the first
- * attempt started from.  InstrumentUsageDAO.saveUsageBlocksForBilledProject copies the generated IDs
- * back into the blocks it was given.  InvoiceBlockCreator.exportDone reads a block's ID before that
- * call, to find the block it was split from.  The user is told the request can be submitted again.
+ * Both end with the transaction rolled back and the database as it was, and the same request usually
+ * succeeds on a second attempt.  Nothing retries on its own, because a retry would not start from
+ * the values the first attempt started from.  InstrumentUsageDAO.saveUsageBlocksForBilledProject
+ * copies the generated IDs back into the blocks it was given.  InvoiceBlockCreator.exportDone reads
+ * a block's ID before that call, to find the block it was split from.  The user is told the request
+ * can be submitted again.
  */
 public class DbErrorUtils
 {
