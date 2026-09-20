@@ -9,16 +9,6 @@ public class CostUtils
 
     public static BigDecimal calcCost(BigDecimal cost, BigDecimal percent)
     {
-        if(percent.doubleValue() == 100.0)
-        {
-            return cost.setScale(2, RoundingMode.HALF_UP);
-        }
-        cost = cost.multiply(percent);
-        if(percent.doubleValue() > 1.0)
-        {
-            cost = cost.divide(ONE_HUNDRED);
-        }
-
-        return cost.setScale(2, RoundingMode.HALF_UP);
+        return cost.multiply(percent).divide(ONE_HUNDRED).setScale(2, RoundingMode.HALF_UP);
     }
 }

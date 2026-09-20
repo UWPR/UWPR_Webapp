@@ -213,16 +213,13 @@ public class BillingInformationExcelExporter {
 		Set<Integer> exportedBlockIds = new HashSet<>();
 		for(UsageBlockForBilling block: summarizer.getSummarizedBlocks()) {
 			
-			boolean exported = writeBlockPaymentMethodDetails(sheet, block, true);
-			
-			if(exported) {
+			writeBlockPaymentMethodDetails(sheet, block, true);
 
-				for(UsageBlockBase ublock: block.getBlocks()) {
-					if(!exportedBlockIds.contains(ublock.getID())) {
-						informListenerBlockExported(ublock);
-					}
-					exportedBlockIds.add(ublock.getID());
+			for(UsageBlockBase ublock: block.getBlocks()) {
+				if(!exportedBlockIds.contains(ublock.getID())) {
+					informListenerBlockExported(ublock);
 				}
+				exportedBlockIds.add(ublock.getID());
 			}
 		}
 	}
@@ -329,7 +326,6 @@ public class BillingInformationExcelExporter {
 		// get the payment method(s) for this block
 		List<InstrumentUsagePayment> usagePayments = InstrumentUsagePaymentGetter.get(project, block);
 
-		boolean blockExported = false;
 		for(InstrumentUsagePayment usagePayment: usagePayments) {
 
 			UsageBlockForBilling billBlock = new UsageBlockForBilling();
@@ -343,23 +339,24 @@ public class BillingInformationExcelExporter {
 			billBlock.setPaymentMethod(usagePayment.getPaymentMethod());
 			billBlock.setBillingPercent(usagePayment.getPercent());
 			
-			blockExported = writeBlockPaymentMethodDetails(sheet, billBlock, false);
+			writeBlockPaymentMethodDetails(sheet, billBlock, false);
 		}
-		
-		if(blockExported)
+
+		// A block with no payment method writes no row and is not billed, so it is left unmarked.
+		// Only a Collaboration project books time without one, and none has since 2011.  The export
+		// covers every project that has scheduled time, not only the billed ones.
+		if(!usagePayments.isEmpty())
 			informListenerBlockExported(block);
 	}
 	
-	private boolean writeBlockPaymentMethodDetails(Sheet sheet, UsageBlockForBilling block, boolean summarize)
+	private void writeBlockPaymentMethodDetails(Sheet sheet, UsageBlockForBilling block, boolean summarize)
 	throws BillingInformationExporterException {
 
 		PaymentMethod paymentMethod = block.getPaymentMethod();
 		BigDecimal percent = block.getBillingPercent();
-		
-		// If we are not billing anything ignore this block
-		if(BigDecimal.ZERO.equals(getBilledCost(block.getTotalCost(), percent, block.getEndDate())))
-			return false;
-		
+
+		checkPaymentMethodIdentifiers(paymentMethod);
+
 		Row row = sheet.createRow(rowNum++);
 		
 		int cellnum = 0;
@@ -404,17 +401,6 @@ public class BillingInformationExcelExporter {
 		String poNumber = paymentMethod.getPonumber();
 		String uwBudgetNumber = paymentMethod.getUwbudgetNumber();
 		String worktag = paymentMethod.getWorktag();
-
-		if (StringUtils.isBlank(poNumber) && StringUtils.isBlank(worktag) && StringUtils.isBlank(uwBudgetNumber)) {
-			throw new BillingInformationExporterException("Did not find a Worktag / UW Budget number / PO number for payment method ID: "
-					+ paymentMethod.getId());
-		}
-		if (!StringUtils.isBlank(worktag) && !StringUtils.isBlank(uwBudgetNumber))
-		{
-			throw new BillingInformationExporterException("Expected only one of Worktag or UW Budget number."
-					+ " Found both for payment method Id: " + paymentMethod.getId()
-					+ " Worktag: " + worktag + ", Budget number: " + uwBudgetNumber);
-		}
 
 		if (!StringUtils.isBlank(poNumber))
 		{
@@ -475,8 +461,24 @@ public class BillingInformationExcelExporter {
 		row.createCell(cellnum++).setCellValue(paymentMethod.getContactLastName());
 		row.createCell(cellnum++).setCellValue(paymentMethod.getContactEmail());
 		row.createCell(cellnum++).setCellValue(paymentMethod.getContactPhone());
-		
-		return true;
+	}
+
+	private void checkPaymentMethodIdentifiers(PaymentMethod paymentMethod) throws BillingInformationExporterException {
+
+		String poNumber = paymentMethod.getPonumber();
+		String uwBudgetNumber = paymentMethod.getUwbudgetNumber();
+		String worktag = paymentMethod.getWorktag();
+
+		if (StringUtils.isBlank(poNumber) && StringUtils.isBlank(worktag) && StringUtils.isBlank(uwBudgetNumber)) {
+			throw new BillingInformationExporterException("Did not find a Worktag / UW Budget number / PO number for payment method ID: "
+					+ paymentMethod.getId());
+		}
+		if (!StringUtils.isBlank(worktag) && !StringUtils.isBlank(uwBudgetNumber))
+		{
+			throw new BillingInformationExporterException("Expected only one of Worktag or UW Budget number."
+					+ " Found both for payment method Id: " + paymentMethod.getId()
+					+ " Worktag: " + worktag + ", Budget number: " + uwBudgetNumber);
+		}
 	}
 
 	private List<Project> getAllProjects() throws BillingInformationExporterException
