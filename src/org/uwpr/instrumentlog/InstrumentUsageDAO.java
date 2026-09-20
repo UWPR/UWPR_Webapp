@@ -12,6 +12,7 @@ import org.uwpr.costcenter.*;
 import org.uwpr.scheduler.UsageBlockPaymentInformation;
 import org.uwpr.www.util.TimeUtils;
 import org.yeastrc.db.DBConnectionManager;
+import org.yeastrc.db.DbErrorUtils;
 import org.yeastrc.project.Researcher;
 import org.yeastrc.project.payment.PaymentMethod;
 
@@ -568,7 +569,9 @@ public class InstrumentUsageDAO {
 		catch(Exception e)
 		{
 			log.error("Error saving usage blocks", e);
-			return "There was an error saving usage block. Error was: " + e.getMessage();
+			// This method returns a string rather than throwing, so its callers never see the exception.
+			// A deadlock has to be recognised here.
+			return DbErrorUtils.messageFor(e, "There was an error saving usage block. Error was: " + e.getMessage());
 		}
 
 		return null;
