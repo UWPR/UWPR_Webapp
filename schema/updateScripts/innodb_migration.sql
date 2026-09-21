@@ -129,12 +129,23 @@ DELETE c FROM pr.collaborationRejected c
 -- Nothing else links to either blob. The blob goes with the link, so both documents
 -- are deleted for good.
 
+-- The blobs that at least one dead project points at. Candidates only, because a blob can
+-- be linked from more than one project.
 CREATE TEMPORARY TABLE orphan_file_ids AS
-  SELECT pf.file_id FROM pr.projectFiles pf
+  SELECT DISTINCT pf.file_id FROM pr.projectFiles pf
   LEFT JOIN mainDb.tblProjects p ON p.projectID = pf.project_id WHERE p.projectID IS NULL;
 
-DELETE pf FROM pr.projectFiles pf JOIN orphan_file_ids o ON o.file_id = pf.file_id;
-DELETE f FROM pr.files f JOIN orphan_file_ids o ON o.file_id = f.id;
+-- Remove a link row only when its own project is gone. Joining the candidate ids straight
+-- back to projectFiles would also remove a live project's link to a shared blob.
+DELETE pf FROM pr.projectFiles pf
+  LEFT JOIN mainDb.tblProjects p ON p.projectID = pf.project_id
+  WHERE p.projectID IS NULL;
+
+-- Then the candidates nothing points at any more. A blob a live project still links to stays.
+DELETE f FROM pr.files f
+  JOIN orphan_file_ids o ON o.file_id = f.id
+  LEFT JOIN pr.projectFiles pf ON pf.file_id = f.id
+  WHERE pf.file_id IS NULL;
 
 DROP TEMPORARY TABLE orphan_file_ids;
 
@@ -278,6 +289,13 @@ UNION ALL SELECT 'pr.collaborationRejected -> tblResearchers', COUNT(*)
 -- ================================================================================
 
 USE mainDb;
+
+-- 2.3 makes updatedBy NOT NULL, and that only refuses a surviving NULL while the session is
+-- strict. Measured both ways on MariaDB 10.6 -- with sql_mode empty the same ALTER succeeds
+-- and writes 0, which is the value recover_updatedBy.sql exists to remove, with nothing said
+-- to the operator. 10.6 is strict by default, but sql_mode is a session setting a client can
+-- change, so this does not rely on the default.
+SET SESSION sql_mode = CONCAT(@@sql_mode, ',STRICT_ALL_TABLES');
 
 -- 2.1 Parent keys.
 
@@ -435,6 +453,27 @@ ALTER TABLE mainDb.projectGroup               ADD INDEX groupID (groupID);
 ALTER TABLE pr.projectReviewer                ADD INDEX researcherID (researcherID);
 ALTER TABLE pr.collaborationRejected          ADD INDEX researcherID (researcherID);
 
+-- --- Verify section 4. Must read 16, one per ADD INDEX above. A short count means a
+-- --- statement failed, and section 5 would then let InnoDB create that index under a name
+-- --- of its own choosing, which is what this section exists to prevent. ---
+
+SELECT COUNT(DISTINCT table_schema, table_name, index_name) AS indexes_added
+FROM information_schema.statistics
+WHERE (table_schema = 'mainDb' AND
+       ((table_name = 'instrumentUsage'            AND index_name IN ('instrumentRateID', 'enteredBy', 'updatedBy', 'instrumentOperatorId')) OR
+        (table_name = 'projectPaymentMethod'       AND index_name = 'paymentMethodID') OR
+        (table_name = 'projectGrant'               AND index_name = 'projectID') OR
+        (table_name = 'projectGroup'               AND index_name IN ('projectID', 'groupID')) OR
+        (table_name = 'tblProjectExperiment'       AND index_name = 'projectID') OR
+        (table_name = 'tblProjects'                AND index_name = 'projectPI') OR
+        (table_name = 'tblProjectProteinInference' AND index_name = 'researcherID') OR
+        (table_name = 'tblYRCGroupMembers'         AND index_name = 'researcherID')))
+   OR (table_schema = 'pr' AND
+       ((table_name = 'externalDataLocations'      AND index_name = 'projectID') OR
+        (table_name = 'projectFiles'               AND index_name = 'project_id') OR
+        (table_name = 'projectReviewer'            AND index_name = 'researcherID') OR
+        (table_name = 'collaborationRejected'      AND index_name = 'researcherID')));
+
 
 -- ================================================================================
 -- SECTION 5 - FOREIGN KEYS
@@ -562,6 +601,12 @@ ALTER TABLE pr.projectFiles
 -- project delete leaves both behind. fk_projectFiles_tblProjects above removes the
 -- link row. No key reaches the blob in pr.files, because a blob can be shared, so
 -- deleting it is still the application's job.
+--
+-- That changes what a stranded blob looks like. Today the link row survives a project
+-- delete, so the blob can still be traced back to the project it belonged to. Once the key
+-- cascades the link away, the blob is left with nothing pointing at it. DataFileDeleter
+-- holds the only DELETE FROM files and the per-file page is its only caller, so every blob
+-- a deleted project had is stranded and unreachable.
 
 ALTER TABLE pr.projectFiles
   ADD CONSTRAINT fk_projectFiles_files
@@ -576,8 +621,9 @@ ALTER TABLE pr.projectFiles
 -- edited or ran a block cannot be deleted out from under that record. CASCADE on the
 -- rows that only describe what a researcher belongs to.
 --
--- Nothing deletes a researcher today. Researcher.delete() has no caller, and
--- User.delete() throws. These keys decide what happens when something does.
+-- Nothing deletes a researcher today. Neither Researcher.delete() nor User.delete() has a
+-- caller, and User.delete() removes only the tblUsers row. These keys decide what happens
+-- when something does.
 
 ALTER TABLE mainDb.instrumentUsage
   ADD CONSTRAINT fk_instrumentUsage_enteredBy
@@ -638,8 +684,15 @@ ORDER BY constraint_schema, table_name, constraint_name;
 -- ================================================================================
 -- NOT DONE HERE
 --
--- instrumentUsage.instrumentID and instrumentRate.instrumentID to msData.msInstrument.
--- msData stays on MyISAM.
+-- Four keys into msData, which stays on MyISAM. instrumentUsage.instrumentID and
+-- instrumentRate.instrumentID to msInstrument, tblProjectExperiment.experimentID to
+-- msExperiment, and tblProjectProteinInference.piRunID to msProteinInferRun.
+--
+-- Any key at all on instrumentLog, the largest table in mainDb. blockId must not have one,
+-- since most of its rows name a block that has since been deleted and recording that is what
+-- the table is for. projectId and userId could have one. Neither does, so a project with log
+-- rows and no usage rows can still be deleted and strand them -- DeleteProjectAction:90
+-- checks instrumentUsage only. Projects 456, 515 and 555 are in that state today.
 --
 -- Removing the now-redundant child deletes from InstrumentUsageDAO,
 -- ProjectPaymentMethodDAO, InvoiceDAO and Project.deleteRowsForProject. Those wait
