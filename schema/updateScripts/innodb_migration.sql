@@ -55,6 +55,8 @@ USE mainDb;
 -- of project 74. ProjectDAO.getScheduledProjects reads projectID from instrumentUsage
 -- with no join to tblProjects, so BillingInformationExcelExporter.getProject throws on
 -- them and fails any export covering September or October 2008.
+--
+-- The first two deletes below remove nothing on this data. The third removes the two blocks.
 
 DELETE s FROM mainDb.instrumentUsagePayment s
   JOIN mainDb.instrumentUsage iu ON iu.id = s.instrumentUsageID
@@ -343,9 +345,22 @@ WHERE (table_schema = 'mainDb' AND
         (table_name = 'instrumentUsage'    AND column_name IN ('instrumentOperatorId', 'updatedBy'))))
 ORDER BY table_name, column_name;
 
-SELECT MAX(projectID) AS max_project FROM mainDb.tblProjects;
-SELECT MAX(researcherID) AS max_researcher FROM mainDb.tblResearchers;
-SELECT MAX(groupID) AS max_group FROM mainDb.tblYRCGroups;
+-- AUTO_INCREMENT is the value to read, not MAX. Widening a column does not touch the
+-- rows, so MAX cannot move whatever the ALTER does, while the AUTO_INCREMENT counter
+-- can be reset by it. Each must still sit above its MAX, or the next insert collides
+-- with a row that is already there. Capture these before section 2 runs, or there is
+-- nothing to compare them against.
+
+SELECT t.table_name, t.auto_increment,
+       CASE t.table_name
+         WHEN 'tblProjects'    THEN (SELECT MAX(projectID)    FROM mainDb.tblProjects)
+         WHEN 'tblResearchers' THEN (SELECT MAX(researcherID) FROM mainDb.tblResearchers)
+         WHEN 'tblYRCGroups'   THEN (SELECT MAX(groupID)      FROM mainDb.tblYRCGroups)
+       END AS max_id
+FROM information_schema.tables t
+WHERE t.table_schema = 'mainDb'
+  AND t.table_name IN ('tblProjects', 'tblResearchers', 'tblYRCGroups')
+ORDER BY t.table_name;
 
 
 -- ================================================================================
@@ -438,6 +453,11 @@ ALTER TABLE mainDb.tblProjectExperiment ADD INDEX projectID (projectID);
 ALTER TABLE pr.externalDataLocations    ADD INDEX projectID (projectID);
 ALTER TABLE pr.projectFiles             ADD INDEX project_id (project_id);
 
+-- instrumentRate carries only PRIMARY (id) and instrumentID, so both keys in 5.2 need one.
+
+ALTER TABLE mainDb.instrumentRate       ADD INDEX blockID (blockID);
+ALTER TABLE mainDb.instrumentRate       ADD INDEX rateTypeID (rateTypeID);
+
 -- 4.2 For the researcher and group keys in 5.6.
 --
 -- projectResearcher.researcherID, tblUsers.researcherID and
@@ -453,14 +473,18 @@ ALTER TABLE mainDb.projectGroup               ADD INDEX groupID (groupID);
 ALTER TABLE pr.projectReviewer                ADD INDEX researcherID (researcherID);
 ALTER TABLE pr.collaborationRejected          ADD INDEX researcherID (researcherID);
 
--- --- Verify section 4. Must read 16, one per ADD INDEX above. A short count means a
+-- --- Verify section 4. Must read 18, one per ADD INDEX above. A short count means a
 -- --- statement failed, and section 5 would then let InnoDB create that index under a name
 -- --- of its own choosing, which is what this section exists to prevent. ---
+-- ---
+-- --- It counts the indexes that exist, not the ones this section added, so it means what
+-- --- it says only from a start of 0. Read it before running the section as well as after.
 
 SELECT COUNT(DISTINCT table_schema, table_name, index_name) AS indexes_added
 FROM information_schema.statistics
 WHERE (table_schema = 'mainDb' AND
        ((table_name = 'instrumentUsage'            AND index_name IN ('instrumentRateID', 'enteredBy', 'updatedBy', 'instrumentOperatorId')) OR
+        (table_name = 'instrumentRate'             AND index_name IN ('blockID', 'rateTypeID')) OR
         (table_name = 'projectPaymentMethod'       AND index_name = 'paymentMethodID') OR
         (table_name = 'projectGrant'               AND index_name = 'projectID') OR
         (table_name = 'projectGroup'               AND index_name IN ('projectID', 'groupID')) OR
