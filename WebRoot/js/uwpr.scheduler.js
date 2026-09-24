@@ -719,7 +719,8 @@
 					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
 				}
 				catch(e) {
-					showErrorDialog("There was an error processing the server's response. Please contact us.");
+					// Reported below, so there is one message whatever the response was.
+					obj = null;
 				}
 
 				// $.parseJSON returns null for an empty response. This branch returns before the closes
@@ -785,7 +786,8 @@
 					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
 				}
 				catch(e){
-					showErrorDialog("There was an error processing the server's response. Please contact us.");
+					// Reported below, so there is one message whatever the response was.
+					obj = null;
 				}
 
 
@@ -803,8 +805,12 @@
 						showErrorDialog("The server did not respond in time. Your instrument time may have been scheduled. Check the calendar before scheduling it again.");
 					}
 				}
-				else if(obj != undefined)
+				else if(obj != null) {
 					showErrorDialog(obj.message);
+				}
+				else {
+					showErrorDialog("There was an error processing the server's response. Please contact us.");
+				}
 
 
 
