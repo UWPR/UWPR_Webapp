@@ -27,7 +27,9 @@ public class AppProperties
     private static String HOST;
     private static String LOGIN_PAGE;
 
-    private static MailProperties _mailProps;
+    // volatile so a reader cannot see the reference before the MailProperties fields are
+    // visible. A stale read of _timeoutMillis would give 0, which JavaMail reads as no timeout.
+    private static volatile MailProperties _mailProps;
 
     private static final Logger log = LogManager.getLogger(AppProperties.class.getName());
 
@@ -132,10 +134,17 @@ public class AppProperties
 
     public static class MailProperties
     {
+        public static final int DEFAULT_TIMEOUT_MILLIS = 15000;
+
+        // MailProperties has its own logger so it can be used in a unit test without initializing
+        // AppProperties, whose static initializer needs application.properties on the classpath.
+        private static final Logger log = LogManager.getLogger(MailProperties.class);
+
         private String _smtpHost;
         private String _smtpPort;
         private String _senderEmail;
         private String _senderPassword;
+        private int _timeoutMillis = DEFAULT_TIMEOUT_MILLIS;
 
         MailProperties(Map<String, String> properties)
         {
@@ -149,6 +158,10 @@ public class AppProperties
                 {
                     _smtpPort = entry.getValue();
                 }
+                else if ("mail.smtp.timeout".equals(entry.getKey()))
+                {
+                    _timeoutMillis = parseTimeout(entry.getValue());
+                }
                 else if ("from.email.address".equals(entry.getKey()))
                 {
                     _senderEmail = entry.getValue();
@@ -159,6 +172,49 @@ public class AppProperties
                 }
             }
         }
+
+        public MailProperties(String smtpHost, String smtpPort, String senderEmail, String senderPassword,
+                              int timeoutMillis)
+        {
+            _smtpHost = smtpHost;
+            _smtpPort = smtpPort;
+            _senderEmail = senderEmail;
+            _senderPassword = senderPassword;
+            _timeoutMillis = checkTimeout(timeoutMillis);
+        }
+
+        /**
+         * Returns the timeout in milliseconds, or DEFAULT_TIMEOUT_MILLIS if the configured value is
+         * not a positive number. JavaMail reads 0 as no timeout at all.
+         */
+        static int parseTimeout(String value)
+        {
+            if (value != null)
+            {
+                try
+                {
+                    return checkTimeout(Integer.parseInt(value.trim()));
+                }
+                catch (NumberFormatException ignored)
+                {
+                }
+            }
+            log.error("mail.smtp.timeout must be a number of milliseconds. Found '" + value
+                    + "'. Using " + DEFAULT_TIMEOUT_MILLIS + ".");
+            return DEFAULT_TIMEOUT_MILLIS;
+        }
+
+        private static int checkTimeout(int millis)
+        {
+            if (millis > 0)
+            {
+                return millis;
+            }
+            log.error("mail.smtp.timeout must be greater than 0. Found " + millis
+                    + ". Using " + DEFAULT_TIMEOUT_MILLIS + ".");
+            return DEFAULT_TIMEOUT_MILLIS;
+        }
+
         public String getSmtpHost()
         {
             return _smtpHost;
@@ -177,6 +233,12 @@ public class AppProperties
         public String getSenderPassword()
         {
             return _senderPassword;
+        }
+
+        /** Applied to the connect, read and write timeouts of a send. */
+        public int getTimeoutMillis()
+        {
+            return _timeoutMillis;
         }
     }
 }
