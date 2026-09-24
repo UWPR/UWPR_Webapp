@@ -11,7 +11,6 @@ package org.yeastrc.www.project;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.struts.action.*;
-import org.apache.struts.util.MessageResources;
 import org.yeastrc.data.InvalidIDException;
 import org.yeastrc.project.Affiliation;
 import org.yeastrc.project.BilledProject;
@@ -20,16 +19,10 @@ import org.yeastrc.project.Researcher;
 import org.yeastrc.www.user.User;
 import org.yeastrc.www.user.UserUtils;
 
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Controller class for saving a new billed project.
@@ -239,11 +232,6 @@ public class SaveNewBilledProjectAction extends Action {
         // Save the project
         project.save();
 		
-		// Send email to the groups they're collaboration with
-		if (project.getGroups() != null && project.getGroups().size() > 0) {
-			emailCollaborators(request, (BilledProject) project, user);
-		}
-		
 		// Send signup confirmation to researcher
 		// NewProjectUtils.sendEmailConfirmation(user.getResearcher(), project, getResources(request));
 
@@ -253,68 +241,5 @@ public class SaveNewBilledProjectAction extends Action {
 		success = new ActionForward( success.getPath() + "?ID=" + project.getID(), success.getRedirect() ) ;
 		return success ;
 	}
-
-    private void emailCollaborators(HttpServletRequest request, BilledProject billedProject, User user) {
-        try {
-        	// set the SMTP host property value
-        	Properties properties = System.getProperties();
-        	properties.put("mail.smtp.host", "localhost");
-        
-        	// create a JavaMail session
-        	javax.mail.Session mSession = javax.mail.Session.getInstance(properties, null);
-        
-        	// create a new MIME message
-        	MimeMessage message = new MimeMessage(mSession);
-        
-        	// set the from address
-        	Address fromAddress = new InternetAddress(((Researcher)(user.getResearcher())).getEmail());
-        	message.setFrom(fromAddress);
-        
-        	// set the to address by assembling a comma delimited list of addresses associated with the groups selected
-        	String emailStr = "";
-        	MessageResources mr = getResources(request);
-        	String[] groups = billedProject.getGroupsArray();
-        	for (int i = 0; i < groups.length; i++) {
-        		if (i > 0) { emailStr = emailStr + ","; }
-        		
-        		emailStr = emailStr + mr.getMessage("email.groups." + groups[i]);
-        	}
-        	
-        	Address[] toAddress = InternetAddress.parse(emailStr);
-        	//System.out.println(emailStr);
-        	message.setRecipients(Message.RecipientType.TO, toAddress);
-        
-        	// set the subject
-        	message.setSubject("UWPR - New Collaboration (Billable Project) Request");
-        
-        	// set the message body
-        	String text = ((Researcher)(user.getResearcher())).getFirstName() + " ";
-        	text += ((Researcher)(user.getResearcher())).getLastName() + " ";
-        	text += "has requested a new collaboration with your group.  Replying to this email should reply directly to the researcher.\n\n";
-        	text += "Details:\n\n";
-        	
-
-        	
-        	if (billedProject.getPI() != null)
-        		text += "PI: " + billedProject.getPI().getListing() + "\n\n";
-
-        	text += "Title: " + billedProject.getTitle() + "\n\n";
-        	text += "Abstract: " + billedProject.getAbstract() + "\n\n";
-        	text += "Scientific Question: " + billedProject.getScientificQuestion() + "\n\n";
-        	text += "Database searched at UWPR: " + billedProject.isDatabaseSearchRequested() + "\n\n";
-        	text += "Mass Spec. analysis by UWPR personnel: " + billedProject.isMassSpecExpertiseRequested() + "\n\n";
-        	
-        	text += "Comments: " + billedProject.getComments() + "\n\n";
-        
-        	//System.out.println(text);
-        	
-        	message.setText(text);
-        
-        	// send the message
-        	Transport.send(message);
-        
-        }
-        catch (Exception e) { log.error("Error sending email to collaboration group.", e); }
-    }
 	
 }
