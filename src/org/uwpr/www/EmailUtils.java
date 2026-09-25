@@ -99,8 +99,6 @@ public class EmailUtils
         // enable STARTTLS
         properties.put("mail.smtp.starttls.enable", "true");
 
-        // A send with no timeouts waits on the operating system, which took about 130 seconds to give
-        // up on a host it could not reach.
         String timeout = String.valueOf(mailProps.getTimeoutMillis());
         properties.put("mail.smtp.connectiontimeout", timeout);
         properties.put("mail.smtp.timeout", timeout);

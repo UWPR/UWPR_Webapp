@@ -27,9 +27,7 @@ public class AppProperties
     private static String HOST;
     private static String LOGIN_PAGE;
 
-    // volatile so a reader cannot see the reference before the MailProperties fields are
-    // visible. A stale read of _timeoutMillis would give 0, which JavaMail reads as no timeout.
-    private static volatile MailProperties _mailProps;
+    private static MailProperties _mailProps;
 
     private static final Logger log = LogManager.getLogger(AppProperties.class.getName());
 
@@ -88,7 +86,7 @@ public class AppProperties
         return LOGIN_PAGE;
     }
 
-    public static MailProperties getMailProps()
+    public static synchronized MailProperties getMailProps()
     {
         if (_mailProps == null)
         {
