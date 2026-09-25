@@ -22,6 +22,12 @@ public class EmailUtils
         {
             throw new IllegalStateException("Mail properties were not initialized");
         }
+        sendMail(mailProps, subject, text, toAddresses, bccAddresses);
+    }
+
+    static void sendMail(AppProperties.MailProperties mailProps, String subject, String text,
+                         Address[] toAddresses, Address[] bccAddresses) throws MessagingException
+    {
         if (mailProps.getSmtpHost() == null)
         {
             throw new IllegalStateException("SMTP host was not found in the mail configuration.");
@@ -39,24 +45,14 @@ public class EmailUtils
             throw new IllegalStateException("No email addresses were found for sending the email.");
         }
 
-        String smtpPort = mailProps.getSmtpPort();
         final String senderEmail = mailProps.getSenderEmail();
         final String senderPassword = mailProps.getSenderPassword();
         Authenticator auth = null;
 
-        // set the SMTP host property value
-        Properties properties = System.getProperties();
-        String smtpHost = mailProps.getSmtpHost();
-        properties.put("mail.smtp.host", smtpHost);
-
-        if (smtpPort != null)
-        {
-            properties.put("mail.smtp.port", smtpPort);
-        }
+        Properties properties = buildMailProperties(mailProps);
 
         if (senderPassword != null)
         {
-            properties.put("mail.smtp.auth", "true"); //enable authentication
             auth = new Authenticator() {
                 //override the getPasswordAuthentication method
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -64,10 +60,6 @@ public class EmailUtils
                 }
             };
         }
-
-        // enable STARTTLS
-        properties.put("mail.smtp.starttls.enable", "true");
-
 
         // create a JavaMail session
         javax.mail.Session mSession = javax.mail.Session.getInstance(properties, auth);
@@ -86,5 +78,32 @@ public class EmailUtils
         message.setSubject(subject);
         message.setText(text);
         Transport.send(message);
+    }
+
+    static Properties buildMailProperties(AppProperties.MailProperties mailProps)
+    {
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", mailProps.getSmtpHost());
+
+        String smtpPort = mailProps.getSmtpPort();
+        if (smtpPort != null)
+        {
+            properties.put("mail.smtp.port", smtpPort);
+        }
+
+        if (mailProps.getSenderPassword() != null)
+        {
+            properties.put("mail.smtp.auth", "true"); //enable authentication
+        }
+
+        // enable STARTTLS
+        properties.put("mail.smtp.starttls.enable", "true");
+
+        String timeout = String.valueOf(mailProps.getTimeoutMillis());
+        properties.put("mail.smtp.connectiontimeout", timeout);
+        properties.put("mail.smtp.timeout", timeout);
+        properties.put("mail.smtp.writetimeout", timeout);
+
+        return properties;
     }
 }

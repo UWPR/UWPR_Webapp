@@ -671,6 +671,11 @@
 		$.ajax({
 			url:information.requestUrl,
 			cache: false,
+			// The booking is saved before the email is sent, so a request cut short here would report
+			// a failure for time that was actually scheduled. Keep this above the mail.smtp.timeout
+			// row in config_msdapl_webapp, which EmailUtils applies to each socket read and which
+			// defaults to 15 seconds.
+			timeout: 60000,
 			dataType: "json",
 			data: {"projectId":options.projectId,
 				"instrumentId": options.instrumentId,
@@ -714,7 +719,17 @@
 					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
 				}
 				catch(e) {
+					// Reported below, so there is one message whatever the response was.
+					obj = null;
+				}
+
+				// $.parseJSON returns null for an empty response. This branch returns before the closes
+				// further down, so the modal opened in beforeSend is closed here.
+				if(obj == null) {
+					$("#dialog-block-interaction").dialog("close");
+					refreshCalendar(calendar_div);
 					showErrorDialog("There was an error processing the server's response. Please contact us.");
+					return;
 				}
 
 				// console.log(obj);
@@ -771,7 +786,8 @@
 					obj = $.parseJSON(jqXHR.responseText); // An exception can be thrown if response is not JSON.
 				}
 				catch(e){
-					showErrorDialog("There was an error processing the server's response. Please contact us.");
+					// Reported below, so there is one message whatever the response was.
+					obj = null;
 				}
 
 
@@ -779,8 +795,22 @@
 
 				refreshCalendar(calendar_div);
 
-				if(obj != undefined)
+				if(textStatus === "timeout") {
+					// RequestProjectInstrumentTimeAjaxAction saves nothing when requiresConfirmation is
+					// true, so only the confirmed request can leave time on the calendar.
+					if(requiresConfirmation) {
+						showErrorDialog("The server did not respond in time. Your instrument time was not scheduled. Please try again.");
+					}
+					else {
+						showErrorDialog("The server did not respond in time. Your instrument time may have been scheduled. Check the calendar before scheduling it again.");
+					}
+				}
+				else if(obj != null) {
 					showErrorDialog(obj.message);
+				}
+				else {
+					showErrorDialog("There was an error processing the server's response. Please contact us.");
+				}
 
 
 
